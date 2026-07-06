@@ -1,0 +1,32 @@
+src/styles/global.css
+  s_53d9a3d66513b3::t_6ff11971ed1a37 281-285,287-291,296
+  s_53d9a3d66513b3::t_f82e171ff22e9b 4-5,10
+  s_53d9a3d66513b3::t_202c87d0d2f92a 95
+  s_53d9a3d66513b3::t_933d70dc14fc46 276-277
+src/components/Privacy.astro
+  s_53d9a3d66513b3::t_7e3eab906fe81e 228
+src/components/DiffBand.astro
+  s_53d9a3d66513b3::t_e7ac96f11d3dc4 85
+src/components/Models.astro
+  s_53d9a3d66513b3::t_da78a1600bd644 200-201,209,262
+src/components/OpenSource.astro
+  s_53d9a3d66513b3::t_e1db80e0f443cd 150,232
+src/components/TerminalDemo.astro
+  s_53d9a3d66513b3::t_5195459a7e9c40 242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "22a7e014b48baa9019f51dfb50bc199235b873b5",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
