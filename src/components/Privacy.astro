@@ -1,0 +1,221 @@
+---
+import Logo from './Logo.astro';
+import { AUDIT, SITE } from '../data/site';
+---
+
+<section id="privacy">
+  <div class="container">
+    <div class="priv-grid">
+      <div>
+        <p class="eyebrow">trust, verifiable</p>
+        <h2 class="section-h">Nothing phones home.</h2>
+        <p class="section-sub">
+          The only outbound traffic Uncaged makes is to the model endpoint you configured. Everything
+          else is off — not toggled off, <em>compiled</em> off. And because the whole thing is open
+          source, you don't have to take the website's word for it.
+        </p>
+        <a class="btn btn-ghost btn-small priv-btn" href={SITE.github} target="_blank" rel="noopener">
+          Read the code
+        </a>
+      </div>
+
+      <div>
+        <div class="wire">
+          <div class="wire-machine">
+            <div class="wire-machine-head">
+              <Logo idp="priv" size={18} cageOnly class="wire-mark" />
+              <span>your machine</span>
+            </div>
+            <ul>
+              <li>uncaged + uncaged_engine</li>
+              <li>keys · history · config</li>
+              <li><code>~/.uncaged/</code></li>
+            </ul>
+          </div>
+          <div class="wire-arrow" aria-hidden="true">
+            <span class="wire-label">the only outbound call</span>
+            <span class="wire-line"></span>
+          </div>
+          <div class="wire-endpoint">the endpoint<br />you chose</div>
+        </div>
+
+        <dl class="audit">
+          {
+            AUDIT.map((row) => (
+              <div class="audit-row">
+                <dt>{row.surface}</dt>
+                <dd>{row.state}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .priv-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 72px;
+    align-items: start;
+  }
+
+  .priv-btn {
+    margin-top: 28px;
+  }
+
+  .wire {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 30px;
+  }
+
+  .wire-machine {
+    background: var(--panel);
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    padding: 18px 22px;
+    flex-shrink: 0;
+  }
+
+  .wire-machine-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .wire-mark {
+    color: var(--ash);
+  }
+
+  .wire-machine ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ash);
+    line-height: 1.9;
+  }
+
+  .wire-machine code {
+    color: #6d6455;
+  }
+
+  .wire-arrow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding: 0 6px;
+    min-width: 90px;
+  }
+
+  .wire-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #6d6455;
+    white-space: nowrap;
+  }
+
+  .wire-line {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--bar), var(--ember));
+    position: relative;
+    border-radius: 2px;
+  }
+
+  .wire-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3.5px;
+    border-left: 8px solid var(--ember);
+    border-top: 4.5px solid transparent;
+    border-bottom: 4.5px solid transparent;
+  }
+
+  .wire-endpoint {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    border: 1px dashed var(--bar);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .audit {
+    margin: 0;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+  }
+
+  .audit-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 16px;
+    padding: 13px 20px;
+    background: var(--panel);
+  }
+
+  .audit-row + .audit-row {
+    border-top: 1px solid rgba(58, 46, 34, 0.6);
+  }
+
+  .audit-row dt {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .audit-row dd {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ash);
+  }
+
+  .audit-row dd::before {
+    content: '∅ ';
+    color: var(--ember);
+    font-weight: 700;
+  }
+
+  @media (max-width: 1024px) {
+    .priv-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 48px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .wire {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .wire-arrow {
+      transform: rotate(90deg);
+      max-height: 60px;
+    }
+
+    .wire-endpoint br {
+      display: none;
+    }
+  }
+</style>

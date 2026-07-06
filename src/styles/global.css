@@ -1,0 +1,344 @@
+/* ---------------------------------------------------------------------------
+   Uncaged — global styles
+   Design system v1.0 "Ember": warm night-workbench ground, ink type,
+   gold→ember accent held to a ≤10% spark.
+--------------------------------------------------------------------------- */
+
+:root {
+  /* palette */
+  --void: #0c0a08;
+  --ground-top: #15110c;
+  --panel: #1a1512;
+  --raised: #1f1b15;
+  --ink: #e9e1d4;
+  --ash: #948b7e;
+  --bar: #3a2e22;
+  --gold: #ffb23a;
+  --ember: #ff7a18;
+  --ember-deep: #ff5e10;
+
+  --grad-prompt: linear-gradient(180deg, var(--gold) 0%, var(--ember) 100%);
+
+  /* type */
+  --mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  --sans: 'Inter Variable', Inter, system-ui, -apple-system, sans-serif;
+
+  /* layout */
+  --container: 1120px;
+  --radius-s: 8px;
+  --radius: 12px;
+  --radius-l: 16px;
+
+  /* motion */
+  --fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 92px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--void);
+  background-image: linear-gradient(180deg, var(--ground-top) 0%, var(--void) 640px);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+/* the one ember in the room — a faint warm cast at the top of the page */
+body::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 110vh;
+  pointer-events: none;
+  background: radial-gradient(58% 42% at 62% -8%, rgba(255, 122, 24, 0.09), transparent 62%);
+  z-index: 0;
+}
+
+/* faint grain so the ground reads as material, not #000 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2000;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: var(--ember);
+  color: var(--void);
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ type */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--mono);
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--mono);
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ash);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.eyebrow::before {
+  content: '\276f';
+  color: var(--ember);
+  font-weight: 700;
+}
+
+.section-h {
+  font-size: clamp(26px, 3.4vw, 34px);
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 22ch;
+}
+
+.section-sub {
+  color: var(--ash);
+  max-width: 58ch;
+  margin-top: 16px;
+  font-size: 16.5px;
+}
+
+.muted {
+  color: var(--ash);
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.container {
+  width: min(var(--container), calc(100% - 48px));
+  margin-inline: auto;
+  position: relative;
+  z-index: 1;
+}
+
+section {
+  padding-block: 104px;
+}
+
+.hairline {
+  border: 0;
+  border-top: 1px solid var(--bar);
+  margin: 0;
+  opacity: 0.6;
+}
+
+/* --------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 15px 22px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--fast), border-color var(--fast), color var(--fast),
+    transform var(--fast);
+}
+
+.btn-primary {
+  background: var(--ember);
+  color: var(--void);
+}
+
+.btn-primary:hover {
+  background: var(--ember-deep);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-ghost {
+  border-color: var(--bar);
+  color: var(--ink);
+  background: transparent;
+}
+
+.btn-ghost:hover {
+  border-color: var(--ash);
+  background: rgba(233, 225, 212, 0.04);
+}
+
+.btn-small {
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+/* ----------------------------------------------------------------- cards */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--bar);
+  border-radius: var(--radius-l);
+  padding: 26px 26px 28px;
+  transition: border-color var(--fast), background-color var(--fast);
+}
+
+.card:hover {
+  border-color: #4d3e2d;
+  background: var(--raised);
+}
+
+.card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.card p {
+  color: var(--ash);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------ code block */
+
+.codeblock {
+  position: relative;
+  background: #0f0c0a;
+  border: 1px solid var(--bar);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.codeblock pre {
+  margin: 0;
+  padding: 16px 52px 16px 18px;
+  overflow-x: auto;
+  color: var(--ink);
+  scrollbar-width: thin;
+}
+
+.codeblock .prompt {
+  color: var(--ember);
+  font-weight: 700;
+  user-select: none;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ash);
+  background: var(--panel);
+  border: 1px solid var(--bar);
+  border-radius: 7px;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition: color var(--fast), border-color var(--fast);
+}
+
+.copy-btn:hover {
+  color: var(--ink);
+  border-color: var(--ash);
+}
+
+.copy-btn.copied {
+  color: var(--ember);
+  border-color: var(--ember);
+}
+
+/* the sanctioned animation: a blinking block cursor */
+.cursor-blink {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 0.12em;
+  vertical-align: text-bottom;
+  border-radius: 2px;
+  background: var(--grad-prompt);
+  animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .cursor-blink {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------- scrollbar */
+
+* {
+  scrollbar-color: var(--bar) transparent;
+}

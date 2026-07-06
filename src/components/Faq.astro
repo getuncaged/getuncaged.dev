@@ -1,0 +1,121 @@
+---
+import { FAQ, SITE } from '../data/site';
+---
+
+<section id="faq">
+  <div class="container faq-wrap">
+    <div class="sec-head">
+      <p class="eyebrow">questions</p>
+      <h2 class="section-h">Asked, answered.</h2>
+      <p class="section-sub">
+        The longer version lives in the <a class="inline-link" href={SITE.faqDoc} target="_blank" rel="noopener">repo FAQ</a> —
+        and if it's not there, <a class="inline-link" href={SITE.issues} target="_blank" rel="noopener">open an issue</a>.
+      </p>
+    </div>
+
+    <div class="faq-list">
+      {
+        FAQ.map((item, i) => (
+          <details class="faq-item" name="faq">
+            <summary>
+              <span class="faq-i">{String(i + 1).padStart(2, '0')}</span>
+              {item.q}
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </summary>
+            <p class="faq-a" set:html={item.a.replace(/`([^`]+)`/g, '<code>$1</code>')} />
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-wrap {
+    max-width: 860px;
+  }
+
+  .sec-head {
+    margin-bottom: 48px;
+  }
+
+  .inline-link {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--bar);
+  }
+
+  .inline-link:hover {
+    text-decoration-color: var(--ember);
+  }
+
+  .faq-list {
+    border-top: 1px solid var(--bar);
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--bar);
+  }
+
+  .faq-item summary {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    padding: 22px 4px;
+    font-family: var(--mono);
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+    transition: color var(--fast);
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item summary:hover {
+    color: var(--gold);
+  }
+
+  .faq-i {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #6d6455;
+  }
+
+  .faq-plus {
+    margin-left: auto;
+    color: var(--ash);
+    font-weight: 500;
+    transition: transform var(--fast);
+  }
+
+  .faq-item[open] .faq-plus {
+    transform: rotate(45deg);
+    color: var(--ember);
+  }
+
+  .faq-a {
+    padding: 0 4px 24px 44px;
+    color: var(--ash);
+    max-width: 64ch;
+  }
+
+  .faq-a :global(code) {
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--bar);
+    border-radius: 5px;
+    padding: 1.5px 6px;
+  }
+
+  @media (max-width: 560px) {
+    .faq-a {
+      padding-left: 4px;
+    }
+  }
+</style>

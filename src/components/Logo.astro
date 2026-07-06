@@ -1,0 +1,67 @@
+---
+/**
+ * The Uncaged mark, inlined. Geometry from the design-system logo kit.
+ * `fat` uses the thickened small-size strokes (cage 8 / prompt 6) — the
+ * preferred web weight. `cageOnly` drops the prompt for tiny/decorative use.
+ * `idp` must be unique per instance so gradient/clip ids don't collide.
+ */
+interface Props {
+  size?: number;
+  fat?: boolean;
+  cageOnly?: boolean;
+  idp: string;
+  class?: string;
+}
+const { size = 28, fat = true, cageOnly = false, idp, class: cls } = Astro.props;
+const cageW = fat ? 8 : 7;
+const promptW = fat ? 6 : 5;
+---
+
+<svg
+  class={cls}
+  width={size}
+  height={size}
+  viewBox="0 0 120 120"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+>
+  <defs>
+    <linearGradient id={`pr-${idp}`} gradientUnits="userSpaceOnUse" x1="44" y1="49" x2="52" y2="71">
+      <stop offset="0" stop-color="#FFB23A"></stop>
+      <stop offset="1" stop-color="#FF7A18"></stop>
+    </linearGradient>
+    <clipPath id={`gp-${idp}`}>
+      <path clip-rule="evenodd" d="M0 0 H120 V120 H0 Z M78 49 H108 V71 H78 Z"></path>
+    </clipPath>
+  </defs>
+  <path
+    clip-path={`url(#gp-${idp})`}
+    d="M31 22 H86 C97 22 101 28 96 38 L86 60 L96 82 C101 92 97 98 86 98 H31 Q19 98 19 86 V34 Q19 22 31 22 Z"
+    fill="none"
+    stroke="currentColor"
+    stroke-width={cageW}
+    stroke-linejoin="round"></path>
+  {
+    !cageOnly && (
+      <>
+        <polyline
+          points="36,49 52,60 36,71"
+          fill="none"
+          stroke={`url(#pr-${idp})`}
+          stroke-width={promptW}
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <line
+          x1="53"
+          y1="71"
+          x2="69"
+          y2="71"
+          stroke={`url(#pr-${idp})`}
+          stroke-width={promptW}
+          stroke-linecap="round"
+        />
+      </>
+    )
+  }
+</svg>

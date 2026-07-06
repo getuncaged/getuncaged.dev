@@ -1,0 +1,121 @@
+---
+import TerminalDemo from './TerminalDemo.astro';
+import { SITE } from '../data/site';
+---
+
+<section class="hero" id="top">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">a fork of the open-source warp terminal</p>
+      <h1 class="hero-h">
+        No account.<br />No cloud.<br />No cage.<span class="cursor-blink" aria-hidden="true"></span>
+      </h1>
+      <p class="hero-sub">
+        Uncaged keeps everything that makes Warp great — the agentic terminal, blocks, workflows,
+        keymaps — and removes the cloud behind it. It runs entirely on your machine: bring a local
+        model, an API key, or the CLI subscription you already pay for. Your keys never leave your
+        device.
+      </p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" id="hero-dl" href={SITE.dmg} data-dl-mac>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 1v9.3L4.9 7.2 3.8 8.3 8 12.5l4.2-4.2-1.1-1.1L8 10.3V1H8zM2 13.5h12V15H2v-1.5z"></path>
+          </svg>
+          <span id="hero-dl-label">Download for macOS</span>
+        </a>
+        <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">View source</a>
+      </div>
+      <p class="hero-meta">
+        free forever · AGPL-3.0 · macOS (Apple&nbsp;Silicon) · <a href="#download">Linux &amp; Windows in the works</a>
+      </p>
+    </div>
+
+    <div class="hero-visual">
+      <TerminalDemo />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-top: 168px;
+    padding-bottom: 96px;
+    overflow: clip;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 30fr) minmax(0, 34fr);
+    gap: 64px;
+    align-items: center;
+  }
+
+  .hero-h {
+    font-size: clamp(42px, 4.9vw, 62px);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+  }
+
+  .hero-sub {
+    margin-top: 26px;
+    color: var(--ash);
+    font-size: 17.5px;
+    max-width: 54ch;
+  }
+
+  .hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 34px;
+  }
+
+  .hero-meta {
+    margin-top: 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #6d6455;
+  }
+
+  .hero-meta a {
+    color: var(--ash);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--bar);
+  }
+
+  .hero-meta a:hover {
+    color: var(--ink);
+  }
+
+  @media (max-width: 1024px) {
+    .hero {
+      padding-top: 132px;
+    }
+
+    .hero-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 56px;
+    }
+
+    .hero-sub {
+      max-width: 62ch;
+    }
+  }
+</style>
+
+<script>
+  // If the visitor clearly isn't on macOS, route the primary CTA to the
+  // downloads section instead of the .dmg.
+  const ua = navigator.userAgent;
+  const isMac = /Mac|iPhone|iPad/.test(ua);
+  if (!isMac) {
+    const btn = document.getElementById('hero-dl') as HTMLAnchorElement | null;
+    const label = document.getElementById('hero-dl-label');
+    if (btn && label) {
+      btn.href = '#download';
+      label.textContent = 'Get Uncaged';
+    }
+  }
+</script>

@@ -1,0 +1,126 @@
+---
+import { PROVIDERS } from '../data/site';
+
+const cols = [PROVIDERS.local, PROVIDERS.api, PROVIDERS.cli];
+---
+
+<section id="models">
+  <div class="container">
+    <div class="sec-head">
+      <p class="eyebrow">bring your own model</p>
+      <h2 class="section-h">Every model. No middleman.</h2>
+      <p class="section-sub">
+        Agent Mode needs exactly one connection — and it's yours to pick. Wire it up in
+        <span class="kbd-path">Settings → AI Models</span>, swap it any time, mid-session.
+      </p>
+    </div>
+
+    <div class="model-grid">
+      {
+        cols.map((c, i) => (
+          <div class="model-col card">
+            <h3>{c.title}</h3>
+            <p>{c.blurb}</p>
+            <ul class="chip-list">
+              {c.items.map((item) => (
+                <li class="chip">{item}</li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="model-foot">
+      <div class="codeblock">
+        <pre><span class="prompt">❯</span> ./script/uncaged-setup     <span class="cmt"># or wire it up from a shell</span></pre>
+        <button class="copy-btn" data-copy="./script/uncaged-setup" aria-label="Copy setup command">copy</button>
+      </div>
+      <p class="model-note">
+        Connections live in <code>~/.uncaged/</code> — a directory on your disk, not a row in
+        someone's database.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sec-head {
+    margin-bottom: 56px;
+  }
+
+  .kbd-path {
+    font-family: var(--mono);
+    font-size: 14.5px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--bar);
+    border-radius: 6px;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+
+  .chip-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    margin: 18px 0 0;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    background: rgba(233, 225, 212, 0.045);
+    border: 1px solid var(--bar);
+    border-radius: 999px;
+    padding: 5px 12px;
+    transition: border-color var(--fast);
+  }
+
+  .model-col:hover .chip {
+    border-color: #4d3e2d;
+  }
+
+  .model-foot {
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: center;
+  }
+
+  .cmt {
+    color: #6d6455;
+  }
+
+  .model-note {
+    color: var(--ash);
+    font-size: 14.5px;
+  }
+
+  .model-note code {
+    color: var(--ink);
+    font-size: 13px;
+  }
+
+  @media (max-width: 1024px) {
+    .model-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .model-foot {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+    }
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
+---
+
+<Base title="404 — Uncaged" description="Page not found.">
+  <main class="nf">
+    <Logo idp="nf" size={54} cageOnly class="nf-mark" />
+    <p class="nf-line"><span class="nf-prompt">❯</span> open {'{page}'}</p>
+    <p class="nf-err">open: no such file or directory (404)</p>
+    <a class="btn btn-ghost" href="/">cd ~</a>
+  </main>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .nf-mark {
+    color: var(--ash);
+    margin-bottom: 14px;
+  }
+
+  .nf-line {
+    font-family: var(--mono);
+    font-size: 17px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .nf-prompt {
+    color: var(--ember);
+    margin-right: 8px;
+  }
+
+  .nf-err {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--ash);
+  }
+
+  .nf a {
+    margin-top: 22px;
+  }
+</style>

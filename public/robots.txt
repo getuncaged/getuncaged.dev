@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://getuncaged.dev/sitemap-index.xml

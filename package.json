@@ -1,0 +1,18 @@
+{
+  "name": "getuncaged.dev",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Product website for Uncaged — the agentic terminal with no account, no cloud, no cage.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.4.1",
+    "@fontsource-variable/inter": "^5.2.5",
+    "@fontsource-variable/jetbrains-mono": "^5.2.5",
+    "astro": "^5.12.0"
+  }
+}
