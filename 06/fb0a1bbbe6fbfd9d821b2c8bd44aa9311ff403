@@ -1,0 +1,42 @@
+src/components/OpenSource.astro
+  s_53d9a3d66513b3::t_98607a140c01f6 46-50,56-60
+  s_53d9a3d66513b3::t_7b5aeed42399b8 129-142,149-151
+  s_53d9a3d66513b3::t_b9b41ad8053cd0 226-248
+  s_53d9a3d66513b3::t_c85e40932c9194 24,27-29,32-34
+src/components/Models.astro
+  s_53d9a3d66513b3::t_9b30407604129c 315-317
+  s_53d9a3d66513b3::t_72b6948e5529fa 2-14,20,23-25,29-61,93-100,103,105-125,128,130-153,158-159,163-167,169-188,190-205,208-270,295-311,318-321,328-375
+  s_53d9a3d66513b3::t_03f8180a4812ea 154-157,160-162
+src/components/Privacy.astro
+  s_53d9a3d66513b3::t_ad4954024576d6 58-62
+  s_53d9a3d66513b3::t_5798cd504ecb06 10
+  s_53d9a3d66513b3::t_2512c435331922 153-181
+  s_53d9a3d66513b3::t_a1c83ee5345934 37
+src/components/Faq.astro
+  s_53d9a3d66513b3::t_86126f4e275a3a 8
+src/components/Downloads.astro
+  s_53d9a3d66513b3::t_3d635bacb96449 12
+src/components/Why.astro
+  s_53d9a3d66513b3::t_2a9c803cf78287 26
+src/components/Features.astro
+  s_53d9a3d66513b3::t_9c9ed5f452d351 44-48
+  s_53d9a3d66513b3::t_1fa3483869cfa5 2-5,11,19-30,32-43,49-112,118-122,127,129-130,133-161,163-165,168-222,226-353,355,358-363,367
+src/pages/index.astro
+  s_53d9a3d66513b3::t_0fc1877c75d9a6 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "06fb0a1bbbe6fbfd9d821b2c8bd44aa9311ff403",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
