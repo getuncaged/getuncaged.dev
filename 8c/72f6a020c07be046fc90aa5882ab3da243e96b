@@ -1,0 +1,19 @@
+.gitignore
+  s_53d9a3d66513b3::t_de5b4c01fc4c01 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8c72f6a020c07be046fc90aa5882ab3da243e96b",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
