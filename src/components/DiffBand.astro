@@ -7,6 +7,7 @@
 
 <section class="diffband">
   <div class="container diffband-inner">
+    <p class="eyebrow diffband-eyebrow">00 · what changed</p>
     <div class="why-diff" role="img" aria-label="The fork summarized as a code diff: Warp's account, cloud relay, telemetry, subscription and branding removed; a local engine, your choice of models, local keys, a swappable brand layer and the AGPL license added">
       <div class="diff-bar">
         <span class="diff-title">the fork, as a diff</span>
@@ -33,6 +34,11 @@
 
   .diffband-inner {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .diffband-eyebrow {
     justify-content: center;
   }
 

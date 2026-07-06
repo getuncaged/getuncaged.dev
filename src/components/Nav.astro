@@ -110,6 +110,14 @@ const links = [
     color: var(--ink);
   }
 
+  .nav-links a.active {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 7px;
+    text-decoration-color: var(--ember);
+    text-decoration-thickness: 2px;
+  }
+
   .nav-actions {
     display: flex;
     align-items: center;
@@ -213,4 +221,30 @@ const links = [
       btn.setAttribute('aria-expanded', 'false');
     })
   );
+
+  // scrollspy: light the nav link for the stage on screen
+  const spyIds = ['privacy', 'models', 'open-source', 'download', 'faq'];
+  const navLinks = new Map(
+    spyIds.map((id) => [id, document.querySelector(`.nav-links a[href="#${id}"]`)])
+  );
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          navLinks.forEach((l) => {
+            l?.classList.remove('active');
+            l?.removeAttribute('aria-current');
+          });
+          const link = navLinks.get(e.target.id);
+          link?.classList.add('active');
+          link?.setAttribute('aria-current', 'true');
+        }
+      }
+    },
+    { rootMargin: '-35% 0px -60% 0px' }
+  );
+  spyIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) spy.observe(el);
+  });
 </script>
