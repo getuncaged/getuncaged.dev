@@ -1,0 +1,47 @@
+src/styles/global.css
+  s_53d9a3d66513b3::t_91a07166eae014 9-18
+  s_53d9a3d66513b3::t_b629ce50dc3276 56
+  s_53d9a3d66513b3::t_65a117f27a1b3f 97,106
+  s_53d9a3d66513b3::t_94b22954803e6e 283-292,297,300,306-311,317-318,322
+  s_53d9a3d66513b3::t_743dffbae86f46 386
+src/components/DiffBand.astro
+  s_53d9a3d66513b3::t_499a69136b7227 41,54,65,78,80
+src/components/Downloads.astro
+  s_53d9a3d66513b3::t_1d8aa1354c6eb5 183
+src/components/Faq.astro
+  s_53d9a3d66513b3::t_13c47445f93ae4 86
+src/components/Footer.astro
+  s_53d9a3d66513b3::t_588b8198b7afa5 63,93,105,125,131
+src/components/Hero.astro
+  s_53d9a3d66513b3::t_4830cdb8abfcb9 65,111
+src/components/KeptStrip.astro
+  s_53d9a3d66513b3::t_cb5e10f06189b9 31
+src/components/Models.astro
+  s_53d9a3d66513b3::t_e099171425be98 94,99,109,125,142,153,169,190,224,241,247,270,282,302
+src/components/Nav.astro
+  s_53d9a3d66513b3::t_6bb107e61f86ff 57,159,170
+src/components/OpenSource.astro
+  s_53d9a3d66513b3::t_c15053ba0a2227 99,123,140,165,190,197,216
+src/components/Privacy.astro
+  s_53d9a3d66513b3::t_f4286898e28e38 115,131,209
+src/components/TerminalDemo.astro
+  s_53d9a3d66513b3::t_94a823f38b3da4 106,110,122,138,229,248,270,274,285,291
+src/layouts/Base.astro
+  s_53d9a3d66513b3::t_cd079195e73e63 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "967caecd9820b3dd0886741d7264c2ef96b4b989",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
