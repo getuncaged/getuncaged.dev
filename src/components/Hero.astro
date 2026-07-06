@@ -4,11 +4,12 @@ import { SITE } from '../data/site';
 ---
 
 <section class="hero" id="top">
+  <div class="sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <div class="container hero-grid">
     <div class="hero-copy">
       <p class="eyebrow">a fork of the open-source warp terminal</p>
       <h1 class="hero-h">
-        No account.<br />No cloud.<br />No cage.<span class="cursor-blink" aria-hidden="true"></span>
+        No account.<br />No cloud.<br /><span class="h-flame">No cage.</span><span class="cursor-blink" aria-hidden="true"></span>
       </h1>
       <p class="hero-sub">
         Uncaged keeps everything that makes Warp great — the agentic terminal, blocks, workflows,
@@ -80,6 +81,13 @@ import { SITE } from '../data/site';
     font-weight: 800;
     line-height: 1.06;
     letter-spacing: -0.025em;
+  }
+
+  .h-flame {
+    background: linear-gradient(98deg, var(--gold) 8%, var(--ember) 55%, var(--flame) 96%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .hero-sub {

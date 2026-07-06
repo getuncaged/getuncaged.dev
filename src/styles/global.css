@@ -5,17 +5,20 @@
 --------------------------------------------------------------------------- */
 
 :root {
-  /* palette */
-  --void: #0c0a08;
-  --ground-top: #15110c;
-  --panel: #1a1512;
-  --raised: #1f1b15;
-  --ink: #e9e1d4;
-  --ash: #948b7e;
-  --bar: #3a2e22;
+  /* palette — the site's own, warmer than the logo's ground:
+     a lit workshop instead of a void */
+  --void: #0f0906;
+  --ground-top: #1e1309;
+  --panel: #1e130c;
+  --raised: #251910;
+  --ink: #efe6d8;
+  --ash: #a5937e;
+  --bar: #4a3524;
   --gold: #ffb23a;
   --ember: #ff7a18;
   --ember-deep: #ff5e10;
+  --flame: #ff4d1c;
+  --teal: #2fa89b;
 
   --grad-prompt: linear-gradient(180deg, var(--gold) 0%, var(--ember) 100%);
 
@@ -48,7 +51,7 @@ html {
 body {
   margin: 0;
   background-color: var(--void);
-  background-image: linear-gradient(180deg, var(--ground-top) 0%, #100d0a 520px, var(--void) 1000px);
+  background-image: linear-gradient(180deg, var(--ground-top) 0%, #160e08 640px, var(--void) 1200px);
   color: var(--ink);
   font-family: var(--sans);
   font-size: 17px;
@@ -58,15 +61,111 @@ body {
   overflow-x: clip;
 }
 
-/* a faint page-wide warm cast; the hero carries its own living ember */
-body::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 110vh;
+/* ------------------------------------------------- the living atmosphere */
+/* three big soft light fields drifting behind everything, page-long */
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
   pointer-events: none;
-  background: radial-gradient(58% 42% at 60% -10%, rgba(255, 122, 24, 0.05), transparent 62%);
   z-index: 0;
+  overflow: hidden;
+}
+
+.atmosphere i {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.atmosphere .orb-ember {
+  width: 62vw;
+  height: 62vw;
+  top: -24vw;
+  right: -14vw;
+  background: radial-gradient(closest-side, rgba(255, 122, 24, 0.17), rgba(255, 77, 28, 0.06) 55%, transparent 72%);
+  animation: drift-a 34s ease-in-out infinite alternate;
+}
+
+.atmosphere .orb-gold {
+  width: 52vw;
+  height: 52vw;
+  bottom: 4vh;
+  left: -20vw;
+  background: radial-gradient(closest-side, rgba(255, 178, 58, 0.11), rgba(255, 122, 24, 0.04) 55%, transparent 72%);
+  animation: drift-b 41s ease-in-out infinite alternate;
+}
+
+.atmosphere .orb-teal {
+  width: 44vw;
+  height: 44vw;
+  bottom: -20vh;
+  right: 6vw;
+  background: radial-gradient(closest-side, rgba(47, 168, 155, 0.08), transparent 68%);
+  animation: drift-c 47s ease-in-out infinite alternate;
+}
+
+@keyframes drift-a {
+  to {
+    transform: translate(-9vw, 12vh) scale(1.12);
+  }
+}
+
+@keyframes drift-b {
+  to {
+    transform: translate(11vw, -9vh) scale(1.08);
+  }
+}
+
+@keyframes drift-c {
+  to {
+    transform: translate(-8vw, -11vh) scale(1.15);
+  }
+}
+
+/* rising ember sparks — sprinkle .sparks into a section and it glows */
+.sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sparks i {
+  position: absolute;
+  bottom: -6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--gold), var(--ember));
+  opacity: 0;
+  animation: spark-rise 11s linear infinite;
+}
+
+.sparks i:nth-child(1) { left: 8%; animation-delay: 0s; animation-duration: 12s; }
+.sparks i:nth-child(2) { left: 21%; animation-delay: 3.2s; animation-duration: 15s; width: 3px; height: 3px; }
+.sparks i:nth-child(3) { left: 34%; animation-delay: 7.1s; animation-duration: 10s; }
+.sparks i:nth-child(4) { left: 47%; animation-delay: 1.6s; animation-duration: 16s; width: 3px; height: 3px; }
+.sparks i:nth-child(5) { left: 58%; animation-delay: 5.4s; animation-duration: 12.5s; }
+.sparks i:nth-child(6) { left: 69%; animation-delay: 9s; animation-duration: 14s; width: 5px; height: 5px; }
+.sparks i:nth-child(7) { left: 81%; animation-delay: 2.4s; animation-duration: 11s; }
+.sparks i:nth-child(8) { left: 92%; animation-delay: 6.2s; animation-duration: 15.5s; width: 3px; height: 3px; }
+
+@keyframes spark-rise {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-88vh) translateX(4vw);
+    opacity: 0;
+  }
 }
 
 /* slow warmth for glows — the page equivalent of a cursor at rest */
@@ -78,6 +177,13 @@ body::before {
   to {
     opacity: 1;
     transform: scale(1.055);
+  }
+}
+
+/* marquee for the kept-features ticker */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -266,7 +372,7 @@ section {
 
 .codeblock {
   position: relative;
-  background: #0f0c0a;
+  background: #150d08;
   border: 1px solid var(--bar);
   border-radius: var(--radius);
   font-size: 13px;

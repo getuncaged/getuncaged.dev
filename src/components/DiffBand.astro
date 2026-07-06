@@ -1,0 +1,87 @@
+---
+/**
+ * The minimized "why": no heading, no pillars — just the fork stated
+ * as a diff, centered, and out of the way.
+ */
+---
+
+<section class="diffband">
+  <div class="container diffband-inner">
+    <div class="why-diff" role="img" aria-label="The fork summarized as a code diff: Warp's account, cloud relay, telemetry, subscription and branding removed; a local engine, your choice of models, local keys, a swappable brand layer and the AGPL license added">
+      <div class="diff-bar">
+        <span class="diff-title">the fork, as a diff</span>
+        <span class="diff-file">warp → uncaged</span>
+      </div>
+      <pre class="diff-body"><span class="d-del">-  warp account required for agent mode</span>
+<span class="d-del">-  agent requests relayed through warp's cloud</span>
+<span class="d-del">-  telemetry, crash reporting, cloud sync</span>
+<span class="d-del">-  subscription, credits, request caps</span>
+<span class="d-del">-  warp &amp; oz marks baked through the ui</span>
+<span class="d-add">+  uncaged_engine — the agent runs on your machine</span>
+<span class="d-add">+  your models: local runtime, api key, or cli agent</span>
+<span class="d-add">+  your keys, on your disk, nowhere else</span>
+<span class="d-add">+  one brand layer — swap it for yours in three files</span>
+<span class="d-add">+  free forever under agpl-3.0</span></pre>
+    </div>
+  </div>
+</section>
+
+<style>
+  .diffband {
+    padding-block: 84px;
+  }
+
+  .diffband-inner {
+    display: flex;
+    justify-content: center;
+  }
+
+  .why-diff {
+    width: min(720px, 100%);
+    background: #170d07;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    box-shadow: 0 24px 60px -22px rgba(0, 0, 0, 0.85);
+  }
+
+  .diff-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--bar);
+    background: rgba(37, 25, 16, 0.6);
+    font-family: var(--mono);
+    font-size: 11.5px;
+  }
+
+  .diff-title {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .diff-file {
+    color: #7d6c58;
+  }
+
+  .diff-body {
+    margin: 0;
+    padding: 18px 22px;
+    font-size: 12.5px;
+    line-height: 1.9;
+    overflow-x: auto;
+  }
+
+  .d-del {
+    display: block;
+    color: #8a7963;
+    text-decoration: line-through;
+    text-decoration-color: rgba(138, 121, 99, 0.45);
+  }
+
+  .d-add {
+    display: block;
+    color: var(--gold);
+  }
+</style>
