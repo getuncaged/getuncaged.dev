@@ -1,0 +1,48 @@
+src/data/site.ts
+  s_53d9a3d66513b3::t_68826a146c03db 95
+src/components/Privacy.astro
+  s_53d9a3d66513b3::t_24f80c5962a9ed 228
+  s_53d9a3d66513b3::t_b92296417cfd28 59,115,131,209
+src/styles/global.css
+  s_53d9a3d66513b3::t_e210a262d759c8 3-5
+  s_53d9a3d66513b3::t_920df00155a084 9-17,22
+  s_53d9a3d66513b3::t_83126a0d858d6d 55
+  s_53d9a3d66513b3::t_7584e04402c2be 83-87,92-96,101-102,104-105
+  s_53d9a3d66513b3::t_2337631e2f64b8 376
+src/components/DiffBand.astro
+  s_53d9a3d66513b3::t_e99bcfacaf1b3e 41,54,65,78,80,85
+src/components/Downloads.astro
+  s_53d9a3d66513b3::t_394b199d81a333 127,183
+src/components/Faq.astro
+  s_53d9a3d66513b3::t_efbac7788d5709 86
+src/components/Footer.astro
+  s_53d9a3d66513b3::t_b21aada45d3942 63,93,105,125,131
+src/components/Hero.astro
+  s_53d9a3d66513b3::t_33993b1bea67cc 111
+src/components/KeptStrip.astro
+  s_53d9a3d66513b3::t_719e8db86bd786 31
+src/components/Models.astro
+  s_53d9a3d66513b3::t_d253945c84315d 94,109,125,142,153,169,200-201,209,224,241,247,262,270,282,302
+src/components/Nav.astro
+  s_53d9a3d66513b3::t_ed916848389ce5 57,159,170
+src/components/OpenSource.astro
+  s_53d9a3d66513b3::t_1104bceff682ec 99,123,140,145,165,190,197,216
+src/components/TerminalDemo.astro
+  s_53d9a3d66513b3::t_72c434fbd70075 106,122,138,242,248,270,285,291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e52ea1d879d703eaa3debe895540af8fd756976e",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
