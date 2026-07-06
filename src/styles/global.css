@@ -1,14 +1,13 @@
 /* ---------------------------------------------------------------------------
    Uncaged — global styles
    The site's own palette (the "Ember" design system stays with the logo):
-   neutral charcoal ground, ink type, and a two-temperature accent language —
-   ember for action/outbound/attention, teal for yours/safe/ok.
+   cool bases everywhere — blue-black night, gray daylight — so the gold/ember
+   brand accents are the only warmth on the page.
 --------------------------------------------------------------------------- */
 
 :root {
   /* palette — the site's own, COOL base so the ember brand accents are the
-     only warmth on the page (blue↔orange complementary contrast).
-     ember = action/outbound/attention, teal = yours/safe/ok. */
+     only warmth on the page (blue↔orange complementary contrast). */
   --void: #0b0d12;
   --ground-top: #12151d;
   --panel: #12151c;
@@ -20,7 +19,6 @@
   --ember: #ff7a18;
   --ember-deep: #ff5e10;
   --flame: #ff4d1c;
-  --teal: #3ec9b4;
 
   --grad-prompt: linear-gradient(180deg, var(--gold) 0%, var(--ember) 100%);
 
@@ -94,7 +92,7 @@ body {
   height: 54vw;
   bottom: 2vh;
   left: -22vw;
-  background: radial-gradient(closest-side, rgba(62, 201, 180, 0.08), rgba(62, 201, 180, 0.03) 55%, transparent 72%);
+  background: radial-gradient(closest-side, rgba(96, 132, 195, 0.08), rgba(96, 132, 195, 0.03) 55%, transparent 72%);
   animation: drift-b 41s ease-in-out infinite alternate;
 }
 
@@ -275,26 +273,27 @@ pre {
 }
 
 /* ------------------------------------------------------------- daylight */
-/* The page isn't one endless dark void: the body of the site runs on warm
-   paper, where the dark terminal artifacts float and pop. Scoped by
+/* The page isn't one endless dark void: the body runs on a cool light-gray
+   ground where the dark terminal artifacts float and pop. Scoped by
    re-declaring the tokens — every component re-themes automatically. */
 
 .daylight {
-  --void: #f3f5f9;
-  --ground-top: #f3f5f9;
-  --panel: #ffffff;
-  --raised: #ffffff;
+  /* one unified cool-gray family — nothing in here is white */
+  --void: #e7ebf1;
+  --ground-top: #e7ebf1;
+  --panel: #edf0f5;
+  --raised: #edf0f5;
   --ink: #161a24;
-  --ash: #5a6274;
-  --bar: #d8dde6;
-  --muted: #7b8294;
-  --paper-deep: #e8ecf2;
-  --line-soft: rgba(90, 100, 120, 0.28);
+  --ash: #566073;
+  --bar: #c7ceda;
+  --muted: #747d90;
+  --paper-deep: #dce2ea;
+  --line-soft: rgba(90, 100, 120, 0.3);
 
   position: relative;
   z-index: 1;
   background: var(--void);
-  border-block: 1px solid #d8dde6;
+  border-block: 1px solid #c7ceda;
 }
 
 /* terminal-flavored artifacts stay dark islands on the light ground */

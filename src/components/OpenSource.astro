@@ -147,7 +147,7 @@ const files = [
   }
 
   .os-fork-mark {
-    color: #3ac0b0;
+    color: #6aa8ff;
     transition: color 0.6s ease;
   }
 
@@ -229,7 +229,7 @@ const files = [
   const tile = document.getElementById('os-yours');
   const mark = tile?.querySelector<SVGElement>('.os-fork-mark');
   if (tile && mark && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const tints = ['#3ac0b0', '#6aa8ff', '#7bd88f', '#ff6ac1', '#c8b8ff'];
+    const tints = ['#6aa8ff', '#6aa8ff', '#7bd88f', '#ff6ac1', '#c8b8ff'];
     let i = 0;
     const io = new IntersectionObserver(
       (entries) => {
