@@ -92,7 +92,7 @@ export const AUDIT = [
   { surface: 'Telemetry & analytics', state: 'off, enforced in code' },
   { surface: 'Crash reporting', state: 'not compiled into the build' },
   { surface: 'Cloud sync & conversation storage', state: 'none — history stays in ~/.uncaged/' },
-  { surface: 'Auto-update phone-home', state: 'none — you update when you choose' },
+  { surface: 'Update checks', state: 'none — updates are manual, from GitHub Releases' },
 ];
 
 export const FAQ = [

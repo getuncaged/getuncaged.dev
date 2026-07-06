@@ -1,24 +1,25 @@
 /* ---------------------------------------------------------------------------
    Uncaged — global styles
-   Design system v1.0 "Ember": warm night-workbench ground, ink type,
-   gold→ember accent held to a ≤10% spark.
+   The site's own palette (the "Ember" design system stays with the logo):
+   neutral charcoal ground, ink type, and a two-temperature accent language —
+   ember for action/outbound/attention, teal for yours/safe/ok.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* palette — the site's own, warmer than the logo's ground:
-     a lit workshop instead of a void */
-  --void: #0f0906;
-  --ground-top: #1e1309;
-  --panel: #1e130c;
-  --raised: #251910;
-  --ink: #efe6d8;
-  --ash: #a5937e;
-  --bar: #4a3524;
+  /* palette — the site's own. Neutral charcoal ground so the accents can
+     breathe; ember = action/outbound/attention, teal = yours/safe/ok. */
+  --void: #121110;
+  --ground-top: #1b1815;
+  --panel: #1b1815;
+  --raised: #22201c;
+  --ink: #efe9de;
+  --ash: #9d9488;
+  --bar: #3d372e;
   --gold: #ffb23a;
   --ember: #ff7a18;
   --ember-deep: #ff5e10;
   --flame: #ff4d1c;
-  --teal: #2fa89b;
+  --teal: #3ec9b4;
 
   --grad-prompt: linear-gradient(180deg, var(--gold) 0%, var(--ember) 100%);
 
@@ -51,7 +52,7 @@ html {
 body {
   margin: 0;
   background-color: var(--void);
-  background-image: linear-gradient(180deg, var(--ground-top) 0%, #160e08 640px, var(--void) 1200px);
+  background-image: linear-gradient(180deg, var(--ground-top) 0%, #161412 640px, var(--void) 1200px);
   color: var(--ink);
   font-family: var(--sans);
   font-size: 17px;
@@ -79,29 +80,29 @@ body {
 }
 
 .atmosphere .orb-ember {
-  width: 62vw;
-  height: 62vw;
-  top: -24vw;
-  right: -14vw;
-  background: radial-gradient(closest-side, rgba(255, 122, 24, 0.17), rgba(255, 77, 28, 0.06) 55%, transparent 72%);
+  width: 58vw;
+  height: 58vw;
+  top: -22vw;
+  right: -12vw;
+  background: radial-gradient(closest-side, rgba(255, 122, 24, 0.12), rgba(255, 77, 28, 0.04) 55%, transparent 72%);
   animation: drift-a 34s ease-in-out infinite alternate;
 }
 
 .atmosphere .orb-gold {
-  width: 52vw;
-  height: 52vw;
-  bottom: 4vh;
-  left: -20vw;
-  background: radial-gradient(closest-side, rgba(255, 178, 58, 0.11), rgba(255, 122, 24, 0.04) 55%, transparent 72%);
+  width: 54vw;
+  height: 54vw;
+  bottom: 2vh;
+  left: -22vw;
+  background: radial-gradient(closest-side, rgba(62, 201, 180, 0.09), rgba(62, 201, 180, 0.03) 55%, transparent 72%);
   animation: drift-b 41s ease-in-out infinite alternate;
 }
 
 .atmosphere .orb-teal {
-  width: 44vw;
-  height: 44vw;
+  width: 46vw;
+  height: 46vw;
   bottom: -20vh;
-  right: 6vw;
-  background: radial-gradient(closest-side, rgba(47, 168, 155, 0.08), transparent 68%);
+  right: 4vw;
+  background: radial-gradient(closest-side, rgba(64, 130, 160, 0.07), transparent 68%);
   animation: drift-c 47s ease-in-out infinite alternate;
 }
 
@@ -372,7 +373,7 @@ section {
 
 .codeblock {
   position: relative;
-  background: #150d08;
+  background: #151311;
   border: 1px solid var(--bar);
   border-radius: var(--radius);
   font-size: 13px;
