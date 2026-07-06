@@ -56,7 +56,7 @@ import { AUDIT, SITE } from '../data/site';
 
 <style>
   #privacy {
-    background: #100f0d;
+    background: var(--paper-deep, #100f0d);
     border-block: 1px solid var(--bar);
   }
 
@@ -112,7 +112,7 @@ import { AUDIT, SITE } from '../data/site';
   }
 
   .wire-machine code {
-    color: #7a7368;
+    color: var(--muted, #7a7368);
   }
 
   .wire-arrow {
@@ -128,7 +128,7 @@ import { AUDIT, SITE } from '../data/site';
   .wire-label {
     font-family: var(--mono);
     font-size: 10px;
-    color: #7a7368;
+    color: var(--muted, #7a7368);
     white-space: nowrap;
   }
 
@@ -206,7 +206,7 @@ import { AUDIT, SITE } from '../data/site';
   }
 
   .audit-row + .audit-row {
-    border-top: 1px solid rgba(66, 60, 52, 0.6);
+    border-top: 1px solid var(--line-soft, rgba(66, 60, 52, 0.6));
   }
 
   .audit-row dt {

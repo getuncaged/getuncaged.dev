@@ -273,6 +273,54 @@ pre {
   color: var(--ash);
 }
 
+/* ------------------------------------------------------------- daylight */
+/* The page isn't one endless dark void: the body of the site runs on warm
+   paper, where the dark terminal artifacts float and pop. Scoped by
+   re-declaring the tokens — every component re-themes automatically. */
+
+.daylight {
+  --void: #f4ede1;
+  --ground-top: #f4ede1;
+  --panel: #fbf7ee;
+  --raised: #fffdf6;
+  --ink: #241c12;
+  --ash: #6e5f4b;
+  --bar: #d8cbb4;
+  --muted: #8a7a63;
+  --paper-deep: #ece2cd;
+  --line-soft: rgba(122, 100, 74, 0.35);
+
+  position: relative;
+  z-index: 1;
+  background: var(--void);
+  border-block: 1px solid #d8cbb4;
+}
+
+/* terminal-flavored artifacts stay dark islands on the paper */
+.daylight .why-diff,
+.daylight .sw-window,
+.daylight .codeblock,
+.daylight .os-tile:not(.os-tile-yours),
+.daylight .wire-machine {
+  --ink: #efe9de;
+  --ash: #9d9488;
+  --bar: #3d372e;
+  --panel: #1b1815;
+  --raised: #22201c;
+  --muted: #7a7368;
+}
+
+.daylight .why-diff,
+.daylight .sw-window {
+  box-shadow:
+    0 28px 56px -22px rgba(74, 48, 22, 0.38),
+    0 8px 20px -10px rgba(74, 48, 22, 0.22);
+}
+
+.daylight .btn-ghost:hover {
+  background: rgba(36, 28, 18, 0.05);
+}
+
 /* ---------------------------------------------------------------- layout */
 
 .container {
