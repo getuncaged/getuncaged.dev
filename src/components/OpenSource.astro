@@ -21,16 +21,17 @@ const files = [
 <section id="open-source">
   <div class="container os-grid">
     <div class="os-copy">
-      <p class="eyebrow">actually open source</p>
+      <p class="eyebrow">04 · actually open source</p>
       <h2 class="section-h">Fork it. All of it.</h2>
       <p class="section-sub">
-        Most "open" apps still lean on someone's cloud — an account here, a telemetry endpoint
-        there, a logo baked into forty assets. Uncaged carved it all out: no upstream services, no
-        profiles, and no Warp or Oz marks anywhere in the product.
+        Setting the agent free was half the job. The other half: every upstream server dependency
+        and account profile carved out, every Warp and Oz logo and mention removed, and the whole
+        design unified into one thin brand layer that's easy to tweak.
       </p>
       <p class="section-sub">
-        What's left is one thin brand layer. Swap three files, rebuild, and it's your terminal —
-        same engine, same UI, your name on it. No infrastructure to carve out first.
+        So it's not just free to use with any agent — it's free to take. Swap three files, rebuild,
+        and it's your terminal: your name, your mark, your palette, on a working engine and UI. No
+        infrastructure to carve out yourself. Build on top however you'd like.
       </p>
       <div class="os-ctas">
         <a class="btn btn-ghost btn-small" href={SITE.forkingDoc} target="_blank" rel="noopener">
@@ -42,15 +43,21 @@ const files = [
 
     <div class="os-card">
       <div class="os-swap" aria-label="Swap the Uncaged mark for your own">
-        <div class="os-tile">
-          <Logo idp="os-ours" size={38} />
+        <div class="os-side">
+          <div class="os-tile">
+            <Logo idp="os-ours" size={38} />
+          </div>
+          <span class="os-cap">ours</span>
         </div>
         <div class="os-arrow" aria-hidden="true">
           <span class="os-arrow-label">swap</span>
           <span class="os-arrow-line"></span>
         </div>
-        <div class="os-tile os-tile-yours">
-          <span>your<br />mark</span>
+        <div class="os-side">
+          <div class="os-tile os-tile-yours" id="os-yours">
+            <Logo idp="os-yours" size={38} cageOnly class="os-fork-mark" />
+          </div>
+          <span class="os-cap">yours</span>
         </div>
       </div>
 
@@ -119,19 +126,29 @@ const files = [
     color: var(--ink);
   }
 
+  .os-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .os-cap {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #6d6455;
+  }
+
   .os-tile-yours {
     border-style: dashed;
     border-color: #4d3e2d;
     background: transparent;
   }
 
-  .os-tile-yours span {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    font-weight: 500;
-    color: #6d6455;
-    text-align: center;
-    line-height: 1.5;
+  .os-fork-mark {
+    color: #3ac0b0;
+    transition: color 0.6s ease;
   }
 
   .os-arrow {
@@ -206,3 +223,26 @@ const files = [
     }
   }
 </style>
+
+<script>
+  // forks recolor the mark — show it
+  const tile = document.getElementById('os-yours');
+  const mark = tile?.querySelector<SVGElement>('.os-fork-mark');
+  if (tile && mark && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const tints = ['#3ac0b0', '#6aa8ff', '#7bd88f', '#ff6ac1', '#c8b8ff'];
+    let i = 0;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          setInterval(() => {
+            i = (i + 1) % tints.length;
+            mark.style.color = tints[i]!;
+          }, 2400);
+        }
+      },
+      { threshold: 0.4 }
+    );
+    io.observe(tile);
+  }
+</script>

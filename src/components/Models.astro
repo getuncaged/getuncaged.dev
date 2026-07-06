@@ -1,34 +1,64 @@
 ---
-import { PROVIDERS } from '../data/site';
-
-const cols = [PROVIDERS.local, PROVIDERS.api, PROVIDERS.cli];
+/**
+ * The BYO-model story as the product artifact itself: a Settings → AI Models
+ * window. The connected row cycles between a local runtime, an API key, and a
+ * CLI agent — same session, any brain.
+ */
+const groups = [
+  { label: 'local runtime', items: ['Ollama', 'LM Studio', 'llama.cpp', 'vLLM'] },
+  {
+    label: 'api key',
+    items: ['Anthropic', 'OpenAI', 'Google', 'Mistral', 'DeepSeek', 'Groq', 'Together', 'xAI', 'OpenRouter', 'OpenAI-compatible'],
+  },
+  { label: 'cli agent · acp', items: ['Claude Code', 'Codex CLI', 'Gemini CLI'] },
+];
 ---
 
 <section id="models">
   <div class="container">
     <div class="sec-head">
-      <p class="eyebrow">bring your own model</p>
+      <p class="eyebrow">03 · bring your own model</p>
       <h2 class="section-h">Every model. No middleman.</h2>
       <p class="section-sub">
-        Agent Mode needs exactly one connection — and it's yours to pick. Wire it up in
-        <span class="kbd-path">Settings → AI Models</span>, swap it any time, mid-session.
+        Agent Mode needs exactly one connection — a local runtime on your GPU, a hosted key, or the
+        CLI subscription you already pay for. Wire it up in
+        <span class="kbd-path">Settings → AI Models</span> and swap it any time, mid-session.
       </p>
     </div>
 
-    <div class="model-grid">
-      {
-        cols.map((c, i) => (
-          <div class="model-col card">
-            <h3>{c.title}</h3>
-            <p>{c.blurb}</p>
-            <ul class="chip-list">
-              {c.items.map((item) => (
-                <li class="chip">{item}</li>
-              ))}
-            </ul>
-          </div>
-        ))
-      }
+    <div class="sw-window" id="switchboard" role="img" aria-label="Uncaged settings window listing model providers — local runtimes, API keys and CLI agents — with one connected at a time">
+      <div class="sw-bar">
+        <span class="sw-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="sw-title">settings — ai models</span>
+        <span class="sw-hint">one connection is all it takes</span>
+      </div>
+      <div class="sw-body">
+        <div class="sw-list">
+          {
+            groups.map((g) => (
+              <div class="sw-group">
+                <p class="sw-group-label">{g.label}</p>
+                {g.items.map((item) => (
+                  <div class="sw-row" data-provider={item}>
+                    <span class="sw-name">{item}</span>
+                    <span class="sw-state" aria-hidden="true">connect</span>
+                  </div>
+                ))}
+              </div>
+            ))
+          }
+        </div>
+        <div class="sw-detail">
+          <p class="sw-detail-label">connected</p>
+          <p class="sw-detail-name" id="sw-name">Ollama</p>
+          <p class="sw-detail-model" id="sw-model">qwen3-coder · localhost:11434</p>
+          <div class="sw-detail-sep"></div>
+          <p class="sw-detail-line">agent mode <b class="sw-live">● live</b></p>
+          <p class="sw-detail-line">config <code>~/.uncaged/engine.json</code></p>
+          <p class="sw-detail-line">keys <span>on your disk, nowhere else</span></p>
+          <p class="sw-detail-foot">swap providers mid-session — takes effect on the next reply</p>
+        </div>
+      </div>
     </div>
 
     <div class="model-foot">
@@ -60,35 +90,184 @@ const cols = [PROVIDERS.local, PROVIDERS.api, PROVIDERS.cli];
     white-space: nowrap;
   }
 
-  .model-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+  .sw-window {
+    background: #100d0b;
+    border: 1px solid var(--bar);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(233, 225, 212, 0.05) inset,
+      0 24px 70px -18px rgba(0, 0, 0, 0.85);
   }
 
-  .chip-list {
-    list-style: none;
+  .sw-bar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 0;
-    margin: 18px 0 0;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--bar);
+    background: rgba(26, 21, 18, 0.6);
   }
 
-  .chip {
+  .sw-dots {
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  .sw-dots i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--bar);
+  }
+
+  .sw-dots i:first-child {
+    background: #4d3e2d;
+  }
+
+  .sw-title {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ash);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sw-hint {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: #6d6455;
+    white-space: nowrap;
+  }
+
+  .sw-body {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+
+  .sw-list {
+    padding: 18px 10px 18px 18px;
+    border-right: 1px solid rgba(58, 46, 34, 0.6);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 10px;
+    align-content: start;
+  }
+
+  .sw-group:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+
+  .sw-group-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: #6d6455;
+    letter-spacing: 0.05em;
+    padding: 0 10px 7px;
+  }
+
+  .sw-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     font-family: var(--mono);
     font-size: 12px;
-    font-weight: 500;
-    color: var(--ink);
-    background: rgba(233, 225, 212, 0.045);
-    border: 1px solid var(--bar);
-    border-radius: 999px;
-    padding: 5px 12px;
-    transition: border-color var(--fast);
+    color: var(--ash);
+    border-radius: 8px;
+    padding: 6.5px 10px;
+    border: 1px solid transparent;
+    transition: color var(--fast), background-color var(--fast), border-color var(--fast);
   }
 
-  .model-col:hover .chip {
-    border-color: #4d3e2d;
+  .sw-row:hover {
+    color: var(--ink);
+    background: rgba(233, 225, 212, 0.03);
+  }
+
+  .sw-state {
+    font-size: 9.5px;
+    color: #55483a;
+  }
+
+  .sw-row.on {
+    color: var(--ink);
+    background: rgba(255, 122, 24, 0.06);
+    border-color: rgba(255, 122, 24, 0.25);
+  }
+
+  .sw-row.on .sw-name {
+    font-weight: 700;
+  }
+
+  .sw-row.on .sw-state {
+    color: var(--ember);
+    font-weight: 700;
+  }
+
+  .sw-detail {
+    padding: 24px 26px;
+    font-family: var(--mono);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: linear-gradient(180deg, rgba(26, 21, 18, 0.35), transparent);
+  }
+
+  .sw-detail-label {
+    font-size: 10px;
+    color: #6d6455;
+    letter-spacing: 0.05em;
+  }
+
+  .sw-detail-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .sw-detail-model {
+    font-size: 11.5px;
+    color: var(--ash);
+  }
+
+  .sw-detail-sep {
+    height: 1px;
+    background: rgba(58, 46, 34, 0.6);
+    margin: 10px 0;
+  }
+
+  .sw-detail-line {
+    font-size: 11.5px;
+    color: #6d6455;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sw-detail-line b,
+  .sw-detail-line span,
+  .sw-detail-line code {
+    color: var(--ash);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .sw-live {
+    color: var(--ember) !important;
+    font-weight: 700 !important;
+  }
+
+  .sw-detail-foot {
+    margin-top: auto;
+    padding-top: 14px;
+    font-size: 10.5px;
+    color: #6d6455;
   }
 
   .model-foot {
@@ -113,14 +292,84 @@ const cols = [PROVIDERS.local, PROVIDERS.api, PROVIDERS.cli];
     font-size: 13px;
   }
 
-  @media (max-width: 1024px) {
-    .model-grid {
+  @media (max-width: 900px) {
+    .sw-body {
       grid-template-columns: minmax(0, 1fr);
     }
 
+    .sw-list {
+      border-right: 0;
+      border-bottom: 1px solid rgba(58, 46, 34, 0.6);
+    }
+
+    .sw-hint {
+      display: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .sw-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sw-group:nth-child(2) {
+      grid-column: 1;
+      grid-row: auto;
+    }
+  }
+
+  @media (max-width: 1024px) {
     .model-foot {
       grid-template-columns: minmax(0, 1fr);
       gap: 14px;
     }
   }
 </style>
+
+<script>
+  const sw = document.getElementById('switchboard');
+  if (sw) {
+    const rows = Array.from(sw.querySelectorAll<HTMLElement>('.sw-row'));
+    const nameEl = document.getElementById('sw-name')!;
+    const modelEl = document.getElementById('sw-model')!;
+    const details: Record<string, string> = {
+      Ollama: 'qwen3-coder · localhost:11434',
+      Anthropic: 'sonnet · api.anthropic.com',
+      'Claude Code': 'your plan · over acp',
+      'LM Studio': 'devstral · localhost:1234',
+      OpenRouter: 'any model · openrouter.ai',
+    };
+    const cycle = ['Ollama', 'Anthropic', 'Claude Code', 'LM Studio', 'OpenRouter'];
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function activate(name: string) {
+      rows.forEach((r) => {
+        const on = r.dataset.provider === name;
+        r.classList.toggle('on', on);
+        const state = r.querySelector('.sw-state');
+        if (state) state.textContent = on ? '● connected' : 'connect';
+      });
+      nameEl.textContent = name;
+      modelEl.textContent = details[name] ?? '';
+    }
+
+    activate('Ollama');
+
+    if (!reduced) {
+      let i = 0;
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            setInterval(() => {
+              i = (i + 1) % cycle.length;
+              activate(cycle[i]!);
+            }, 3000);
+          }
+        },
+        { threshold: 0.4 }
+      );
+      io.observe(sw);
+    }
+  }
+</script>

@@ -7,7 +7,7 @@ import { AUDIT, SITE } from '../data/site';
   <div class="container">
     <div class="priv-grid">
       <div>
-        <p class="eyebrow">trust, verifiable</p>
+        <p class="eyebrow">05 · trust, verifiable</p>
         <h2 class="section-h">Nothing phones home.</h2>
         <p class="section-sub">
           The only outbound traffic Uncaged makes is to the model endpoint you configured. Everything
@@ -34,7 +34,7 @@ import { AUDIT, SITE } from '../data/site';
           </div>
           <div class="wire-arrow" aria-hidden="true">
             <span class="wire-label">the only outbound call</span>
-            <span class="wire-line"></span>
+            <span class="wire-line"><i class="wire-pulse"></i></span>
           </div>
           <div class="wire-endpoint">the endpoint<br />you chose</div>
         </div>
@@ -55,6 +55,11 @@ import { AUDIT, SITE } from '../data/site';
 </section>
 
 <style>
+  #privacy {
+    background: #0a0806;
+    border-block: 1px solid var(--bar);
+  }
+
   .priv-grid {
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
@@ -143,6 +148,35 @@ import { AUDIT, SITE } from '../data/site';
     border-left: 8px solid var(--ember);
     border-top: 4.5px solid transparent;
     border-bottom: 4.5px solid transparent;
+  }
+
+  .wire-pulse {
+    position: absolute;
+    top: -2.5px;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px 1px rgba(255, 178, 58, 0.55);
+    animation: wire-travel 2.8s ease-in-out infinite;
+  }
+
+  @keyframes wire-travel {
+    0% {
+      left: 0%;
+      opacity: 0;
+    }
+    14% {
+      opacity: 1;
+    }
+    86% {
+      opacity: 1;
+    }
+    100% {
+      left: calc(100% - 7px);
+      opacity: 0;
+    }
   }
 
   .wire-endpoint {
