@@ -1,8 +1,8 @@
 /* ---------------------------------------------------------------------------
    Uncaged — global styles
    The site's own palette (the "Ember" design system stays with the logo):
-   cool bases everywhere — blue-black night, gray daylight — so the gold/ember
-   brand accents are the only warmth on the page.
+   one cool blue-black family throughout, so the gold/ember brand accents
+   are the only warmth on the page.
 --------------------------------------------------------------------------- */
 
 :root {
@@ -270,55 +270,6 @@ pre {
 
 .muted {
   color: var(--ash);
-}
-
-/* ------------------------------------------------------------- daylight */
-/* The page isn't one endless dark void: the body runs on a cool light-gray
-   ground where the dark terminal artifacts float and pop. Scoped by
-   re-declaring the tokens — every component re-themes automatically. */
-
-.daylight {
-  /* one unified cool-gray family — nothing in here is white */
-  --void: #e7ebf1;
-  --ground-top: #e7ebf1;
-  --panel: #edf0f5;
-  --raised: #edf0f5;
-  --ink: #161a24;
-  --ash: #566073;
-  --bar: #c7ceda;
-  --muted: #747d90;
-  --paper-deep: #dce2ea;
-  --line-soft: rgba(90, 100, 120, 0.3);
-
-  position: relative;
-  z-index: 1;
-  background: var(--void);
-  border-block: 1px solid #c7ceda;
-}
-
-/* terminal-flavored artifacts stay dark islands on the light ground */
-.daylight .why-diff,
-.daylight .sw-window,
-.daylight .codeblock,
-.daylight .os-tile:not(.os-tile-yours),
-.daylight .wire-machine {
-  --ink: #e8ebf2;
-  --ash: #8b93a5;
-  --bar: #262c3a;
-  --panel: #12151c;
-  --raised: #171b24;
-  --muted: #6a7284;
-}
-
-.daylight .why-diff,
-.daylight .sw-window {
-  box-shadow:
-    0 28px 56px -22px rgba(15, 23, 42, 0.35),
-    0 8px 20px -10px rgba(15, 23, 42, 0.2);
-}
-
-.daylight .btn-ghost:hover {
-  background: rgba(22, 26, 36, 0.05);
 }
 
 /* ---------------------------------------------------------------- layout */
