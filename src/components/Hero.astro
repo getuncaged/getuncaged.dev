@@ -38,9 +38,34 @@ import { SITE } from '../data/site';
 
 <style>
   .hero {
+    position: relative;
     padding-top: 168px;
     padding-bottom: 96px;
     overflow: clip;
+  }
+
+  /* the one ember in the room, breathing slowly */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: -12% -8% 0;
+    pointer-events: none;
+    background: radial-gradient(44% 38% at 64% 24%, rgba(255, 122, 24, 0.11), transparent 64%);
+    animation: breathe 13s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+
+  /* fine workbench grid, fading in around the terminal */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(233, 225, 212, 0.07) 1px, transparent 1.3px);
+    background-size: 27px 27px;
+    -webkit-mask-image: radial-gradient(56% 64% at 66% 40%, #000 20%, transparent 74%);
+    mask-image: radial-gradient(56% 64% at 66% 40%, #000 20%, transparent 74%);
+    z-index: 0;
   }
 
   .hero-grid {

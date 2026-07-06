@@ -48,7 +48,7 @@ html {
 body {
   margin: 0;
   background-color: var(--void);
-  background-image: linear-gradient(180deg, var(--ground-top) 0%, var(--void) 640px);
+  background-image: linear-gradient(180deg, var(--ground-top) 0%, #100d0a 520px, var(--void) 1000px);
   color: var(--ink);
   font-family: var(--sans);
   font-size: 17px;
@@ -58,15 +58,27 @@ body {
   overflow-x: clip;
 }
 
-/* the one ember in the room — a faint warm cast at the top of the page */
+/* a faint page-wide warm cast; the hero carries its own living ember */
 body::before {
   content: '';
   position: absolute;
   inset: 0 0 auto 0;
   height: 110vh;
   pointer-events: none;
-  background: radial-gradient(58% 42% at 62% -8%, rgba(255, 122, 24, 0.09), transparent 62%);
+  background: radial-gradient(58% 42% at 60% -10%, rgba(255, 122, 24, 0.05), transparent 62%);
   z-index: 0;
+}
+
+/* slow warmth for glows — the page equivalent of a cursor at rest */
+@keyframes breathe {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.055);
+  }
 }
 
 /* faint grain so the ground reads as material, not #000 */

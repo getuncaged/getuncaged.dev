@@ -19,6 +19,7 @@ export const SITE = {
   releasesLatest: 'https://github.com/getuncaged/uncaged/releases/latest',
   dmg: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged.dmg',
   migrateDoc: 'https://github.com/getuncaged/uncaged/blob/master/docs/migrate-from-warp.md',
+  forkingDoc: 'https://github.com/getuncaged/uncaged/blob/master/FORKING.md',
   uncagedDoc: 'https://github.com/getuncaged/uncaged/blob/master/UNCAGED.md',
   faqDoc: 'https://github.com/getuncaged/uncaged/blob/master/FAQ.md',
   handle: '@getuncaged',
@@ -114,6 +115,10 @@ export const FAQ = [
   {
     q: 'How is this different from Warp?',
     a: 'Warp open-sourced its client, but the premium agent runs on Warp’s servers behind a login and subscription. Uncaged replaces that with a local agent engine, removes the account and paywall gates, and ships with telemetry off. Same terminal, same speed — the cloud is gone.',
+  },
+  {
+    q: 'Can I fork it and ship my own terminal?',
+    a: 'That’s the point. Every upstream service, account profile, and Warp/Oz mark has been carved out of the product — the whole identity lives in a thin brand layer: one Rust constants file, two SVGs, and the provider catalog. Swap those, rebuild, and it’s yours. FORKING.md walks it end to end, and AGPL-3.0 keeps every fork as open as this one.',
   },
   {
     q: 'macOS says the app is from an unidentified developer.',

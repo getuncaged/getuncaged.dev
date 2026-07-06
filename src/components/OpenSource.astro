@@ -1,0 +1,208 @@
+---
+import Logo from './Logo.astro';
+import { SITE } from '../data/site';
+
+const files = [
+  {
+    path: 'app/src/brand.rs',
+    what: 'name, tagline, palette — the strings and the colors',
+  },
+  {
+    path: 'app/assets/bundled/svg/brand/',
+    what: 'two SVGs: the in-app mark and the app icon',
+  },
+  {
+    path: 'crates/uncaged_engine/src/catalog.rs',
+    what: 'the model gallery: providers, icons, defaults',
+  },
+];
+---
+
+<section id="open-source">
+  <div class="container os-grid">
+    <div class="os-copy">
+      <p class="eyebrow">actually open source</p>
+      <h2 class="section-h">Fork it. All of it.</h2>
+      <p class="section-sub">
+        Most "open" apps still lean on someone's cloud — an account here, a telemetry endpoint
+        there, a logo baked into forty assets. Uncaged carved it all out: no upstream services, no
+        profiles, and no Warp or Oz marks anywhere in the product.
+      </p>
+      <p class="section-sub">
+        What's left is one thin brand layer. Swap three files, rebuild, and it's your terminal —
+        same engine, same UI, your name on it. No infrastructure to carve out first.
+      </p>
+      <div class="os-ctas">
+        <a class="btn btn-ghost btn-small" href={SITE.forkingDoc} target="_blank" rel="noopener">
+          Read FORKING.md
+        </a>
+        <span class="os-agpl">AGPL-3.0 keeps every fork this open.</span>
+      </div>
+    </div>
+
+    <div class="os-card">
+      <div class="os-swap" aria-label="Swap the Uncaged mark for your own">
+        <div class="os-tile">
+          <Logo idp="os-ours" size={38} />
+        </div>
+        <div class="os-arrow" aria-hidden="true">
+          <span class="os-arrow-label">swap</span>
+          <span class="os-arrow-line"></span>
+        </div>
+        <div class="os-tile os-tile-yours">
+          <span>your<br />mark</span>
+        </div>
+      </div>
+
+      <ul class="os-files">
+        {
+          files.map((f) => (
+            <li>
+              <code class="os-path">{f.path}</code>
+              <span class="os-what">{f.what}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="os-foot">That's the entire surface. Everything else just keeps working.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .os-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: 72px;
+    align-items: center;
+  }
+
+  .os-ctas {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 28px;
+  }
+
+  .os-agpl {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #6d6455;
+  }
+
+  .os-card {
+    background: var(--panel);
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    padding: 28px;
+    box-shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.8);
+  }
+
+  .os-swap {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 26px;
+  }
+
+  .os-tile {
+    width: 74px;
+    height: 74px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    background: #100d0b;
+    border: 1px solid var(--bar);
+    border-radius: 16px;
+    color: var(--ink);
+  }
+
+  .os-tile-yours {
+    border-style: dashed;
+    border-color: #4d3e2d;
+    background: transparent;
+  }
+
+  .os-tile-yours span {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #6d6455;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .os-arrow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .os-arrow-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #6d6455;
+  }
+
+  .os-arrow-line {
+    width: 100%;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--bar), var(--ember));
+    position: relative;
+  }
+
+  .os-arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3.5px;
+    border-left: 8px solid var(--ember);
+    border-top: 4.5px solid transparent;
+    border-bottom: 4.5px solid transparent;
+  }
+
+  .os-files {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(58, 46, 34, 0.6);
+  }
+
+  .os-files li {
+    display: grid;
+    gap: 3px;
+    padding: 13px 2px;
+    border-bottom: 1px solid rgba(58, 46, 34, 0.6);
+  }
+
+  .os-path {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .os-what {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ash);
+  }
+
+  .os-foot {
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: #6d6455;
+  }
+
+  @media (max-width: 1024px) {
+    .os-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 44px;
+    }
+  }
+</style>

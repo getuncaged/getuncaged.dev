@@ -22,8 +22,20 @@ import { SITE } from '../data/site';
 
 <style>
   .cta {
+    position: relative;
     padding-block: 130px;
     text-align: center;
+    overflow: clip;
+  }
+
+  .cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(46% 52% at 50% 96%, rgba(255, 122, 24, 0.09), transparent 66%);
+    animation: breathe 16s ease-in-out -8s infinite alternate;
+    z-index: 0;
   }
 
   .cta-inner {
