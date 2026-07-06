@@ -6,15 +6,16 @@
 --------------------------------------------------------------------------- */
 
 :root {
-  /* palette — the site's own. Neutral charcoal ground so the accents can
-     breathe; ember = action/outbound/attention, teal = yours/safe/ok. */
-  --void: #121110;
-  --ground-top: #1b1815;
-  --panel: #1b1815;
-  --raised: #22201c;
-  --ink: #efe9de;
-  --ash: #9d9488;
-  --bar: #3d372e;
+  /* palette — the site's own, COOL base so the ember brand accents are the
+     only warmth on the page (blue↔orange complementary contrast).
+     ember = action/outbound/attention, teal = yours/safe/ok. */
+  --void: #0b0d12;
+  --ground-top: #12151d;
+  --panel: #12151c;
+  --raised: #171b24;
+  --ink: #e8ebf2;
+  --ash: #8b93a5;
+  --bar: #262c3a;
   --gold: #ffb23a;
   --ember: #ff7a18;
   --ember-deep: #ff5e10;
@@ -52,7 +53,7 @@ html {
 body {
   margin: 0;
   background-color: var(--void);
-  background-image: linear-gradient(180deg, var(--ground-top) 0%, #161412 640px, var(--void) 1200px);
+  background-image: linear-gradient(180deg, var(--ground-top) 0%, #0e1118 640px, var(--void) 1200px);
   color: var(--ink);
   font-family: var(--sans);
   font-size: 17px;
@@ -93,7 +94,7 @@ body {
   height: 54vw;
   bottom: 2vh;
   left: -22vw;
-  background: radial-gradient(closest-side, rgba(62, 201, 180, 0.09), rgba(62, 201, 180, 0.03) 55%, transparent 72%);
+  background: radial-gradient(closest-side, rgba(62, 201, 180, 0.08), rgba(62, 201, 180, 0.03) 55%, transparent 72%);
   animation: drift-b 41s ease-in-out infinite alternate;
 }
 
@@ -102,7 +103,7 @@ body {
   height: 46vw;
   bottom: -20vh;
   right: 4vw;
-  background: radial-gradient(closest-side, rgba(64, 130, 160, 0.07), transparent 68%);
+  background: radial-gradient(closest-side, rgba(92, 130, 220, 0.08), transparent 68%);
   animation: drift-c 47s ease-in-out infinite alternate;
 }
 
@@ -279,46 +280,46 @@ pre {
    re-declaring the tokens — every component re-themes automatically. */
 
 .daylight {
-  --void: #f4ede1;
-  --ground-top: #f4ede1;
-  --panel: #fbf7ee;
-  --raised: #fffdf6;
-  --ink: #241c12;
-  --ash: #6e5f4b;
-  --bar: #d8cbb4;
-  --muted: #8a7a63;
-  --paper-deep: #ece2cd;
-  --line-soft: rgba(122, 100, 74, 0.35);
+  --void: #f3f5f9;
+  --ground-top: #f3f5f9;
+  --panel: #ffffff;
+  --raised: #ffffff;
+  --ink: #161a24;
+  --ash: #5a6274;
+  --bar: #d8dde6;
+  --muted: #7b8294;
+  --paper-deep: #e8ecf2;
+  --line-soft: rgba(90, 100, 120, 0.28);
 
   position: relative;
   z-index: 1;
   background: var(--void);
-  border-block: 1px solid #d8cbb4;
+  border-block: 1px solid #d8dde6;
 }
 
-/* terminal-flavored artifacts stay dark islands on the paper */
+/* terminal-flavored artifacts stay dark islands on the light ground */
 .daylight .why-diff,
 .daylight .sw-window,
 .daylight .codeblock,
 .daylight .os-tile:not(.os-tile-yours),
 .daylight .wire-machine {
-  --ink: #efe9de;
-  --ash: #9d9488;
-  --bar: #3d372e;
-  --panel: #1b1815;
-  --raised: #22201c;
-  --muted: #7a7368;
+  --ink: #e8ebf2;
+  --ash: #8b93a5;
+  --bar: #262c3a;
+  --panel: #12151c;
+  --raised: #171b24;
+  --muted: #6a7284;
 }
 
 .daylight .why-diff,
 .daylight .sw-window {
   box-shadow:
-    0 28px 56px -22px rgba(74, 48, 22, 0.38),
-    0 8px 20px -10px rgba(74, 48, 22, 0.22);
+    0 28px 56px -22px rgba(15, 23, 42, 0.35),
+    0 8px 20px -10px rgba(15, 23, 42, 0.2);
 }
 
 .daylight .btn-ghost:hover {
-  background: rgba(36, 28, 18, 0.05);
+  background: rgba(22, 26, 36, 0.05);
 }
 
 /* ---------------------------------------------------------------- layout */
@@ -382,7 +383,7 @@ section {
 
 .btn-ghost:hover {
   border-color: var(--ash);
-  background: rgba(233, 225, 212, 0.04);
+  background: rgba(232, 235, 242, 0.04);
 }
 
 .btn-small {
