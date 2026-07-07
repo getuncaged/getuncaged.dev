@@ -1,5 +1,4 @@
 ---
-import Logo from './Logo.astro';
 import { AUDIT, SITE } from '../data/site';
 ---
 
@@ -7,11 +6,11 @@ import { AUDIT, SITE } from '../data/site';
   <div class="container">
     <div class="sec-head">
       <p class="eyebrow">01 · no cloud</p>
-      <h2 class="section-h">Nothing phones home.</h2>
+      <h2 class="section-h">Zero telemetry. One outbound call.</h2>
       <p class="section-sub">
-        The only outbound traffic Uncaged makes is to the model endpoint you configured.
-        Everything else is off — not toggled off, <em>compiled</em> off. And because the whole
-        thing is open source, you don't have to take our word for it.
+        The only network request Uncaged ever makes is the one to your model endpoint. Accounts,
+        telemetry, crash reporting, cloud sync — none of it exists in this build. The source is
+        public, so you can verify that instead of trusting it.
       </p>
     </div>
 
@@ -20,7 +19,6 @@ import { AUDIT, SITE } from '../data/site';
         <div class="wire">
           <div class="wire-machine">
             <div class="wire-machine-head">
-              <Logo idp="priv" size={18} cageOnly class="wire-mark" />
               <span>your machine</span>
             </div>
             <ul>

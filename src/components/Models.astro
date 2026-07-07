@@ -20,9 +20,10 @@ const groups = [
       <p class="eyebrow">02 · any model</p>
       <h2 class="section-h">Every model. No middleman.</h2>
       <p class="section-sub">
-        Agent Mode needs exactly one connection — a local runtime on your GPU, a hosted key, or the
-        CLI plan you already pay for. Connect it in
-        <span class="kbd-path">Settings → AI Models</span> and swap it any time, even mid-session.
+        The AI inside Uncaged runs on a model you choose: a local runtime like Ollama, your own
+        provider API key, or a CLI agent like Claude Code. Pick it once in
+        <span class="kbd-path">Settings → AI Models</span> — that's the entire setup — and switch
+        whenever you like.
       </p>
     </div>
 
@@ -61,16 +62,6 @@ const groups = [
       </div>
     </div>
 
-    <div class="model-foot">
-      <div class="codeblock">
-        <pre><span class="prompt">❯</span> ./script/uncaged-setup     <span class="cmt"># or wire it up from a shell</span></pre>
-        <button class="copy-btn" data-copy="./script/uncaged-setup" aria-label="Copy setup command">copy</button>
-      </div>
-      <p class="model-note">
-        Connections live in <code>~/.uncaged/</code> — a directory on your disk, not a row in
-        someone's database.
-      </p>
-    </div>
   </div>
 </section>
 
@@ -270,28 +261,6 @@ const groups = [
     color: var(--muted, #5d6577);
   }
 
-  .model-foot {
-    margin-top: 26px;
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: 24px;
-    align-items: center;
-  }
-
-  .cmt {
-    color: var(--muted, #5d6577);
-  }
-
-  .model-note {
-    color: var(--ash);
-    font-size: 14.5px;
-  }
-
-  .model-note code {
-    color: var(--ink);
-    font-size: 13px;
-  }
-
   @media (max-width: 900px) {
     .sw-body {
       grid-template-columns: minmax(0, 1fr);
@@ -315,13 +284,6 @@ const groups = [
     .sw-group:nth-child(2) {
       grid-column: 1;
       grid-row: auto;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    .model-foot {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 14px;
     }
   }
 </style>
