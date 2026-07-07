@@ -1,0 +1,64 @@
+src/styles/global.css
+  s_53d9a3d66513b3::t_1a248f228c895a 316-320,324-328,332-335
+src/components/Faq.astro
+  s_53d9a3d66513b3::t_4aecbe4a7753db 61,63
+  s_53d9a3d66513b3::t_7c52bc5ced3cfb 9
+src/components/Privacy.astro
+  s_53d9a3d66513b3::t_2b75e1e8096dc8 240,244,248-281,288-303
+  s_53d9a3d66513b3::t_421bf6dbb4e289 34
+  s_53d9a3d66513b3::t_ed196361350516 131
+  s_53d9a3d66513b3::t_1cf8df3e8db9cc 304
+  s_53d9a3d66513b3::t_7b578fdf54644c 215,223
+src/components/Cta.astro
+  s_53d9a3d66513b3::t_d8e47bbe64a9a5 14-17
+src/components/Models.astro
+  s_53d9a3d66513b3::t_187990e4060aa4 159,186,215
+  s_53d9a3d66513b3::t_6e657c421699c4 60
+  s_3e4cc0ba3e0ede::t_7dd1f9a5215356 133,172,210,227,238,261
+src/components/Nav.astro
+  s_53d9a3d66513b3::t_60895b406647e1 6-10
+  s_53d9a3d66513b3::t_ec2d929c479520 250-266
+src/components/DiffBand.astro
+  s_53d9a3d66513b3::t_a957b41febb1e4 24
+  s_53d9a3d66513b3::t_1fe4d51dad08c5 97,143
+src/components/Footer.astro
+  s_53d9a3d66513b3::t_4ae5df38419986 17-18
+  s_3e4cc0ba3e0ede::t_7e8383952534e3 131
+src/components/OpenSource.astro
+  s_53d9a3d66513b3::t_b30b3f676a1e04 231
+  s_53d9a3d66513b3::t_2fa76db6b39405 163
+  s_3e4cc0ba3e0ede::t_d103df2fe4ce92 97,138,200,207,214
+src/components/Downloads.astro
+  s_53d9a3d66513b3::t_fbf2c7682258f7 164-165
+  s_53d9a3d66513b3::t_c95eb3b411999b 124-125
+  s_53d9a3d66513b3::t_ddef41f7723b62 218-219,223,229-231
+  s_53d9a3d66513b3::t_98d62cdbb8a0f2 20-23
+src/components/Hero.astro
+  s_53d9a3d66513b3::t_ecc138f5531de1 21-24
+src/components/KeptStrip.astro
+  s_53d9a3d66513b3::t_0a4c6bd4cc0df1 38,70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b9462c9ff3befa2f979ea3108c60fe9375303546",
+  "prompts": {},
+  "sessions": {
+    "s_3e4cc0ba3e0ede": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3e772dcd-0cc7-45ef-b232-59d0e8d0d1c9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    },
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
