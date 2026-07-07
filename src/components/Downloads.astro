@@ -90,6 +90,7 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
     margin-bottom: 88px;
   }
 
@@ -132,7 +133,8 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
 
   .dl-curl {
     margin-top: 22px;
-    max-width: min(660px, 100%);
+    width: 100%;
+    max-width: 660px;
   }
 
   .dl-curl pre {
