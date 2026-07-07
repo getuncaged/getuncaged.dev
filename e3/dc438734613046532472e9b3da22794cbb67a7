@@ -1,0 +1,34 @@
+src/components/Hero.astro
+  s_53d9a3d66513b3::t_d218b73bcba711 107,111-117
+  s_53d9a3d66513b3::t_8ace2bf81b0a4d 29
+  s_53d9a3d66513b3::t_6f9b8d1a53e049 79,93,95-96,103
+src/components/Privacy.astro
+  s_53d9a3d66513b3::t_91540332641443 8-16,18-19,38-40,42-52
+  s_53d9a3d66513b3::t_f693f8c4e26d84 63-66,69-71,75
+src/components/DiffBand.astro
+  s_53d9a3d66513b3::t_2c2c9d7a41a482 32
+src/components/Downloads.astro
+  s_53d9a3d66513b3::t_ea6f18f22738ea 109
+src/components/Faq.astro
+  s_53d9a3d66513b3::t_1114e247163db8 34,39
+src/components/Models.astro
+  s_53d9a3d66513b3::t_c564b8121b098f 79,195,219
+src/styles/global.css
+  s_53d9a3d66513b3::t_a495b0590fcf27 258,266-268,285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e3dc438734613046532472e9b3da22794cbb67a7",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
