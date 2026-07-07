@@ -1,0 +1,20 @@
+src/components/Downloads.astro
+  s_53d9a3d66513b3::t_7036d085fd756a 93
+  s_53d9a3d66513b3::t_b97b9aac150da3 136-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "30a5c1fe93dfdf8f5a28b5f5b85ed0db4371d7e4",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
