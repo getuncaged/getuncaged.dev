@@ -1,0 +1,30 @@
+src/components/Downloads.astro
+  s_53d9a3d66513b3::t_62a107ff737754 205
+  s_53d9a3d66513b3::t_c892169657114c 109-117,119-120,123-132
+  s_53d9a3d66513b3::t_d584842000b932 5,9-11,14,18-28,30,32-44,46-58,63-66,69-74,77-78,81-82,85-86,89,91,93,96-108,133-160,162-165,167-171,174-175,177,180,184,187-199,203,208,211,214-216,219-221,224-225,229,231-241
+  s_53d9a3d66513b3::t_4ae67aaa340f73 204
+src/components/Models.astro
+  s_53d9a3d66513b3::t_bd7a3a4b5272dc 23-26
+src/components/Privacy.astro
+  s_53d9a3d66513b3::t_427567891df7df 9,11-13
+src/components/DiffBand.astro
+  s_53d9a3d66513b3::t_74e1ec4509f702 3-4,6-18,21-54,61-62,65-66,70,73,77-88,91,95-112,114-115,117,120,122-123,126-127,130-131,134,136-137,140,142-148,151-198
+src/components/OpenSource.astro
+  s_53d9a3d66513b3::t_73e974fe993615 24-25,27-29,32-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "409159f6aa00559f0b4bdb6aa740112fa235276e",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
