@@ -1,0 +1,30 @@
+src/components/Models.astro
+  s_53d9a3d66513b3::t_f6f46c43ef2dc8 12
+  s_53d9a3d66513b3::t_331b1e2e226bb7 3-6,8,10-11,13-37,55,58,61-87,91-100,176,178-180,183-188,191-194,197,199,201-210,212-222,229-233,237-238,242-243,246-249,252-254,256,259,263-265,268-271,274-277,279-282,285-286,289-298,300-303,305-312,315-318,321-322,325-326,330,332,339-341,349-350,352-354,358-362,364,369,376-377
+src/components/KeptStrip.astro
+  s_53d9a3d66513b3::t_1584829410f3bd 9-10
+src/components/TerminalDemo.astro
+  s_53d9a3d66513b3::t_1942dac3f5d2f4 39
+  s_53d9a3d66513b3::t_2f98903e7c4659 431-433
+  s_53d9a3d66513b3::t_d7afbac6a0be5d 292-320,323-330,334-396
+  s_53d9a3d66513b3::t_dae7e500e5f8fc 470
+  s_53d9a3d66513b3::t_5ce348829c9be9 49
+  s_53d9a3d66513b3::t_c91f5eeb5964f8 67,69,73,81-93
+  s_53d9a3d66513b3::t_8c9f74430b106d 492
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f6409b8abd3e9d9b419c6fe316aa73d9b6c0bf0e",
+  "prompts": {},
+  "sessions": {
+    "s_53d9a3d66513b3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "91a6eb98-8dd0-4d61-952d-656764af6418",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
