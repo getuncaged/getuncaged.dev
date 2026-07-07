@@ -2,7 +2,9 @@
 import { SITE } from '../data/site';
 
 const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/Uncaged.app';
-const curlCmd = `curl -LO ${SITE.dmg}`;
+const macCurl = `curl -LO ${SITE.dmg}`;
+const linuxCurl = `curl -LO ${SITE.linuxTar}`;
+const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
 ---
 
 <section id="download">
@@ -11,52 +13,106 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
       <p class="eyebrow dl-eyebrow">04 · install</p>
       <h2 class="section-h">Get Uncaged.</h2>
       <p class="section-sub">
-        Free and open source. No installer accounts, no license keys, nothing to activate.
+        macOS, Linux and Windows — free and open source. No installer accounts, no license keys,
+        nothing to activate.
       </p>
     </div>
 
-    <div class="dl-primary">
-      <a class="btn btn-primary dl-btn" href={SITE.dmg}>
-        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M8 2.75v7"></path>
-          <path d="M4.75 6.75 8 10l3.25-3.25"></path>
-          <path d="M3 13.25h10"></path>
-        </svg>
-        Download for macOS
-      </a>
-      <p class="dl-meta">v{SITE.version} · Apple Silicon · .dmg · AGPL-3.0</p>
-      <div class="codeblock dl-curl">
-        <pre><span class="prompt">❯</span> {curlCmd}</pre>
-        <button class="copy-btn" data-copy={curlCmd} aria-label="Copy download command">copy</button>
-      </div>
-    </div>
+    <div class="dl-grid">
+      <!-- macOS -->
+      <div class="dl-os">
+        <div class="dl-os-head">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M16.4 12.8c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.9-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3.1 2.4 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.6-1-2.7-3.7zM14 5.6c.7-.8 1.1-1.9 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"></path>
+          </svg>
+          <h3>macOS</h3>
+        </div>
 
-    <ol class="dl-steps">
-      <li>
-        <span class="dl-n" aria-hidden="true">1</span>
-        <h3>Drag to Applications</h3>
-        <p>Open the .dmg and drop Uncaged into Applications.</p>
-      </li>
-      <li>
-        <span class="dl-n" aria-hidden="true">2</span>
-        <h3>Clear quarantine, once</h3>
-        <p>The app is ad-hoc signed — an independent fork has no Apple Developer ID.</p>
+        <a class="btn btn-primary dl-btn" href={SITE.dmg}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2.75v7"></path>
+            <path d="M4.75 6.75 8 10l3.25-3.25"></path>
+            <path d="M3 13.25h10"></path>
+          </svg>
+          Download .dmg
+        </a>
+        <p class="dl-arch">Apple Silicon · v{SITE.version}</p>
+
+        <p class="dl-step">Or from the terminal:</p>
+        <div class="codeblock dl-cmd">
+          <pre><span class="prompt">❯</span> {macCurl}</pre>
+          <button class="copy-btn" data-copy={macCurl} aria-label="Copy macOS download command">copy</button>
+        </div>
+
+        <p class="dl-step">First launch — ad-hoc signed, clear quarantine once:</p>
         <div class="codeblock dl-cmd">
           <pre><span class="prompt">❯</span> {quarantineCmd}</pre>
           <button class="copy-btn" data-copy={quarantineCmd} aria-label="Copy quarantine command">copy</button>
         </div>
-      </li>
-      <li>
-        <span class="dl-n" aria-hidden="true">3</span>
-        <h3>Connect a model</h3>
-        <p>Open <span class="dl-kbd">Settings → AI Models</span> and pick one. The agent is live.</p>
-      </li>
-    </ol>
+      </div>
 
-    <p class="dl-others">
-      Linux <b>in the works</b> · Windows <b>planned</b> ·
-      <a href={SITE.github} target="_blank" rel="noopener">build from source →</a> ·
-      <a href={SITE.releases} target="_blank" rel="noopener">all releases →</a>
+      <!-- Linux -->
+      <div class="dl-os">
+        <div class="dl-os-head">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 4.5C9 3 10.2 2 12 2s3 1 3 2.5c0 2.5 1 3.5 2.5 5.5 1.3 1.8 2 3.5 2 5.5 0 1.4-.6 2.6-1.5 3.5M4.5 19c-.9-.9-1.5-2.1-1.5-3.5 0-2 .7-3.7 2-5.5C6.5 8 7.5 7 7.5 4.5"></path>
+            <path d="M8.5 21c-1.5 0-2.5-1-4-2M15.5 21c1.5 0 2.5-1 4-2"></path>
+            <path d="M9.5 9.5h.01M14.5 9.5h.01M10 13c.6.7 1.2 1 2 1s1.4-.3 2-1"></path>
+          </svg>
+          <h3>Linux</h3>
+        </div>
+
+        <a class="btn btn-ghost dl-btn" href={SITE.linuxTar}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2.75v7"></path>
+            <path d="M4.75 6.75 8 10l3.25-3.25"></path>
+            <path d="M3 13.25h10"></path>
+          </svg>
+          Download .tar.gz
+        </a>
+        <p class="dl-arch">x86_64 · any distro</p>
+
+        <p class="dl-step">Or from the terminal:</p>
+        <div class="codeblock dl-cmd">
+          <pre><span class="prompt">❯</span> {linuxCurl}</pre>
+          <button class="copy-btn" data-copy={linuxCurl} aria-label="Copy Linux download command">copy</button>
+        </div>
+
+        <p class="dl-note">Unpack and run <code>./uncaged</code>. <b>.deb, .rpm &amp; AppImage</b> land next.</p>
+      </div>
+
+      <!-- Windows -->
+      <div class="dl-os">
+        <div class="dl-os-head">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3 5.5L10.5 4.4V11.5H3V5.5ZM3 18.5L10.5 19.6V12.5H3V18.5ZM11.5 19.8L21 21V12.5H11.5V19.8ZM11.5 4.2V11.5H21V3L11.5 4.2Z"></path>
+          </svg>
+          <h3>Windows</h3>
+        </div>
+
+        <a class="btn btn-ghost dl-btn" href={SITE.windowsZip}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2.75v7"></path>
+            <path d="M4.75 6.75 8 10l3.25-3.25"></path>
+            <path d="M3 13.25h10"></path>
+          </svg>
+          Download .zip
+        </a>
+        <p class="dl-arch">x64 · Windows 11 / 10</p>
+
+        <p class="dl-step">Or from the terminal:</p>
+        <div class="codeblock dl-cmd">
+          <pre><span class="prompt">❯</span> {winCurl}</pre>
+          <button class="copy-btn" data-copy={winCurl} aria-label="Copy Windows download command">copy</button>
+        </div>
+
+        <p class="dl-note">Unzip and run <code>uncaged.exe</code>. <b>Installer &amp; ARM64</b> land next.</p>
+      </div>
+    </div>
+
+    <p class="dl-after">
+      Then open <span class="dl-kbd">Settings → AI Models</span> and connect a model — the agent is
+      live. <a href={SITE.releases} target="_blank" rel="noopener">all releases &amp; checksums →</a>
     </p>
   </div>
 </section>
@@ -73,7 +129,7 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 56px;
+    margin-bottom: 64px;
   }
 
   .dl-eyebrow {
@@ -85,116 +141,119 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
   }
 
   .dl-head .section-sub {
-    max-width: 46ch;
+    max-width: 52ch;
   }
 
-  .dl-primary {
+  .dl-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    margin-bottom: 56px;
+  }
+
+  .dl-os {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    padding: 8px 40px;
+  }
+
+  .dl-os:first-child {
+    padding-left: 0;
+  }
+
+  .dl-os:last-child {
+    padding-right: 0;
+  }
+
+  .dl-os + .dl-os {
+    border-left: 1px solid var(--bar);
+  }
+
+  .dl-os-head {
+    display: flex;
     align-items: center;
-    width: 100%;
-    margin-bottom: 88px;
+    gap: 11px;
+    color: var(--ink);
+    margin-bottom: 22px;
+  }
+
+  .dl-os-head h3 {
+    font-size: 17px;
+    font-weight: 700;
   }
 
   .dl-btn {
-    padding: 19px 34px;
-    font-size: 15.5px;
-    border-radius: 12px;
+    width: 100%;
   }
 
-  .dl-meta {
-    margin-top: 16px;
+  .dl-arch {
+    margin-top: 12px;
     font-family: var(--mono);
     font-size: 12px;
     color: var(--muted, #5d6577);
   }
 
-  /* copy button as a right cap — never overlaps the command */
-  .dl-curl,
+  .dl-step {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted, #5d6577);
+    margin: 22px 0 8px;
+  }
+
   .dl-cmd {
+    width: 100%;
     display: flex;
     align-items: stretch;
   }
 
-  .dl-curl pre,
   .dl-cmd pre {
     flex: 1;
     min-width: 0;
-    padding-right: 14px;
-    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
-    mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+    font-size: 10.5px;
+    padding: 12px 14px 12px 14px;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
   }
 
-  .dl-curl :global(.copy-btn),
-  .dl-cmd :global(.copy-btn) {
+  .dl-cmd .copy-btn {
     position: static;
     flex-shrink: 0;
+    align-self: stretch;
     border: 0;
     border-left: 1px solid var(--bar);
-    border-radius: 0;
-    padding: 0 14px;
+    border-radius: 0 11px 11px 0;
+    padding: 0 13px;
+    background: rgba(22, 26, 35, 0.6);
   }
 
-  .dl-curl {
+  .dl-note {
     margin-top: 22px;
-    width: 100%;
-    max-width: 660px;
-  }
-
-  .dl-curl pre {
-    font-size: 12px;
-    padding-block: 13px;
-  }
-
-  .dl-steps {
-    list-style: none;
-    margin: 0 0 72px;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 48px;
-    width: 100%;
-    align-items: start;
-  }
-
-  .dl-steps li {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    border-top: 1px solid var(--bar);
-    padding-top: 26px;
-  }
-
-  .dl-n {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ember);
-    border: 1px solid rgba(255, 122, 24, 0.35);
-    border-radius: 999px;
-    width: 30px;
-    height: 30px;
-    display: grid;
-    place-items: center;
-    margin-bottom: 18px;
-  }
-
-  .dl-steps h3 {
-    font-size: 15.5px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-
-  .dl-steps p {
+    font-size: 13.5px;
+    line-height: 1.65;
     color: var(--ash);
-    font-size: 14.5px;
-    line-height: 1.6;
-    max-width: 36ch;
+  }
+
+  .dl-note code {
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  .dl-note b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .dl-after {
+    font-size: 15px;
+    color: var(--ash);
+    text-align: center;
+    max-width: 64ch;
   }
 
   .dl-kbd {
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--ink);
     background: var(--panel);
     border: 1px solid var(--bar);
@@ -203,53 +262,36 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
     white-space: nowrap;
   }
 
-  .dl-cmd {
-    margin-top: 14px;
-    width: 100%;
-  }
-
-  .dl-cmd pre {
-    font-size: 10.5px;
-    padding-block: 12px;
-  }
-
-  .dl-others {
+  .dl-after a {
     font-family: var(--mono);
     font-size: 13px;
-    color: var(--ash);
-  }
-
-  .dl-others b {
-    color: var(--ink);
-    font-weight: 500;
-  }
-
-  .dl-others a {
     color: var(--ash);
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-color: var(--bar);
-    transition: color var(--fast);
+    white-space: nowrap;
   }
 
-  .dl-others a:hover {
+  .dl-after a:hover {
     color: var(--ink);
   }
 
-  @media (max-width: 900px) {
-    .dl-steps {
+  @media (max-width: 980px) {
+    .dl-grid {
       grid-template-columns: minmax(0, 1fr);
-      gap: 40px;
-      margin-bottom: 56px;
+      gap: 48px;
     }
 
-    .dl-primary {
-      margin-bottom: 64px;
+    .dl-os,
+    .dl-os:first-child,
+    .dl-os:last-child {
+      padding: 0;
     }
 
-    .dl-others {
-      text-align: center;
-      line-height: 2.2;
+    .dl-os + .dl-os {
+      border-left: 0;
+      border-top: 1px solid var(--bar);
+      padding-top: 44px;
     }
   }
 </style>

@@ -23,12 +23,12 @@ import { SITE } from '../data/site';
             <path d="M4.75 6.75 8 10l3.25-3.25"></path>
             <path d="M3 13.25h10"></path>
           </svg>
-          <span id="hero-dl-label">Download for macOS</span>
+          <span class="dl-label">Download for macOS</span>
         </a>
         <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">View source</a>
       </div>
       <p class="hero-meta">
-        free forever · AGPL-3.0 · macOS today · <a href="#download">Linux &amp; Windows next</a>
+        free forever · AGPL-3.0 · <a href="#download">macOS · Linux · Windows</a>
       </p>
     </div>
 
@@ -147,16 +147,20 @@ import { SITE } from '../data/site';
 </style>
 
 <script>
-  // If the visitor clearly isn't on macOS, route the primary CTA to the
-  // downloads section instead of the .dmg.
+  // Hand every visitor their own platform's artifact.
+  import { SITE } from '../data/site';
+
   const ua = navigator.userAgent;
-  const isMac = /Mac|iPhone|iPad/.test(ua);
-  if (!isMac) {
-    const btn = document.getElementById('hero-dl') as HTMLAnchorElement | null;
-    const label = document.getElementById('hero-dl-label');
-    if (btn && label) {
-      btn.href = '#download';
-      label.textContent = 'Get Uncaged';
-    }
+  const isWin = /Windows/.test(ua);
+  const isLinux = /Linux|X11/.test(ua) && !/Android/.test(ua);
+
+  if (isWin || isLinux) {
+    const href = isWin ? SITE.windowsZip : SITE.linuxTar;
+    const label = isWin ? 'Download for Windows' : 'Download for Linux';
+    document.querySelectorAll<HTMLAnchorElement>('a[data-dl-mac]').forEach((a) => {
+      a.href = href;
+      const l = a.querySelector('.dl-label');
+      if (l) l.textContent = label;
+    });
   }
 </script>

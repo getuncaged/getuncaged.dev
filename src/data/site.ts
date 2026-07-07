@@ -17,7 +17,9 @@ export const SITE = {
   issues: 'https://github.com/getuncaged/uncaged/issues',
   releases: 'https://github.com/getuncaged/uncaged/releases',
   releasesLatest: 'https://github.com/getuncaged/uncaged/releases/latest',
-  dmg: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged.dmg',
+  dmg: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-macos-aarch64.dmg',
+  linuxTar: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-linux-x86_64.tar.gz',
+  windowsZip: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64.zip',
   migrateDoc: 'https://github.com/getuncaged/uncaged/blob/master/docs/migrate-from-warp.md',
   forkingDoc: 'https://github.com/getuncaged/uncaged/blob/master/FORKING.md',
   uncagedDoc: 'https://github.com/getuncaged/uncaged/blob/master/UNCAGED.md',
@@ -45,6 +47,10 @@ export const FAQ = [
   {
     q: 'What does it cost?',
     a: 'Nothing, forever — Uncaged is AGPL-3.0 open source with no paid tier. You pay your model provider if you use one, or nothing at all with a local model.',
+  },
+  {
+    q: 'Which platforms are supported?',
+    a: 'macOS (Apple Silicon, .dmg), Linux (x86_64, .tar.gz) and Windows (x64, .zip) — all from GitHub Releases. Richer packages — .deb, .rpm, AppImage, a Windows installer, ARM64 builds — are on the way.',
   },
   {
     q: 'Which models can I connect?',
