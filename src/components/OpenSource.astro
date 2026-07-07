@@ -94,7 +94,7 @@ const files = [
 
   .os-agpl {
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--muted, #5d6577);
   }
 
@@ -135,7 +135,7 @@ const files = [
 
   .os-cap {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11.5px;
     color: var(--muted, #5d6577);
   }
 
@@ -160,7 +160,7 @@ const files = [
 
   .os-arrow-label {
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--muted, #5d6577);
   }
 
@@ -197,21 +197,21 @@ const files = [
   }
 
   .os-path {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink);
   }
 
   .os-what {
     font-family: var(--mono);
-    font-size: 11.5px;
+    font-size: 13px;
     color: var(--ash);
   }
 
   .os-foot {
     margin-top: 18px;
     font-family: var(--mono);
-    font-size: 11.5px;
+    font-size: 13px;
     color: var(--muted, #5d6577);
   }
 
@@ -228,7 +228,7 @@ const files = [
   const tile = document.getElementById('os-yours');
   const mark = tile?.querySelector<SVGElement>('.os-fork-mark');
   if (tile && mark && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const tints = ['#6aa8ff', '#6aa8ff', '#7bd88f', '#ff6ac1', '#c8b8ff'];
+    const tints = ['#6aa8ff', '#7bd88f', '#ff6ac1', '#c8b8ff'];
     let i = 0;
     const io = new IntersectionObserver(
       (entries) => {

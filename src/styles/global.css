@@ -313,16 +313,26 @@ section {
 }
 
 .btn-primary {
-  background: var(--ember);
-  color: var(--void);
+  background: linear-gradient(180deg, #ff8a2e 0%, var(--ember) 100%);
+  color: #16100a;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 10px 28px -12px rgba(255, 122, 24, 0.55);
 }
 
 .btn-primary:hover {
-  background: var(--ember-deep);
+  background: linear-gradient(180deg, #ff9440 0%, var(--ember-deep) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 16px 36px -12px rgba(255, 122, 24, 0.75);
+  transform: translateY(-1px);
 }
 
 .btn-primary:active {
-  transform: translateY(1px);
+  transform: translateY(0);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 6px 18px -10px rgba(255, 122, 24, 0.5);
 }
 
 .btn-ghost {

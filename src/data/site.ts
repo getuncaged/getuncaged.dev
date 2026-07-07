@@ -25,68 +25,6 @@ export const SITE = {
   handle: '@getuncaged',
 };
 
-export const PROVIDERS = {
-  local: {
-    title: 'Run it locally',
-    blurb: 'A runtime on your own hardware. Zero keys, zero bills, zero network.',
-    items: ['Ollama', 'LM Studio', 'llama.cpp', 'vLLM'],
-  },
-  api: {
-    title: 'Bring an API key',
-    blurb: 'Paste a key, pick a model. The call goes from your machine to that endpoint — nowhere else.',
-    items: [
-      'Anthropic',
-      'OpenAI',
-      'Google',
-      'Mistral',
-      'DeepSeek',
-      'Groq',
-      'Together',
-      'xAI',
-      'OpenRouter',
-      'Any OpenAI-compatible',
-    ],
-  },
-  cli: {
-    title: 'Use a CLI agent',
-    blurb: 'Drive Agent Mode with the subscription you already pay for, over ACP.',
-    items: ['Claude Code', 'Codex CLI', 'Gemini CLI'],
-  },
-};
-
-export const FEATURES = [
-  {
-    title: 'Blocks',
-    body: 'Every command is grouped with its output, directory and exit code — context you can navigate, share, and hand straight to the agent.',
-    icon: 'blocks',
-  },
-  {
-    title: 'Agent Mode',
-    body: 'Describe the task in plain language. The agent plans, runs and repairs commands — powered by whichever model you connected.',
-    icon: 'agent',
-  },
-  {
-    title: 'Workflows',
-    body: 'Parameterized, searchable commands for the incantations you refuse to memorize. Kept from Warp, minus the login.',
-    icon: 'workflows',
-  },
-  {
-    title: 'Keymaps & editing',
-    body: 'IDE-style input on top of a real terminal: multi-cursor, completions, and fully remappable keybindings.',
-    icon: 'keys',
-  },
-  {
-    title: 'Rust-fast rendering',
-    body: 'The same GPU-accelerated renderer Warp is known for. Native, not Electron — your fans stay quiet.',
-    icon: 'speed',
-  },
-  {
-    title: 'Continuously synced',
-    body: 'Uncaged tracks upstream Warp and merges its open-source improvements as they land.',
-    icon: 'sync',
-  },
-];
-
 export const AUDIT = [
   { surface: 'Account & login', state: 'none — the app has no concept of one' },
   { surface: 'Telemetry & analytics', state: 'off, enforced in code' },

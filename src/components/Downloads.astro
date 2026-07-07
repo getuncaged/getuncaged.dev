@@ -17,8 +17,10 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
 
     <div class="dl-primary">
       <a class="btn btn-primary dl-btn" href={SITE.dmg}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <path d="M8 1v9.3L4.9 7.2 3.8 8.3 8 12.5l4.2-4.2-1.1-1.1L8 10.3V1H8zM2 13.5h12V15H2v-1.5z"></path>
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 2.75v7"></path>
+          <path d="M4.75 6.75 8 10l3.25-3.25"></path>
+          <path d="M3 13.25h10"></path>
         </svg>
         Download for macOS
       </a>
@@ -119,6 +121,8 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
     flex: 1;
     min-width: 0;
     padding-right: 14px;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
   }
 
   .dl-curl :global(.copy-btn),
@@ -157,6 +161,8 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    border-top: 1px solid var(--bar);
+    padding-top: 26px;
   }
 
   .dl-n {
@@ -209,17 +215,20 @@ const curlCmd = `curl -LO ${SITE.dmg}`;
 
   .dl-others {
     font-family: var(--mono);
-    font-size: 12.5px;
-    color: var(--muted, #5d6577);
+    font-size: 13px;
+    color: var(--ash);
   }
 
   .dl-others b {
-    color: var(--ash);
+    color: var(--ink);
     font-weight: 500;
   }
 
   .dl-others a {
     color: var(--ash);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--bar);
     transition: color var(--fast);
   }
 
