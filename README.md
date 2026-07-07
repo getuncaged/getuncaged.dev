@@ -18,14 +18,15 @@ npm run preview    # serve the production build locally
 | What | Where |
 |---|---|
 | All copy-adjacent data — URLs, version, providers, features, FAQ | [`src/data/site.ts`](src/data/site.ts) |
-| Design tokens (palette, type, motion) | [`src/styles/global.css`](src/styles/global.css) |
+| Design tokens (palette, type, motion) | [`src/styles/global.css`](src/styles/global.css) — spec in [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md), living gallery at [`/design`](src/pages/design.astro) |
 | Page sections | [`src/components/`](src/components/) |
 | Brand assets (favicon, mark, touch icon) | [`public/`](public/) |
 
-Colors, type and voice follow the
-[Uncaged design system](https://github.com/getuncaged) v1.0 "Ember":
-JetBrains Mono + Inter, warm night-workbench ground, gold→ember accent held to a
-≤10% spark.
+Colors, type and voice follow **Midnight**, the site's own design system
+([`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md), living gallery at `/design`):
+JetBrains Mono + Inter on a cool blue-black ground, with the gold→ember family
+as the only warmth on the page. The logo itself is governed by the separate
+"Ember" system in the `uncaged-design-system` repo.
 
 ## Downloads
 

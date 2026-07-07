@@ -7,8 +7,9 @@ import { SITE } from '../data/site';
 interface Props {
   title?: string;
   description?: string;
+  noindex?: boolean;
 }
-const { title = SITE.title, description = SITE.description } = Astro.props;
+const { title = SITE.title, description = SITE.description, noindex = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
 const jsonLd = JSON.stringify({
@@ -38,6 +39,7 @@ const jsonLd = JSON.stringify({
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta name="theme-color" content="#0B0D12" />
     <meta name="generator" content={Astro.generator} />
 
