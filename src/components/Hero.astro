@@ -26,7 +26,7 @@ import { SITE } from '../data/site';
         <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">View source</a>
       </div>
       <p class="hero-meta">
-        free forever · AGPL-3.0 · macOS (Apple&nbsp;Silicon) · <a href="#download">Linux &amp; Windows in the works</a>
+        free forever · AGPL-3.0 · macOS today · <a href="#download">Linux &amp; Windows next</a>
       </p>
     </div>
 
@@ -76,7 +76,7 @@ import { SITE } from '../data/site';
   }
 
   .hero-h {
-    font-size: clamp(42px, 4.9vw, 62px);
+    font-size: clamp(46px, 5vw, 68px);
     font-weight: 800;
     line-height: 1.06;
     letter-spacing: -0.025em;
@@ -90,24 +90,31 @@ import { SITE } from '../data/site';
   }
 
   .hero-sub {
-    margin-top: 26px;
+    margin-top: 28px;
     color: var(--ash);
-    font-size: 17.5px;
-    max-width: 54ch;
+    font-size: 18px;
+    max-width: 52ch;
   }
 
   .hero-ctas {
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
-    margin-top: 34px;
+    margin-top: 40px;
   }
 
   .hero-meta {
-    margin-top: 22px;
+    margin-top: 26px;
     font-family: var(--mono);
     font-size: 12px;
     color: var(--muted, #5d6577);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 560px) {
+    .hero-meta {
+      white-space: normal;
+    }
   }
 
   .hero-meta a {

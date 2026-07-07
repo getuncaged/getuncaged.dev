@@ -5,21 +5,18 @@ import { AUDIT, SITE } from '../data/site';
 
 <section id="privacy">
   <div class="container">
-    <div class="priv-grid">
-      <div>
-        <p class="eyebrow">01 · no cloud</p>
-        <h2 class="section-h">Nothing phones home.</h2>
-        <p class="section-sub">
-          The only outbound traffic Uncaged makes is to the model endpoint you configured.
-          Everything else is off — not toggled off, <em>compiled</em> off. And because the whole
-          thing is open source, you don't have to take our word for it.
-        </p>
-        <a class="btn btn-ghost btn-small priv-btn" href={SITE.github} target="_blank" rel="noopener">
-          Read the code
-        </a>
-      </div>
+    <div class="sec-head">
+      <p class="eyebrow">01 · no cloud</p>
+      <h2 class="section-h">Nothing phones home.</h2>
+      <p class="section-sub">
+        The only outbound traffic Uncaged makes is to the model endpoint you configured.
+        Everything else is off — not toggled off, <em>compiled</em> off. And because the whole
+        thing is open source, you don't have to take our word for it.
+      </p>
+    </div>
 
-      <div>
+    <div class="priv-grid">
+      <div class="priv-left">
         <div class="wire">
           <div class="wire-machine">
             <div class="wire-machine-head">
@@ -38,18 +35,21 @@ import { AUDIT, SITE } from '../data/site';
           </div>
           <div class="wire-endpoint">the endpoint<br />you chose</div>
         </div>
-
-        <dl class="audit">
-          {
-            AUDIT.map((row) => (
-              <div class="audit-row">
-                <dt>{row.surface}</dt>
-                <dd>{row.state}</dd>
-              </div>
-            ))
-          }
-        </dl>
+        <a class="btn btn-ghost btn-small priv-btn" href={SITE.github} target="_blank" rel="noopener">
+          Read the code
+        </a>
       </div>
+
+      <dl class="audit">
+        {
+          AUDIT.map((row) => (
+            <div class="audit-row">
+              <dt>{row.surface}</dt>
+              <dd>{row.state}</dd>
+            </div>
+          ))
+        }
+      </dl>
     </div>
   </div>
 </section>
@@ -60,22 +60,25 @@ import { AUDIT, SITE } from '../data/site';
     border-block: 1px solid var(--bar);
   }
 
+  .sec-head {
+    margin-bottom: 72px;
+  }
+
   .priv-grid {
     display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    gap: 72px;
-    align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 64px;
+    align-items: center;
   }
 
   .priv-btn {
-    margin-top: 28px;
+    margin-top: 34px;
   }
 
   .wire {
     display: flex;
     align-items: center;
     gap: 0;
-    margin-bottom: 30px;
   }
 
   .wire-machine {
