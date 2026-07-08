@@ -30,10 +30,13 @@ as the only warmth on the page. The logo itself is governed by the separate
 
 ## Downloads
 
-Download buttons point at the canonical GitHub latest-release asset:
+Download buttons point at the canonical GitHub latest-release assets, named
+`Uncaged-<os>-<arch>.<ext>` by the app repo's release workflow:
 
 ```
-https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged.dmg
+https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-macos-aarch64.dmg
+https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-linux-x86_64.tar.gz
+https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64.zip
 ```
 
 They go live automatically the moment a release with an `Uncaged.dmg` asset is
