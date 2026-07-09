@@ -1,0 +1,22 @@
+src/components/Downloads.astro
+  s_3e4cc0ba3e0ede::t_11dc7cb5411fc5 22
+  s_3e4cc0ba3e0ede::t_ad5c3514258b0a 82
+src/components/TerminalDemo.astro
+  s_3e4cc0ba3e0ede::t_a53fc72d2cde7e 69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0c6ce8b4d624fe871eb9912e4333369d9304aa32",
+  "prompts": {},
+  "sessions": {
+    "s_3e4cc0ba3e0ede": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3e772dcd-0cc7-45ef-b232-59d0e8d0d1c9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
