@@ -1,52 +1,112 @@
 ---
-import { PROVIDERS } from '../data/site';
-
-const cols = [PROVIDERS.local, PROVIDERS.api, PROVIDERS.cli];
+/**
+ * The BYO-model story shown as the REAL surface: Uncaged's Settings → AI
+ * "Connect a model" gallery — same groups, blurbs and button vocabulary as
+ * the app (Connect for presets, Use/Edit for saved connections). The
+ * in-use connection cycles: local agent → local model → API key.
+ */
+const gallery = [
+  {
+    heading: 'Use a local agent',
+    badge: 'Your login',
+    blurb: "Drive a CLI you've already signed in to — no API key, your own subscription.",
+    rows: [
+      { name: 'Claude Code', blurb: 'your installed claude CLI, its own login — no API key', saved: true },
+      { name: 'Gemini CLI', blurb: 'your gemini CLI with its Google login' },
+      { name: 'Codex CLI', blurb: 'your codex CLI with its ChatGPT login' },
+    ],
+  },
+  {
+    heading: 'Run a model locally',
+    badge: 'On-device',
+    blurb: 'Open models on your own machine — fully private, no key.',
+    rows: [
+      { name: 'Ollama', blurb: 'open models on your own machine', saved: true },
+      { name: 'LM Studio', blurb: "local models via LM Studio's server" },
+    ],
+  },
+  {
+    heading: 'Connect with an API key',
+    badge: 'API key',
+    blurb: 'Bring your own key from a cloud provider.',
+    rows: [
+      { name: 'Anthropic', blurb: 'Claude Opus, Sonnet & Haiku', saved: true },
+      { name: 'OpenAI', blurb: 'GPT-4o / o-series via the OpenAI API' },
+      { name: 'OpenRouter', blurb: 'one key, hundreds of models' },
+    ],
+    more: 'also Google · Groq · DeepSeek · Mistral · xAI · Together · any OpenAI-compatible endpoint',
+  },
+];
 ---
 
 <section id="models">
   <div class="container">
     <div class="sec-head">
-      <p class="eyebrow">bring your own model</p>
+      <p class="eyebrow">02 · any model</p>
       <h2 class="section-h">Every model. No middleman.</h2>
       <p class="section-sub">
-        Agent Mode needs exactly one connection — and it's yours to pick. Wire it up in
-        <span class="kbd-path">Settings → AI Models</span>, swap it any time, mid-session.
+        The AI inside Uncaged runs on a model you choose: a local runtime like Ollama, your own
+        provider API key, or a CLI agent like Claude Code. Pick it once in
+        <span class="kbd-path">Settings → AI Models</span> — that's the entire setup — and switch
+        whenever you like.
       </p>
     </div>
 
-    <div class="model-grid">
-      {
-        cols.map((c, i) => (
-          <div class="model-col card">
-            <h3>{c.title}</h3>
-            <p>{c.blurb}</p>
-            <ul class="chip-list">
-              {c.items.map((item) => (
-                <li class="chip">{item}</li>
-              ))}
-            </ul>
-          </div>
-        ))
-      }
-    </div>
-
-    <div class="model-foot">
-      <div class="codeblock">
-        <pre><span class="prompt">❯</span> ./script/uncaged-setup     <span class="cmt"># or wire it up from a shell</span></pre>
-        <button class="copy-btn" data-copy="./script/uncaged-setup" aria-label="Copy setup command">copy</button>
+    <div class="sw-window" id="switchboard" role="img" aria-label="Uncaged's Connect a model settings gallery: use a local agent, run a model locally, or connect with an API key — saved connections show Use and Edit, the rest show Connect">
+      <div class="sw-bar">
+        <span class="sw-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="sw-title">settings — AI · connect a model</span>
+        <span class="sw-hint">one connection is all it takes</span>
       </div>
-      <p class="model-note">
-        Connections live in <code>~/.uncaged/</code> — a directory on your disk, not a row in
-        someone's database.
-      </p>
+
+      <div class="sw-gallery">
+        {
+          gallery.map((g) => (
+            <div class="sw-group">
+              <div class="sw-group-head">
+                <h3>{g.heading}</h3>
+                <span class="sw-badge">{g.badge}</span>
+              </div>
+              {g.blurb && <p class="sw-group-blurb">{g.blurb}</p>}
+              <div class="sw-rows">
+                {g.rows.map((r) => (
+                  <div class={`sw-row${r.saved ? ' sw-saved' : ''}`} data-provider={r.name}>
+                    <div class="sw-row-text">
+                      <span class="sw-name">{r.name}</span>
+                      <span class="sw-blurb">{r.blurb}</span>
+                    </div>
+                    <div class="sw-actions" aria-hidden="true">
+                      {r.saved ? (
+                        <>
+                          <span class="sw-btn sw-btn-use">Use</span>
+                          <span class="sw-btn">Edit</span>
+                        </>
+                      ) : (
+                        <span class="sw-btn sw-btn-connect">Connect</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {g.more && <p class="sw-more">{g.more}</p>}
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="sw-foot">
+        <span>active model</span>
+        <b id="sw-active">Ollama · qwen3-coder</b>
+        <span class="sw-foot-cfg">config <code>~/.uncaged/engine.json</code> · keys on your disk</span>
+      </div>
     </div>
+
   </div>
 </section>
 
 <style>
   .sec-head {
-    margin-bottom: 56px;
+    margin-bottom: 72px;
   }
 
   .kbd-path {
@@ -60,67 +120,267 @@ const cols = [PROVIDERS.local, PROVIDERS.api, PROVIDERS.cli];
     white-space: nowrap;
   }
 
-  .model-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+  .sw-window {
+    background: #10141c;
+    border: 1px solid var(--bar);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(232, 235, 242, 0.05) inset,
+      0 24px 70px -18px rgba(0, 0, 0, 0.85);
   }
 
-  .chip-list {
-    list-style: none;
+  .sw-bar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 0;
-    margin: 18px 0 0;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--bar);
+    background: rgba(22, 26, 35, 0.6);
   }
 
-  .chip {
+  .sw-dots {
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  .sw-dots i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--bar);
+  }
+
+  .sw-dots i:first-child {
+    background: #384051;
+  }
+
+  .sw-title {
     font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 11.5px;
+    color: var(--ash);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sw-hint {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted, #5d6577);
+    white-space: nowrap;
+  }
+
+  .sw-gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+    padding: 24px 26px;
+  }
+
+  .sw-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .sw-group-head h3 {
+    font-size: 13.5px;
+    font-weight: 700;
     color: var(--ink);
-    background: rgba(233, 225, 212, 0.045);
+  }
+
+  .sw-badge {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--ash);
     border: 1px solid var(--bar);
     border-radius: 999px;
-    padding: 5px 12px;
-    transition: border-color var(--fast);
+    padding: 2px 9px;
+    white-space: nowrap;
   }
 
-  .model-col:hover .chip {
-    border-color: #4d3e2d;
+  .sw-group-blurb {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted, #5d6577);
+    margin-bottom: 12px;
+    min-height: 15px;
   }
 
-  .model-foot {
-    margin-top: 26px;
+  .sw-group > .sw-rows:first-of-type {
+    margin-top: 12px;
+  }
+
+  .sw-rows {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: 24px;
+    gap: 8px;
+  }
+
+  .sw-row {
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
+    border-radius: 10px;
+    padding: 10px 12px;
+    transition: border-color var(--fast), background-color var(--fast);
   }
 
-  .cmt {
-    color: #6d6455;
+  .sw-row:hover {
+    border-color: var(--bar);
+    background: rgba(232, 235, 242, 0.02);
   }
 
-  .model-note {
-    color: var(--ash);
-    font-size: 14.5px;
+  .sw-row.on {
+    border-color: rgba(255, 178, 58, 0.35);
+    background: rgba(255, 178, 58, 0.06);
   }
 
-  .model-note code {
+  .sw-row-text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .sw-name {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 700;
     color: var(--ink);
-    font-size: 13px;
   }
 
-  @media (max-width: 1024px) {
-    .model-grid {
+  .sw-blurb {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted, #5d6577);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sw-actions {
+    display: inline-flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .sw-btn {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--ash);
+    border: 1px solid var(--bar);
+    border-radius: 7px;
+    padding: 4px 10px;
+    white-space: nowrap;
+  }
+
+  .sw-btn-connect {
+    color: var(--ink);
+  }
+
+  .sw-row.on .sw-btn-use {
+    color: #16100a;
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .sw-more {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted, #5d6577);
+    line-height: 1.7;
+  }
+
+  .sw-foot {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 26px;
+    border-top: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted, #5d6577);
+  }
+
+  .sw-foot b {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .sw-foot-cfg {
+    margin-left: auto;
+  }
+
+  .sw-foot-cfg code {
+    color: var(--ash);
+  }
+
+  @media (max-width: 900px) {
+    .sw-gallery {
       grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
     }
 
-    .model-foot {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 14px;
+    .sw-hint {
+      display: none;
+    }
+
+    .sw-foot-cfg {
+      margin-left: 0;
+      width: 100%;
     }
   }
 </style>
+
+<script>
+  const sw = document.getElementById('switchboard');
+  if (sw) {
+    const activeEl = document.getElementById('sw-active')!;
+    const saved = ['Ollama', 'Anthropic', 'Claude Code'];
+    const details: Record<string, string> = {
+      Ollama: 'Ollama · qwen3-coder',
+      Anthropic: 'Anthropic · claude sonnet',
+      'Claude Code': 'Claude Code · your plan, over ACP',
+    };
+
+    function activate(name: string) {
+      sw!.querySelectorAll<HTMLElement>('.sw-row.sw-saved').forEach((row) => {
+        const on = row.dataset.provider === name;
+        row.classList.toggle('on', on);
+        const use = row.querySelector('.sw-btn-use');
+        if (use) use.textContent = on ? 'In use' : 'Use';
+      });
+      activeEl.textContent = details[name] ?? name;
+    }
+
+    activate('Ollama');
+
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      let i = 0;
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            io.disconnect();
+            setInterval(() => {
+              i = (i + 1) % saved.length;
+              activate(saved[i]!);
+            }, 3000);
+          }
+        },
+        { threshold: 0.4 }
+      );
+      io.observe(sw);
+    }
+  }
+</script>

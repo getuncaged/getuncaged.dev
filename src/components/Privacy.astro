@@ -1,29 +1,24 @@
 ---
-import Logo from './Logo.astro';
 import { AUDIT, SITE } from '../data/site';
 ---
 
 <section id="privacy">
   <div class="container">
-    <div class="priv-grid">
-      <div>
-        <p class="eyebrow">trust, verifiable</p>
-        <h2 class="section-h">Nothing phones home.</h2>
-        <p class="section-sub">
-          The only outbound traffic Uncaged makes is to the model endpoint you configured. Everything
-          else is off — not toggled off, <em>compiled</em> off. And because the whole thing is open
-          source, you don't have to take the website's word for it.
-        </p>
-        <a class="btn btn-ghost btn-small priv-btn" href={SITE.github} target="_blank" rel="noopener">
-          Read the code
-        </a>
-      </div>
+    <div class="sec-head">
+      <p class="eyebrow">01 · no cloud</p>
+      <h2 class="section-h">Zero telemetry. One outbound call.</h2>
+      <p class="section-sub">
+        The only network request Uncaged ever makes is the one to your model endpoint. Accounts,
+        telemetry, crash reporting, cloud sync — none of it exists in this build. The source is
+        public, so you can verify that instead of trusting it.
+      </p>
+    </div>
 
-      <div>
+    <div class="priv-grid">
+      <div class="priv-left">
         <div class="wire">
           <div class="wire-machine">
             <div class="wire-machine-head">
-              <Logo idp="priv" size={18} cageOnly class="wire-mark" />
               <span>your machine</span>
             </div>
             <ul>
@@ -34,43 +29,54 @@ import { AUDIT, SITE } from '../data/site';
           </div>
           <div class="wire-arrow" aria-hidden="true">
             <span class="wire-label">the only outbound call</span>
-            <span class="wire-line"></span>
+            <span class="wire-line"><i class="wire-pulse"></i></span>
           </div>
-          <div class="wire-endpoint">the endpoint<br />you chose</div>
+          <div class="wire-endpoint">the endpoint <br />you chose</div>
         </div>
-
-        <dl class="audit">
-          {
-            AUDIT.map((row) => (
-              <div class="audit-row">
-                <dt>{row.surface}</dt>
-                <dd>{row.state}</dd>
-              </div>
-            ))
-          }
-        </dl>
+        <a class="btn btn-ghost btn-small priv-btn" href={SITE.github} target="_blank" rel="noopener">
+          Read the code
+        </a>
       </div>
+
+      <dl class="audit">
+        {
+          AUDIT.map((row) => (
+            <div class="audit-row">
+              <dt>{row.surface}</dt>
+              <dd>{row.state}</dd>
+            </div>
+          ))
+        }
+      </dl>
     </div>
   </div>
 </section>
 
 <style>
+  #privacy {
+    background: #0e1117;
+    border-block: 1px solid var(--bar);
+  }
+
+  .sec-head {
+    margin-bottom: 72px;
+  }
+
   .priv-grid {
     display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    gap: 72px;
-    align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 64px;
+    align-items: center;
   }
 
   .priv-btn {
-    margin-top: 28px;
+    margin-top: 34px;
   }
 
   .wire {
     display: flex;
     align-items: center;
     gap: 0;
-    margin-bottom: 30px;
   }
 
   .wire-machine {
@@ -107,7 +113,7 @@ import { AUDIT, SITE } from '../data/site';
   }
 
   .wire-machine code {
-    color: #6d6455;
+    color: var(--muted, #5d6577);
   }
 
   .wire-arrow {
@@ -122,8 +128,8 @@ import { AUDIT, SITE } from '../data/site';
 
   .wire-label {
     font-family: var(--mono);
-    font-size: 10px;
-    color: #6d6455;
+    font-size: 11px;
+    color: var(--muted, #5d6577);
     white-space: nowrap;
   }
 
@@ -143,6 +149,35 @@ import { AUDIT, SITE } from '../data/site';
     border-left: 8px solid var(--ember);
     border-top: 4.5px solid transparent;
     border-bottom: 4.5px solid transparent;
+  }
+
+  .wire-pulse {
+    position: absolute;
+    top: -2.5px;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px 1px rgba(255, 178, 58, 0.55);
+    animation: wire-travel 2.8s ease-in-out infinite;
+  }
+
+  @keyframes wire-travel {
+    0% {
+      left: 0%;
+      opacity: 0;
+    }
+    14% {
+      opacity: 1;
+    }
+    86% {
+      opacity: 1;
+    }
+    100% {
+      left: calc(100% - 7px);
+      opacity: 0;
+    }
   }
 
   .wire-endpoint {
@@ -172,12 +207,12 @@ import { AUDIT, SITE } from '../data/site';
   }
 
   .audit-row + .audit-row {
-    border-top: 1px solid rgba(58, 46, 34, 0.6);
+    border-top: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
   }
 
   .audit-row dt {
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 13.5px;
     font-weight: 500;
     color: var(--ink);
   }
@@ -185,13 +220,13 @@ import { AUDIT, SITE } from '../data/site';
   .audit-row dd {
     margin: 0;
     font-family: var(--mono);
-    font-size: 12.5px;
+    font-size: 13.5px;
     color: var(--ash);
   }
 
   .audit-row dd::before {
     content: '∅ ';
-    color: var(--ember);
+    color: var(--ember-deep);
     font-weight: 700;
   }
 
@@ -202,20 +237,69 @@ import { AUDIT, SITE } from '../data/site';
     }
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 640px) {
     .wire {
       flex-direction: column;
-      gap: 12px;
       align-items: stretch;
+      gap: 14px;
     }
 
     .wire-arrow {
-      transform: rotate(90deg);
-      max-height: 60px;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 14px;
+      padding: 0;
+      min-width: 0;
+    }
+
+    .wire-label {
+      white-space: normal;
+    }
+
+    .wire-line {
+      width: 2px;
+      height: 44px;
+      flex-shrink: 0;
+      margin-left: 21px;
+      background: linear-gradient(180deg, var(--bar), var(--ember));
+    }
+
+    .wire-line::after {
+      right: -2.75px;
+      top: auto;
+      bottom: -1px;
+      border-left: 4.5px solid transparent;
+      border-right: 4.5px solid transparent;
+      border-top: 8px solid var(--ember);
+      border-bottom: 0;
+    }
+
+    .wire-pulse {
+      left: -2.5px;
+      top: 0;
+      animation-name: wire-travel-v;
     }
 
     .wire-endpoint br {
       display: none;
+    }
+  }
+
+  @keyframes wire-travel-v {
+    0% {
+      top: 0;
+      opacity: 0;
+    }
+    14% {
+      opacity: 1;
+    }
+    86% {
+      opacity: 1;
+    }
+    100% {
+      top: calc(100% - 7px);
+      opacity: 0;
     }
   }
 </style>

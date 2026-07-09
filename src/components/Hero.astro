@@ -4,29 +4,31 @@ import { SITE } from '../data/site';
 ---
 
 <section class="hero" id="top">
+  <div class="sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <div class="container hero-grid">
     <div class="hero-copy">
       <p class="eyebrow">a fork of the open-source warp terminal</p>
       <h1 class="hero-h">
-        No account.<br />No cloud.<br />No cage.<span class="cursor-blink" aria-hidden="true"></span>
+        No account.<br />No cloud.<br /><span class="h-flame">No cage.</span><span class="cursor-blink" aria-hidden="true"></span>
       </h1>
       <p class="hero-sub">
-        Uncaged keeps everything that makes Warp great — the agentic terminal, blocks, workflows,
-        keymaps — and removes the cloud behind it. It runs entirely on your machine: bring a local
-        model, an API key, or the CLI subscription you already pay for. Your keys never leave your
-        device.
+        Uncaged is the open-source Warp terminal with the cloud cut out — the same agentic
+        terminal, running entirely on your machine. Bring any model: a local runtime, an API key,
+        or the CLI plan you already pay for. Your keys never leave your device.
       </p>
       <div class="hero-ctas">
         <a class="btn btn-primary" id="hero-dl" href={SITE.dmg} data-dl-mac>
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M8 1v9.3L4.9 7.2 3.8 8.3 8 12.5l4.2-4.2-1.1-1.1L8 10.3V1H8zM2 13.5h12V15H2v-1.5z"></path>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2.75v7"></path>
+            <path d="M4.75 6.75 8 10l3.25-3.25"></path>
+            <path d="M3 13.25h10"></path>
           </svg>
-          <span id="hero-dl-label">Download for macOS</span>
+          <span class="dl-label">Download for macOS</span>
         </a>
         <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">View source</a>
       </div>
       <p class="hero-meta">
-        free forever · AGPL-3.0 · macOS (Apple&nbsp;Silicon) · <a href="#download">Linux &amp; Windows in the works</a>
+        free forever · AGPL-3.0 · <a href="#download">macOS · Linux · Windows</a>
       </p>
     </div>
 
@@ -38,9 +40,34 @@ import { SITE } from '../data/site';
 
 <style>
   .hero {
+    position: relative;
     padding-top: 168px;
     padding-bottom: 96px;
     overflow: clip;
+  }
+
+  /* the one ember in the room, breathing slowly */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: -12% -8% 0;
+    pointer-events: none;
+    background: radial-gradient(44% 38% at 64% 24%, rgba(255, 122, 24, 0.11), transparent 64%);
+    animation: breathe 13s ease-in-out infinite alternate;
+    z-index: 0;
+  }
+
+  /* fine workbench grid, fading in around the terminal */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(230, 235, 245, 0.07) 1px, transparent 1.3px);
+    background-size: 27px 27px;
+    -webkit-mask-image: radial-gradient(56% 64% at 66% 40%, #000 20%, transparent 74%);
+    mask-image: radial-gradient(56% 64% at 66% 40%, #000 20%, transparent 74%);
+    z-index: 0;
   }
 
   .hero-grid {
@@ -51,31 +78,45 @@ import { SITE } from '../data/site';
   }
 
   .hero-h {
-    font-size: clamp(42px, 4.9vw, 62px);
+    font-size: clamp(46px, 5vw, 68px);
     font-weight: 800;
     line-height: 1.06;
     letter-spacing: -0.025em;
   }
 
+  .h-flame {
+    background: linear-gradient(98deg, var(--gold) 8%, var(--ember) 55%, var(--flame) 96%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
   .hero-sub {
-    margin-top: 26px;
+    margin-top: 28px;
     color: var(--ash);
-    font-size: 17.5px;
-    max-width: 54ch;
+    font-size: 18px;
+    max-width: 52ch;
   }
 
   .hero-ctas {
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
-    margin-top: 34px;
+    margin-top: 40px;
   }
 
   .hero-meta {
-    margin-top: 22px;
+    margin-top: 26px;
     font-family: var(--mono);
     font-size: 12px;
-    color: #6d6455;
+    color: var(--muted, #5d6577);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 560px) {
+    .hero-meta {
+      white-space: normal;
+    }
   }
 
   .hero-meta a {
@@ -106,16 +147,20 @@ import { SITE } from '../data/site';
 </style>
 
 <script>
-  // If the visitor clearly isn't on macOS, route the primary CTA to the
-  // downloads section instead of the .dmg.
+  // Hand every visitor their own platform's artifact.
+  import { SITE } from '../data/site';
+
   const ua = navigator.userAgent;
-  const isMac = /Mac|iPhone|iPad/.test(ua);
-  if (!isMac) {
-    const btn = document.getElementById('hero-dl') as HTMLAnchorElement | null;
-    const label = document.getElementById('hero-dl-label');
-    if (btn && label) {
-      btn.href = '#download';
-      label.textContent = 'Get Uncaged';
-    }
+  const isWin = /Windows/.test(ua);
+  const isLinux = /Linux|X11/.test(ua) && !/Android/.test(ua);
+
+  if (isWin || isLinux) {
+    const href = isWin ? SITE.windowsSetup : SITE.linuxTar;
+    const label = isWin ? 'Download for Windows' : 'Download for Linux';
+    document.querySelectorAll<HTMLAnchorElement>('a[data-dl-mac]').forEach((a) => {
+      a.href = href;
+      const l = a.querySelector('.dl-label');
+      if (l) l.textContent = label;
+    });
   }
 </script>

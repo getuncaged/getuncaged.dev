@@ -1,0 +1,199 @@
+---
+/**
+ * Stage 00 — the fork at a glance. What was removed from Warp,
+ * and what stands in its place. One card, two columns, no noise.
+ */
+const removed = [
+  'Account & login',
+  'Cloud-relayed AI requests',
+  'Telemetry & crash reporting',
+  'Subscription, credits, caps',
+  'Warp & Oz branding',
+];
+
+const added = [
+  { t: 'A local agent engine', d: 'uncaged_engine runs on your machine' },
+  { t: 'The model you choose', d: 'local runtime, API key, or CLI agent' },
+  { t: 'A swappable brand layer', d: 'the whole identity in three files' },
+];
+---
+
+<section class="changes">
+  <div class="container">
+    <div class="ch-head">
+      <p class="eyebrow ch-eyebrow">the fork</p>
+      <h2 class="section-h">Same terminal. Minus the cloud.</h2>
+    </div>
+
+    <div class="ledger">
+      <div class="ledger-col">
+        <p class="ledger-label">removed from warp</p>
+        <ul>
+          {removed.map((r) => <li class="ledger-cut"><span aria-hidden="true">−</span>{r}</li>)}
+        </ul>
+      </div>
+
+      <div class="ledger-divider" aria-hidden="true">
+        <span class="ledger-arrow"></span>
+      </div>
+
+      <div class="ledger-col">
+        <p class="ledger-label">in its place</p>
+        <ul>
+          {
+            added.map((a) => (
+              <li class="ledger-add">
+                <span aria-hidden="true">+</span>
+                <div>
+                  <b>{a.t}</b>
+                  <i>{a.d}</i>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .changes {
+    padding-block: 128px;
+  }
+
+  .ch-head {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 64px;
+  }
+
+  .ch-eyebrow {
+    justify-content: center;
+  }
+
+  .ch-head .section-h {
+    max-width: none;
+  }
+
+  .ledger {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0 48px;
+    width: min(940px, 100%);
+    margin-inline: auto;
+    background: #10141c;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    padding: 40px 48px;
+    box-shadow: 0 24px 60px -22px rgba(0, 0, 0, 0.85);
+  }
+
+  .ledger-label {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--muted, #5d6577);
+    margin-bottom: 18px;
+  }
+
+  .ledger ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .ledger li {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+  }
+
+  .ledger li span {
+    font-weight: 700;
+    width: 12px;
+    flex-shrink: 0;
+  }
+
+  .ledger-cut {
+    color: var(--ash);
+  }
+
+  .ledger-cut span {
+    color: var(--ember-deep);
+  }
+
+  .ledger-add b {
+    display: block;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .ledger-add i {
+    display: block;
+    font-style: normal;
+    font-size: 12.5px;
+    color: var(--muted, #5d6577);
+    margin-top: 2px;
+  }
+
+  .ledger-add span {
+    color: var(--gold);
+  }
+
+  .ledger-add {
+    align-items: first baseline;
+  }
+
+  .ledger-divider {
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .ledger-arrow {
+    display: block;
+    width: 44px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--bar), var(--ember));
+    position: relative;
+  }
+
+  .ledger-arrow::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3.5px;
+    border-left: 8px solid var(--ember);
+    border-top: 4.5px solid transparent;
+    border-bottom: 4.5px solid transparent;
+  }
+
+  @media (max-width: 860px) {
+    .ledger {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
+      padding: 32px 28px;
+    }
+
+    .ledger-divider {
+      justify-content: flex-start;
+    }
+
+    .ledger-arrow {
+      transform: rotate(90deg);
+      transform-origin: left center;
+      width: 32px;
+      margin-left: 6px;
+    }
+  }
+</style>

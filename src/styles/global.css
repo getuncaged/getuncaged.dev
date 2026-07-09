@@ -1,21 +1,26 @@
 /* ---------------------------------------------------------------------------
    Uncaged — global styles
-   Design system v1.0 "Ember": warm night-workbench ground, ink type,
-   gold→ember accent held to a ≤10% spark.
+   The site's own palette (the "Ember" design system stays with the logo):
+   one cool blue-black family throughout, so the gold/ember brand accents
+   are the only warmth on the page.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* palette */
-  --void: #0c0a08;
-  --ground-top: #15110c;
-  --panel: #1a1512;
-  --raised: #1f1b15;
-  --ink: #e9e1d4;
-  --ash: #948b7e;
-  --bar: #3a2e22;
+  /* palette — the site's own, COOL base so the ember brand accents are the
+     only warmth on the page (blue↔orange complementary contrast). */
+  --void: #0b0d12;
+  --ground-top: #12151d;
+  --panel: #12151c;
+  --raised: #171b24;
+  --ink: #e8ebf2;
+  --ash: #8b93a5;
+  --muted: #5d6577;
+  --bar: #262c3a;
+  --line-soft: rgba(60, 67, 82, 0.6);
   --gold: #ffb23a;
   --ember: #ff7a18;
   --ember-deep: #ff5e10;
+  --flame: #ff4d1c;
 
   --grad-prompt: linear-gradient(180deg, var(--gold) 0%, var(--ember) 100%);
 
@@ -48,7 +53,7 @@ html {
 body {
   margin: 0;
   background-color: var(--void);
-  background-image: linear-gradient(180deg, var(--ground-top) 0%, var(--void) 640px);
+  background-image: linear-gradient(180deg, var(--ground-top) 0%, #0e1118 640px, var(--void) 1200px);
   color: var(--ink);
   font-family: var(--sans);
   font-size: 17px;
@@ -58,15 +63,130 @@ body {
   overflow-x: clip;
 }
 
-/* the one ember in the room — a faint warm cast at the top of the page */
-body::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 110vh;
+/* ------------------------------------------------- the living atmosphere */
+/* three big soft light fields drifting behind everything, page-long */
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
   pointer-events: none;
-  background: radial-gradient(58% 42% at 62% -8%, rgba(255, 122, 24, 0.09), transparent 62%);
   z-index: 0;
+  overflow: hidden;
+}
+
+.atmosphere i {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.atmosphere .orb-ember {
+  width: 58vw;
+  height: 58vw;
+  top: -22vw;
+  right: -12vw;
+  background: radial-gradient(closest-side, rgba(255, 122, 24, 0.12), rgba(255, 77, 28, 0.04) 55%, transparent 72%);
+  animation: drift-a 34s ease-in-out infinite alternate;
+}
+
+.atmosphere .orb-gold {
+  width: 54vw;
+  height: 54vw;
+  bottom: 2vh;
+  left: -22vw;
+  background: radial-gradient(closest-side, rgba(96, 132, 195, 0.08), rgba(96, 132, 195, 0.03) 55%, transparent 72%);
+  animation: drift-b 41s ease-in-out infinite alternate;
+}
+
+.atmosphere .orb-teal {
+  width: 46vw;
+  height: 46vw;
+  bottom: -20vh;
+  right: 4vw;
+  background: radial-gradient(closest-side, rgba(92, 130, 220, 0.08), transparent 68%);
+  animation: drift-c 47s ease-in-out infinite alternate;
+}
+
+@keyframes drift-a {
+  to {
+    transform: translate(-9vw, 12vh) scale(1.12);
+  }
+}
+
+@keyframes drift-b {
+  to {
+    transform: translate(11vw, -9vh) scale(1.08);
+  }
+}
+
+@keyframes drift-c {
+  to {
+    transform: translate(-8vw, -11vh) scale(1.15);
+  }
+}
+
+/* rising ember sparks — sprinkle .sparks into a section and it glows */
+.sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sparks i {
+  position: absolute;
+  bottom: -6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--gold), var(--ember));
+  opacity: 0;
+  animation: spark-rise 11s linear infinite;
+}
+
+.sparks i:nth-child(1) { left: 8%; animation-delay: 0s; animation-duration: 12s; }
+.sparks i:nth-child(2) { left: 21%; animation-delay: 3.2s; animation-duration: 15s; width: 3px; height: 3px; }
+.sparks i:nth-child(3) { left: 34%; animation-delay: 7.1s; animation-duration: 10s; }
+.sparks i:nth-child(4) { left: 47%; animation-delay: 1.6s; animation-duration: 16s; width: 3px; height: 3px; }
+.sparks i:nth-child(5) { left: 58%; animation-delay: 5.4s; animation-duration: 12.5s; }
+.sparks i:nth-child(6) { left: 69%; animation-delay: 9s; animation-duration: 14s; width: 5px; height: 5px; }
+.sparks i:nth-child(7) { left: 81%; animation-delay: 2.4s; animation-duration: 11s; }
+.sparks i:nth-child(8) { left: 92%; animation-delay: 6.2s; animation-duration: 15.5s; width: 3px; height: 3px; }
+
+@keyframes spark-rise {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-88vh) translateX(4vw);
+    opacity: 0;
+  }
+}
+
+/* slow warmth for glows — the page equivalent of a cursor at rest */
+@keyframes breathe {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.055);
+  }
+}
+
+/* marquee for the kept-features ticker */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* faint grain so the ground reads as material, not #000 */
@@ -137,7 +257,7 @@ pre {
 }
 
 .section-h {
-  font-size: clamp(26px, 3.4vw, 34px);
+  font-size: clamp(30px, 3.6vw, 42px);
   font-weight: 700;
   line-height: 1.2;
   max-width: 22ch;
@@ -145,9 +265,9 @@ pre {
 
 .section-sub {
   color: var(--ash);
-  max-width: 58ch;
-  margin-top: 16px;
-  font-size: 16.5px;
+  max-width: 56ch;
+  margin-top: 18px;
+  font-size: 17px;
 }
 
 .muted {
@@ -164,7 +284,7 @@ pre {
 }
 
 section {
-  padding-block: 104px;
+  padding-block: 128px;
 }
 
 .hairline {
@@ -195,16 +315,26 @@ section {
 }
 
 .btn-primary {
-  background: var(--ember);
-  color: var(--void);
+  background: linear-gradient(180deg, #ff8a2e 0%, var(--ember) 100%);
+  color: #16100a;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.22) inset,
+    0 10px 28px -12px rgba(255, 122, 24, 0.55);
 }
 
 .btn-primary:hover {
-  background: var(--ember-deep);
+  background: linear-gradient(180deg, #ff9440 0%, var(--ember-deep) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 16px 36px -12px rgba(255, 122, 24, 0.75);
+  transform: translateY(-1px);
 }
 
 .btn-primary:active {
-  transform: translateY(1px);
+  transform: translateY(0);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 6px 18px -10px rgba(255, 122, 24, 0.5);
 }
 
 .btn-ghost {
@@ -215,7 +345,7 @@ section {
 
 .btn-ghost:hover {
   border-color: var(--ash);
-  background: rgba(233, 225, 212, 0.04);
+  background: rgba(232, 235, 242, 0.04);
 }
 
 .btn-small {
@@ -254,7 +384,7 @@ section {
 
 .codeblock {
   position: relative;
-  background: #0f0c0a;
+  background: #151311;
   border: 1px solid var(--bar);
   border-radius: var(--radius);
   font-size: 13px;

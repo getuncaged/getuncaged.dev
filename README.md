@@ -18,26 +18,32 @@ npm run preview    # serve the production build locally
 | What | Where |
 |---|---|
 | All copy-adjacent data — URLs, version, providers, features, FAQ | [`src/data/site.ts`](src/data/site.ts) |
-| Design tokens (palette, type, motion) | [`src/styles/global.css`](src/styles/global.css) |
+| Design tokens (palette, type, motion) | [`src/styles/global.css`](src/styles/global.css) — spec in [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md), living gallery at [`/design`](src/pages/design.astro) |
 | Page sections | [`src/components/`](src/components/) |
 | Brand assets (favicon, mark, touch icon) | [`public/`](public/) |
 
-Colors, type and voice follow the
-[Uncaged design system](https://github.com/getuncaged) v1.0 "Ember":
-JetBrains Mono + Inter, warm night-workbench ground, gold→ember accent held to a
-≤10% spark.
+Colors, type and voice follow **Midnight**, the site's own design system
+([`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md), living gallery at `/design`):
+JetBrains Mono + Inter on a cool blue-black ground, with the gold→ember family
+as the only warmth on the page. The logo itself is governed by the separate
+"Ember" system in the `uncaged-design-system` repo.
 
 ## Downloads
 
-Download buttons point at the canonical GitHub latest-release asset:
+Download buttons point at the canonical GitHub latest-release assets, named
+`Uncaged-<os>-<arch>.<ext>` by the app repo's release workflow:
 
 ```
-https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged.dmg
+https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-macos-aarch64.dmg
+https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-linux-x86_64.tar.gz
+https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64-setup.exe
 ```
 
-They go live automatically the moment a release with an `Uncaged.dmg` asset is
-published — no site change needed. New platforms: add a card in
-`src/components/Downloads.astro` and the URL in `src/data/site.ts`.
+They go live automatically the moment a release publishes an asset with the
+matching name — no site change needed. The full per-OS/per-arch set lives in the
+`DOWNLOADS` matrix in `src/data/site.ts` (mirroring the app repo's
+`DOWNLOADS.md`); to add a platform, extend that matrix and it renders in
+`src/components/Downloads.astro`.
 
 ## Deploy
 

@@ -1,0 +1,247 @@
+---
+import Logo from './Logo.astro';
+import { SITE } from '../data/site';
+
+const files = [
+  {
+    path: 'app/src/brand.rs',
+    what: 'name, tagline, palette — the strings and the colors',
+  },
+  {
+    path: 'app/assets/bundled/svg/brand/',
+    what: 'two SVGs: the in-app mark and the app icon',
+  },
+  {
+    path: 'crates/uncaged_engine/src/catalog.rs',
+    what: 'the model gallery: providers, icons, defaults',
+  },
+];
+---
+
+<section id="open-source">
+  <div class="container os-grid">
+    <div class="os-copy">
+      <p class="eyebrow">03 · built to fork</p>
+      <h2 class="section-h">Engineered to be forked.</h2>
+      <p class="section-sub">
+        Any open-source project can be forked in theory. Uncaged is built for it in practice: no
+        upstream services to untangle, no account system to strip out, and no Warp or Oz branding
+        left anywhere in the product.
+      </p>
+      <p class="section-sub">
+        The entire identity lives in three files — the brand constants, two SVGs, and the provider
+        catalog. Swap them, rebuild, and ship your own terminal on a proven engine.
+      </p>
+      <div class="os-ctas">
+        <a class="btn btn-ghost btn-small" href={SITE.forkingDoc} target="_blank" rel="noopener">
+          Read FORKING.md
+        </a>
+        <span class="os-agpl">AGPL-3.0 keeps every fork this open.</span>
+      </div>
+    </div>
+
+    <div class="os-card">
+      <div class="os-swap" aria-label="Swap the Uncaged mark for your own">
+        <div class="os-side">
+          <div class="os-tile">
+            <Logo idp="os-ours" size={38} />
+          </div>
+          <span class="os-cap">ours</span>
+        </div>
+        <div class="os-arrow" aria-hidden="true">
+          <span class="os-arrow-label">swap</span>
+          <span class="os-arrow-line"></span>
+        </div>
+        <div class="os-side">
+          <div class="os-tile os-tile-yours" id="os-yours">
+            <Logo idp="os-yours" size={38} cageOnly class="os-fork-mark" />
+          </div>
+          <span class="os-cap">yours</span>
+        </div>
+      </div>
+
+      <ul class="os-files">
+        {
+          files.map((f) => (
+            <li>
+              <code class="os-path">{f.path}</code>
+              <span class="os-what">{f.what}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="os-foot">That's the entire surface. Everything else just keeps working.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .os-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: 72px;
+    align-items: center;
+  }
+
+  .os-ctas {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 28px;
+  }
+
+  .os-agpl {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted, #5d6577);
+  }
+
+  .os-card {
+    background: var(--panel);
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    padding: 28px;
+    box-shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.8);
+  }
+
+  .os-swap {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 26px;
+  }
+
+  .os-tile {
+    width: 74px;
+    height: 74px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    background: #10141c;
+    border: 1px solid var(--bar);
+    border-radius: 16px;
+    color: var(--ink);
+  }
+
+  .os-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .os-cap {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted, #5d6577);
+  }
+
+  .os-tile-yours {
+    border-style: dashed;
+    border-color: var(--bar);
+    background: transparent;
+  }
+
+  .os-fork-mark {
+    color: #6aa8ff;
+    transition: color 0.6s ease;
+  }
+
+  .os-arrow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .os-arrow-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted, #5d6577);
+  }
+
+  .os-arrow-line {
+    width: 100%;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--bar), var(--ember));
+    position: relative;
+  }
+
+  .os-arrow-line::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3.5px;
+    border-left: 8px solid var(--ember);
+    border-top: 4.5px solid transparent;
+    border-bottom: 4.5px solid transparent;
+  }
+
+  .os-files {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
+  }
+
+  .os-files li {
+    display: grid;
+    gap: 3px;
+    padding: 13px 2px;
+    border-bottom: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
+  }
+
+  .os-path {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .os-what {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ash);
+  }
+
+  .os-foot {
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted, #5d6577);
+  }
+
+  @media (max-width: 1024px) {
+    .os-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 44px;
+    }
+  }
+</style>
+
+<script>
+  // forks recolor the mark — show it
+  const tile = document.getElementById('os-yours');
+  const mark = tile?.querySelector<SVGElement>('.os-fork-mark');
+  if (tile && mark && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const tints = ['#6aa8ff', '#7bd88f', '#ff6ac1', '#c8b8ff'];
+    let i = 0;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          setInterval(() => {
+            i = (i + 1) % tints.length;
+            mark.style.color = tints[i]!;
+          }, 2400);
+        }
+      },
+      { threshold: 0.4 }
+    );
+    io.observe(tile);
+  }
+</script>
