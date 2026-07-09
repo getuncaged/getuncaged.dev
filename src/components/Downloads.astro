@@ -1,10 +1,12 @@
 ---
-import { SITE } from '../data/site';
+import { SITE, DOWNLOADS } from '../data/site';
+
+const { macos, linux, windows } = DOWNLOADS;
 
 const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/Uncaged.app';
-const macCurl = `curl -LO ${SITE.dmg}`;
-const linuxCurl = `curl -LO ${SITE.linuxTar}`;
-const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
+const macCurl = `curl -LO ${macos.primary.href}`;
+const linuxCurl = `curl -LO ${linux.primary.href}`;
+const winCurl = `curl.exe -LO ${windows.primary.href}`;
 ---
 
 <section id="download">
@@ -28,15 +30,21 @@ const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
           <h3>macOS</h3>
         </div>
 
-        <a class="btn btn-primary dl-btn" href={SITE.dmg}>
+        <a class="btn btn-primary dl-btn" href={macos.primary.href}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M8 2.75v7"></path>
             <path d="M4.75 6.75 8 10l3.25-3.25"></path>
             <path d="M3 13.25h10"></path>
           </svg>
-          Download .dmg
+          {macos.primary.label}
         </a>
-        <p class="dl-arch">Apple Silicon · v{SITE.version}</p>
+        <p class="dl-arch">{macos.primary.arch} · v{SITE.version}</p>
+
+        <div class="dl-alts">
+          {macos.others.map((a) => (
+            <a class="dl-alt" href={a.href}>{a.label}<span class="dl-alt-arch">{a.arch}</span></a>
+          ))}
+        </div>
 
         <p class="dl-step">Or from the terminal:</p>
         <div class="codeblock dl-cmd">
@@ -49,6 +57,8 @@ const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
           <pre><span class="prompt">❯</span> {quarantineCmd}</pre>
           <button class="copy-btn" data-copy={quarantineCmd} aria-label="Copy quarantine command">copy</button>
         </div>
+
+        <p class="dl-soon"><span class="dl-soon-tag">soon</span> Homebrew — <code>{macos.brew.cmd}</code></p>
       </div>
 
       <!-- Linux -->
@@ -62,15 +72,21 @@ const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
           <h3>Linux</h3>
         </div>
 
-        <a class="btn btn-ghost dl-btn" href={SITE.linuxTar}>
+        <a class="btn btn-ghost dl-btn" href={linux.primary.href}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M8 2.75v7"></path>
             <path d="M4.75 6.75 8 10l3.25-3.25"></path>
             <path d="M3 13.25h10"></path>
           </svg>
-          Download .tar.gz
+          {linux.primary.label}
         </a>
-        <p class="dl-arch">x86_64 · any distro</p>
+        <p class="dl-arch">{linux.primary.arch} · any distro</p>
+
+        <div class="dl-alts">
+          {linux.others.map((a) => (
+            <a class="dl-alt" href={a.href}>{a.label}<span class="dl-alt-arch">{a.arch}</span></a>
+          ))}
+        </div>
 
         <p class="dl-step">Or from the terminal:</p>
         <div class="codeblock dl-cmd">
@@ -78,7 +94,7 @@ const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
           <button class="copy-btn" data-copy={linuxCurl} aria-label="Copy Linux download command">copy</button>
         </div>
 
-        <p class="dl-note">Unpack and run <code>./uncaged</code>. <b>.deb, .rpm &amp; AppImage</b> land next.</p>
+        <p class="dl-note">Tarball: unpack and run <code>./uncaged</code>. {linux.note}</p>
       </div>
 
       <!-- Windows -->
@@ -90,15 +106,21 @@ const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
           <h3>Windows</h3>
         </div>
 
-        <a class="btn btn-ghost dl-btn" href={SITE.windowsZip}>
+        <a class="btn btn-ghost dl-btn" href={windows.primary.href}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M8 2.75v7"></path>
             <path d="M4.75 6.75 8 10l3.25-3.25"></path>
             <path d="M3 13.25h10"></path>
           </svg>
-          Download .zip
+          {windows.primary.label}
         </a>
-        <p class="dl-arch">x64 · Windows 11 / 10</p>
+        <p class="dl-arch">{windows.primary.arch}</p>
+
+        <div class="dl-alts">
+          {windows.others.map((a) => (
+            <a class="dl-alt" href={a.href}>{a.label}<span class="dl-alt-arch">{a.arch}</span></a>
+          ))}
+        </div>
 
         <p class="dl-step">Or from the terminal:</p>
         <div class="codeblock dl-cmd">
@@ -106,7 +128,7 @@ const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
           <button class="copy-btn" data-copy={winCurl} aria-label="Copy Windows download command">copy</button>
         </div>
 
-        <p class="dl-note">Unzip and run <code>uncaged.exe</code>. <b>Installer &amp; ARM64</b> land next.</p>
+        <p class="dl-soon"><span class="dl-soon-tag">soon</span> winget — <code>{windows.winget.cmd}</code></p>
       </div>
     </div>
 
@@ -192,6 +214,68 @@ const winCurl = `curl.exe -LO ${SITE.windowsZip}`;
     font-family: var(--mono);
     font-size: 12px;
     color: var(--muted, #5d6577);
+  }
+
+  /* secondary formats / architectures for the same OS */
+  .dl-alts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .dl-alt {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 6px 11px;
+    border: 1px solid var(--bar);
+    border-radius: 8px;
+    background: var(--panel);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ash);
+    transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+  }
+
+  .dl-alt:hover {
+    color: var(--ink);
+    border-color: var(--muted, #5d6577);
+    background: var(--raised, #171b24);
+  }
+
+  .dl-alt-arch {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--muted, #5d6577);
+  }
+
+  /* not-yet-live install channels, clearly de-emphasised */
+  .dl-soon {
+    margin-top: 22px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted, #5d6577);
+  }
+
+  .dl-soon-tag {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted, #5d6577);
+    border: 1px solid var(--bar);
+    border-radius: 5px;
+    padding: 1px 6px;
+    margin-right: 8px;
+    vertical-align: 1px;
+  }
+
+  .dl-soon code {
+    font-size: 11.5px;
+    color: var(--ash);
   }
 
   .dl-step {

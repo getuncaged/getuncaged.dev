@@ -10,21 +10,91 @@ export const SITE = {
   title: 'Uncaged — No account. No cloud. No cage.',
   description:
     'Uncaged is a fork of the open-source Warp terminal that removes the cloud. The full agentic experience — blocks, workflows, keymaps — running entirely on your machine. No account, no login, no relay. Bring any model: local, API key, or a CLI agent. Your keys never leave your device.',
-  version: '0.1.0',
+  version: '0.2.4',
   license: 'AGPL-3.0',
   github: 'https://github.com/getuncaged/uncaged',
   githubOrg: 'https://github.com/getuncaged',
   issues: 'https://github.com/getuncaged/uncaged/issues',
   releases: 'https://github.com/getuncaged/uncaged/releases',
   releasesLatest: 'https://github.com/getuncaged/uncaged/releases/latest',
+  // The "latest" URLs resolve to the newest published release, so these never
+  // need per-version edits. See ../../DOWNLOADS.md in the app repo for the
+  // canonical asset manifest.
+  latestBase: 'https://github.com/getuncaged/uncaged/releases/latest/download',
+  // Primary per-OS actions used across Hero, CTA and JSON-LD.
+  // macOS leads with Apple Silicon; Windows leads with the x64 installer.
   dmg: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-macos-aarch64.dmg',
   linuxTar: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-linux-x86_64.tar.gz',
-  windowsZip: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64.zip',
+  windowsSetup:
+    'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64-setup.exe',
   migrateDoc: 'https://github.com/getuncaged/uncaged/blob/master/docs/migrate-from-warp.md',
   forkingDoc: 'https://github.com/getuncaged/uncaged/blob/master/FORKING.md',
   uncagedDoc: 'https://github.com/getuncaged/uncaged/blob/master/UNCAGED.md',
   faqDoc: 'https://github.com/getuncaged/uncaged/blob/master/FAQ.md',
   handle: '@getuncaged',
+};
+
+/**
+ * Download matrix — the real assets published by the release workflow to
+ * GitHub Releases (getuncaged/uncaged). Every href is a "latest release"
+ * URL, so the buttons keep working across versions with no edits here.
+ *
+ * `note: 'coming'` marks a format whose build/publish target isn't live yet
+ * (the Apple Silicon .dmg finishes ~an hour after each release cut) — it's
+ * shown de-emphasised rather than as a working download.
+ */
+const asset = (name: string) => `${SITE.latestBase}/${name}`;
+
+export const DOWNLOADS = {
+  macos: {
+    primary: {
+      label: 'Download .dmg',
+      arch: 'Apple Silicon',
+      href: asset('Uncaged-macos-aarch64.dmg'),
+    },
+    others: [
+      { label: 'Intel .dmg', arch: 'x86_64', href: asset('Uncaged-macos-x86_64.dmg') },
+    ],
+    // Homebrew tap isn't published yet — surfaced as "coming", not runnable.
+    brew: {
+      cmd: 'brew install --cask getuncaged/tap/uncaged',
+      status: 'coming' as const,
+    },
+  },
+  linux: {
+    primary: {
+      label: 'Download .tar.gz',
+      arch: 'x86_64',
+      href: asset('Uncaged-linux-x86_64.tar.gz'),
+    },
+    // The full x86_64 package set, all live in the v0.2.4 release.
+    others: [
+      { label: '.deb', arch: 'Debian · Ubuntu', href: asset('Uncaged-linux-x86_64.deb') },
+      { label: '.rpm', arch: 'Fedora · RHEL · SUSE', href: asset('Uncaged-linux-x86_64.rpm') },
+      { label: 'AppImage', arch: 'any distro', href: asset('Uncaged-linux-x86_64.AppImage') },
+    ],
+    // arm64 Linux is best-effort and not published yet.
+    note: 'arm64 Linux builds are on the way.',
+  },
+  windows: {
+    primary: {
+      label: 'Download installer',
+      arch: 'x64 · Windows 11 / 10',
+      href: asset('Uncaged-windows-x86_64-setup.exe'),
+    },
+    others: [
+      {
+        label: 'ARM64 installer',
+        arch: 'Windows 11 / 10',
+        href: asset('Uncaged-windows-aarch64-setup.exe'),
+      },
+    ],
+    // winget submission is pending upstream — surfaced as "coming".
+    winget: {
+      cmd: 'winget install Uncaged.Uncaged',
+      status: 'coming' as const,
+    },
+  },
 };
 
 export const AUDIT = [
@@ -50,7 +120,7 @@ export const FAQ = [
   },
   {
     q: 'Which platforms are supported?',
-    a: 'macOS (Apple Silicon, .dmg), Linux (x86_64, .tar.gz) and Windows (x64, .zip) — all from GitHub Releases. Richer packages — .deb, .rpm, AppImage, a Windows installer, ARM64 builds — are on the way.',
+    a: 'macOS (Apple Silicon and Intel, .dmg), Linux x86_64 (.deb, .rpm, AppImage and .tar.gz) and Windows (x64 and ARM64 installers) — all from GitHub Releases. Homebrew, winget and arm64 Linux builds are on the way.',
   },
   {
     q: 'Which models can I connect?',

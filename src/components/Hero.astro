@@ -155,7 +155,7 @@ import { SITE } from '../data/site';
   const isLinux = /Linux|X11/.test(ua) && !/Android/.test(ua);
 
   if (isWin || isLinux) {
-    const href = isWin ? SITE.windowsZip : SITE.linuxTar;
+    const href = isWin ? SITE.windowsSetup : SITE.linuxTar;
     const label = isWin ? 'Download for Windows' : 'Download for Linux';
     document.querySelectorAll<HTMLAnchorElement>('a[data-dl-mac]').forEach((a) => {
       a.href = href;
