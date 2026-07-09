@@ -1,0 +1,25 @@
+src/components/TerminalDemo.astro
+  s_3e4cc0ba3e0ede::t_1cfb933af063d3 29,46,76
+src/components/Downloads.astro
+  s_3e4cc0ba3e0ede::t_84c80e7d763d0b 20-25
+  s_3e4cc0ba3e0ede::t_6979f06ebfc5c5 94-113,115-117,120-124,126-127,130
+  s_3e4cc0ba3e0ede::t_095afa44bc8a2e 359-368
+public/install.sh
+  s_3e4cc0ba3e0ede::t_a6bb2adc2b6af5 25-27,34-36,44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6ac67a99f2dc616a494ea2b2a268da7d4567072c",
+  "prompts": {},
+  "sessions": {
+    "s_3e4cc0ba3e0ede": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3e772dcd-0cc7-45ef-b232-59d0e8d0d1c9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
