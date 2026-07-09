@@ -36,12 +36,14 @@ Download buttons point at the canonical GitHub latest-release assets, named
 ```
 https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-macos-aarch64.dmg
 https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-linux-x86_64.tar.gz
-https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64.zip
+https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64-setup.exe
 ```
 
-They go live automatically the moment a release with an `Uncaged.dmg` asset is
-published — no site change needed. New platforms: add a card in
-`src/components/Downloads.astro` and the URL in `src/data/site.ts`.
+They go live automatically the moment a release publishes an asset with the
+matching name — no site change needed. The full per-OS/per-arch set lives in the
+`DOWNLOADS` matrix in `src/data/site.ts` (mirroring the app repo's
+`DOWNLOADS.md`); to add a platform, extend that matrix and it renders in
+`src/components/Downloads.astro`.
 
 ## Deploy
 
