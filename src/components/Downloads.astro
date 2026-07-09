@@ -7,9 +7,11 @@ const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/Uncaged.app'
 // One uniform shape for every OS: a bordered list of format rows (each row a
 // format label + subtitle on the left and architecture download chips on the
 // right, the recommended arch `primary`), then a "terminal" stack of copy-able
-// one-liners — always a `curl` download, plus a package-manager command (`pm`)
-// where one exists. `note` is a plain caption; `caveat` is a labelled command
-// block (macOS Gatekeeper). Each `curl` grabs that OS's recommended asset.
+// one-liners. `install` is the recommended, accented command (macOS: a curl
+// installer that sidesteps Gatekeeper entirely — curl never sets the quarantine
+// flag). `curl` is a plain download; `pm` a package manager; `note` a caption;
+// `caveat` the labelled macOS Gatekeeper block for the .dmg path.
+const installUrl = 'https://getuncaged.dev/install.sh';
 const columns = [
   {
     id: 'mac',
@@ -25,11 +27,15 @@ const columns = [
         ],
       },
     ],
-    curl: `curl -LO ${macos.primary.href}`,
+    install: {
+      label: 'install',
+      hint: 'installs to /Applications and opens instantly — no Gatekeeper prompt',
+      cmd: `curl -fsSL ${installUrl} | bash`,
+    },
     pm: { label: 'Homebrew', cmd: macos.brew.cmd },
     caveat: {
-      label: 'first launch',
-      text: 'ad-hoc signed — clear Gatekeeper once',
+      label: 'first launch · .dmg only',
+      text: 'the one-liner above skips this; only the .dmg needs it',
       cmd: quarantineCmd,
     },
   },
@@ -123,13 +129,26 @@ const columns = [
           </div>
 
           <div class="dl-term">
-            <div class="dl-cmd-group">
-              <span class="dl-cmd-label">curl</span>
-              <div class="dl-cmd">
-                <code><span class="dl-cmd-p">$</span>{col.curl}</code>
-                <button class="copy-btn" type="button" data-copy={col.curl} aria-label={`Copy the ${col.name} curl download command`}>copy</button>
+            {col.install && (
+              <div class="dl-cmd-group is-primary">
+                <span class="dl-cmd-label">{col.install.label}</span>
+                <span class="dl-cmd-hint">{col.install.hint}</span>
+                <div class="dl-cmd">
+                  <code><span class="dl-cmd-p">$</span>{col.install.cmd}</code>
+                  <button class="copy-btn" type="button" data-copy={col.install.cmd} aria-label={`Copy the ${col.name} install command`}>copy</button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {col.curl && (
+              <div class="dl-cmd-group">
+                <span class="dl-cmd-label">curl</span>
+                <div class="dl-cmd">
+                  <code><span class="dl-cmd-p">$</span>{col.curl}</code>
+                  <button class="copy-btn" type="button" data-copy={col.curl} aria-label={`Copy the ${col.name} curl download command`}>copy</button>
+                </div>
+              </div>
+            )}
 
             {col.pm && (
               <div class="dl-cmd-group">
@@ -399,6 +418,17 @@ const columns = [
   .dl-cmd .copy-btn {
     position: static;
     flex-shrink: 0;
+  }
+
+  /* recommended install — the one warm, emphasised path in the column */
+  .dl-cmd-group.is-primary .dl-cmd-label {
+    color: var(--ember);
+  }
+
+  .dl-cmd-group.is-primary .dl-cmd {
+    border-color: rgba(255, 122, 24, 0.45);
+    background: linear-gradient(180deg, rgba(255, 122, 24, 0.06), #151311 60%);
+    box-shadow: 0 8px 26px -14px rgba(255, 122, 24, 0.6);
   }
 
   /* Gatekeeper caveat — a warm accent marks it as a caution, not an install */
