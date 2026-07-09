@@ -66,7 +66,7 @@ assertion failed: token.is_fresh()</pre>
             <code>is_fresh()</code> reads the clock after re-acquiring the write lock — past the test's
             50&nbsp;ms expiry window. Pinning the timestamp first.
           </p>
-          <p class="t-agent-p">Patched <code>src/auth.rs</code> — review the change on the right.</p>
+          <p class="t-agent-p">Patched <code>src/auth.rs</code> — the timestamp is pinned before the check. Re-running the test.</p>
         </div>
       </div>
 
@@ -78,19 +78,6 @@ assertion failed: token.is_fresh()</pre>
 
       <p class="t-idle t-show" id="t-idle"><span class="t-caret">❯</span><span class="cursor-blink"></span></p>
     </div>
-
-    <aside class="cr-panel" id="cr-panel" data-step="3" aria-label="Code review panel showing the patched file src/auth.rs with two added lines and one removed">
-      <div class="cr-head">
-        <span class="cr-title">Code review</span>
-        <svg class="cr-nav" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h12M3 18h6"></path></svg>
-        <span class="cr-x" aria-hidden="true">×</span>
-      </div>
-      <div class="cr-file">
-        <span class="cr-fname">src/auth.rs</span>
-        <span class="cr-counts"><b class="cr-plus">+2</b><b class="cr-minus">−1</b></span>
-      </div>
-      <pre class="cr-diff"><span class="cr-line cr-del">-  if token.expires_at &lt; Utc::now() {</span><span class="cr-line cr-add">+  let now = Utc::now();</span><span class="cr-line cr-add">+  if token.expires_at &lt; now {</span></pre>
-    </aside>
   </figure>
 </div>
 
@@ -289,113 +276,6 @@ assertion failed: token.is_fresh()</pre>
     color: var(--ink);
   }
 
-  .cr-panel {
-    display: none;
-    position: absolute;
-    top: 42px;
-    right: 0;
-    bottom: 0;
-    width: 46%;
-    flex-direction: column;
-    background: #0d1119;
-    border-left: 1px solid var(--bar);
-    font-family: var(--mono);
-    z-index: 2;
-  }
-
-  .cr-panel.t-show {
-    display: flex;
-  }
-
-  .term.cr-open .term-body {
-    padding-right: calc(46% + 16px);
-  }
-
-  .cr-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
-    color: var(--ash);
-  }
-
-  .cr-title {
-    font-size: 11.5px;
-    font-weight: 700;
-    flex: 1;
-  }
-
-  .cr-nav,
-  .cr-x {
-    color: var(--muted, #5d6577);
-  }
-
-  .cr-x {
-    font-size: 14px;
-    line-height: 1;
-  }
-
-  .cr-file {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
-    font-size: 11.5px;
-    color: var(--ink);
-  }
-
-  .cr-counts {
-    display: inline-flex;
-    gap: 8px;
-    font-size: 10.5px;
-    font-weight: 700;
-  }
-
-  .cr-plus {
-    color: #7bd88f;
-  }
-
-  .cr-minus {
-    color: #ff3b47;
-  }
-
-  .cr-diff {
-    margin: 0;
-    padding: 10px 0;
-    font-size: 11.5px;
-    line-height: 1.75;
-    overflow-x: auto;
-  }
-
-  .cr-line {
-    display: block;
-    padding: 1px 12px;
-    white-space: pre;
-  }
-
-  .cr-del {
-    color: #ff8089;
-    background: rgba(255, 59, 71, 0.1);
-  }
-
-  .cr-add {
-    color: #7bd88f;
-    background: rgba(94, 210, 130, 0.1);
-  }
-
-  @media (max-width: 640px) {
-    .cr-panel {
-      width: 58%;
-    }
-
-    .term.cr-open .term-body {
-      padding-right: calc(58% + 10px);
-    }
-  }
-
   .t-idle {
     display: none;
   }
@@ -467,7 +347,6 @@ assertion failed: token.is_fresh()</pre>
       idle.classList.remove('t-show');
       for (const step of steps) {
         step.classList.add('t-show', 'typing');
-        if (step.id === 'cr-panel') demo.classList.add('cr-open');
         stick();
         const typed = step.querySelector<HTMLElement>('.t-typed');
         if (typed) {
@@ -489,7 +368,6 @@ assertion failed: token.is_fresh()</pre>
     }
 
     function showFinal() {
-      demo.classList.add('cr-open');
       steps.forEach((s) => {
         s.classList.add('t-show');
         s.querySelectorAll('.t-reveal').forEach((o) => o.classList.add('t-show'));
