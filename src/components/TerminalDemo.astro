@@ -26,7 +26,7 @@
   <figure class="term" id="term-demo" role="img" aria-label="Demo of an Uncaged agent session fixing a failing Rust test with a locally-run model">
     <figcaption class="term-bar">
       <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="term-title">~/dev/tide — uncaged</span>
+      <span class="term-title">~/dev/api — uncaged</span>
       <span class="model-chip" id="model-chip">
         <svg width="10" height="10" viewBox="30 42 30 36" aria-hidden="true">
           <polyline points="36,49 52,60 36,71" fill="none" stroke="#FF7A18" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></polyline>
@@ -43,7 +43,7 @@ test auth::session_refresh ... <b class="t-bad">FAILED</b>
 
 thread 'auth::session_refresh' panicked at src/auth.rs:142:
 assertion failed: token.is_fresh()</pre>
-        <p class="t-meta t-reveal">~/dev/tide · <span class="t-bad">exit 101</span></p>
+        <p class="t-meta t-reveal">~/dev/api · <span class="t-bad">exit 101</span></p>
       </div>
 
       <div class="t-block" data-step="2">
@@ -73,7 +73,7 @@ assertion failed: token.is_fresh()</pre>
       <div class="t-block" data-step="4">
         <p class="t-cmd"><span class="t-caret">❯</span><span class="t-typed" data-text="cargo test auth::session_refresh"></span></p>
         <pre class="t-out t-reveal">test auth::session_refresh ... <b class="t-ok">ok</b></pre>
-        <p class="t-meta t-reveal">~/dev/tide · <span class="t-ok">exit 0 ✓</span></p>
+        <p class="t-meta t-reveal">~/dev/api · <span class="t-ok">exit 0 ✓</span></p>
       </div>
 
       <p class="t-idle t-show" id="t-idle"><span class="t-caret">❯</span><span class="cursor-blink"></span></p>

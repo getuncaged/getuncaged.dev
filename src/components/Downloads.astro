@@ -17,27 +17,13 @@ const columns = [
     id: 'mac',
     name: 'macOS',
     icon: 'apple',
-    formats: [
-      {
-        label: '.dmg',
-        sub: `macOS 10.14+ · v${SITE.version}`,
-        arches: [
-          { name: 'Apple Silicon', href: macos.primary.href, primary: true },
-          { name: 'Intel', href: macos.others[0].href },
-        ],
-      },
+    // curl-only by design: it never sets the quarantine flag, so the app opens
+    // instantly with no Gatekeeper prompt — no .dmg, no Homebrew, no xattr.
+    intro: `One line — installs to /Applications and opens straight away. No Gatekeeper prompt, no account. macOS 10.14+ · v${SITE.version}`,
+    installs: [
+      { label: 'Apple Silicon', cmd: `curl -fsSL ${installUrl} | bash -s -- arm64`, primary: true },
+      { label: 'Intel', cmd: `curl -fsSL ${installUrl} | bash -s -- intel` },
     ],
-    install: {
-      label: 'install',
-      hint: 'installs to /Applications and opens instantly — no Gatekeeper prompt',
-      cmd: `curl -fsSL ${installUrl} | bash`,
-    },
-    pm: { label: 'Homebrew', cmd: macos.brew.cmd },
-    caveat: {
-      label: 'first launch · .dmg only',
-      text: 'the one-liner above skips this; only the .dmg needs it',
-      cmd: quarantineCmd,
-    },
   },
   {
     id: 'linux',
@@ -105,40 +91,43 @@ const columns = [
             <h3>{col.name}</h3>
           </div>
 
-          <div class="dl-list">
-            {col.formats.map((f) => (
-              <div class="dl-row">
-                <div class="dl-row-info">
-                  <span class="dl-row-label">{f.label}</span>
-                  <span class="dl-row-sub">{f.sub}</span>
+          {col.formats && (
+            <div class="dl-list">
+              {col.formats.map((f) => (
+                <div class="dl-row">
+                  <div class="dl-row-info">
+                    <span class="dl-row-label">{f.label}</span>
+                    <span class="dl-row-sub">{f.sub}</span>
+                  </div>
+                  <div class="dl-archs">
+                    {f.arches.map((a) => (
+                      <a class:list={['dl-chip', a.primary && 'is-primary']} href={a.href} aria-label={`Download ${col.name} ${f.label} for ${a.name}`}>
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M8 2.75v7"></path>
+                          <path d="M4.75 6.75 8 10l3.25-3.25"></path>
+                          <path d="M3 13.25h10"></path>
+                        </svg>
+                        {a.name}
+                      </a>
+                    ))}
+                  </div>
                 </div>
-                <div class="dl-archs">
-                  {f.arches.map((a) => (
-                    <a class:list={['dl-chip', a.primary && 'is-primary']} href={a.href} aria-label={`Download ${col.name} ${f.label} for ${a.name}`}>
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M8 2.75v7"></path>
-                        <path d="M4.75 6.75 8 10l3.25-3.25"></path>
-                        <path d="M3 13.25h10"></path>
-                      </svg>
-                      {a.name}
-                    </a>
-                  ))}
+              ))}
+            </div>
+          )}
+
+          <div class="dl-term">
+            {col.intro && <p class="dl-intro">{col.intro}</p>}
+
+            {col.installs && col.installs.map((i) => (
+              <div class:list={['dl-cmd-group', i.primary && 'is-primary']}>
+                <span class="dl-cmd-label">{i.label}</span>
+                <div class="dl-cmd">
+                  <code><span class="dl-cmd-p">$</span>{i.cmd}</code>
+                  <button class="copy-btn" type="button" data-copy={i.cmd} aria-label={`Copy the ${col.name} ${i.label} install command`}>copy</button>
                 </div>
               </div>
             ))}
-          </div>
-
-          <div class="dl-term">
-            {col.install && (
-              <div class="dl-cmd-group is-primary">
-                <span class="dl-cmd-label">{col.install.label}</span>
-                <span class="dl-cmd-hint">{col.install.hint}</span>
-                <div class="dl-cmd">
-                  <code><span class="dl-cmd-p">$</span>{col.install.cmd}</code>
-                  <button class="copy-btn" type="button" data-copy={col.install.cmd} aria-label={`Copy the ${col.name} install command`}>copy</button>
-                </div>
-              </div>
-            )}
 
             {col.curl && (
               <div class="dl-cmd-group">
@@ -365,6 +354,16 @@ const columns = [
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  /* short lead-in above a curl-only column (macOS) */
+  .dl-intro {
+    margin: 0 0 -2px;
+    padding-left: 2px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ash);
+    max-width: 42ch;
   }
 
   .dl-cmd-label {

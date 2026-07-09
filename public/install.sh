@@ -22,16 +22,18 @@ dim() { printf '\033[2m%s\033[0m\n' "$*"; }
 err() { red "error: $*" >&2; exit 1; }
 
 os="$(uname -s)"
-arch="$(uname -m)"
+# An optional first argument forces the chip (arm64 / intel); otherwise we
+# auto-detect. Both are supported: `... | bash` or `... | bash -s -- arm64`.
+arch="${1:-$(uname -m)}"
 
 if [ "$os" != "Darwin" ]; then
   err "this installer is macOS-only. On Linux grab the .deb/.rpm/AppImage/tarball at https://getuncaged.dev/#download ; on Windows use the installer or 'winget install Uncaged.Uncaged'."
 fi
 
 case "$arch" in
-  arm64)  asset="Uncaged-macos-aarch64.zip" ;;
-  x86_64) asset="Uncaged-macos-x86_64.zip" ;;
-  *)      err "unsupported macOS architecture: $arch" ;;
+  arm64|aarch64|apple|apple-silicon|silicon) asset="Uncaged-macos-aarch64.zip"; label="Apple Silicon" ;;
+  x86_64|x64|amd64|intel)                    asset="Uncaged-macos-x86_64.zip";  label="Intel" ;;
+  *) err "unknown architecture '$arch' (use 'arm64' or 'intel')" ;;
 esac
 
 command -v curl >/dev/null 2>&1 || err "curl is required"
@@ -39,7 +41,7 @@ command -v curl >/dev/null 2>&1 || err "curl is required"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT INT TERM
 
-printf 'Downloading Uncaged (%s)…\n' "$arch"
+printf 'Downloading Uncaged (%s)…\n' "$label"
 curl -fL# "${BASE}/${asset}" -o "${tmp}/uncaged.zip" || err "download failed"
 
 printf 'Extracting…\n'
