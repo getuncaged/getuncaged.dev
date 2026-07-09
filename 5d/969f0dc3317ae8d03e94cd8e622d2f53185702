@@ -1,0 +1,23 @@
+src/components/Downloads.astro
+  s_3e4cc0ba3e0ede::t_da96a02137477a 7-10,26,38,54
+  s_3e4cc0ba3e0ede::t_85122b94f6bcb3 321-323,326-327,329-330,333-334,337,341-343,347,353,356-361,369-375
+  s_3e4cc0ba3e0ede::t_4db9293dec2737 362
+  s_3e4cc0ba3e0ede::t_2ca6a347a6997f 124-134
+  s_3e4cc0ba3e0ede::t_055ebe9682de2c 338-340,344,348-349,352,354-355,363-368
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5d969f0dc3317ae8d03e94cd8e622d2f53185702",
+  "prompts": {},
+  "sessions": {
+    "s_3e4cc0ba3e0ede": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3e772dcd-0cc7-45ef-b232-59d0e8d0d1c9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
