@@ -1,0 +1,67 @@
+src/layouts/Base.astro
+  s_698f28f2ef1d91::t_d551d1504ab051 64,66-73,82
+  s_698f28f2ef1d91::t_cfea3d061744c4 110,120-131
+src/components/Downloads.astro
+  s_698f28f2ef1d91::t_fb76244543a142 373
+  s_698f28f2ef1d91::t_15aa6732c71da7 400-404
+  s_698f28f2ef1d91::t_11ed07b4ebf085 6-9,12-15
+  s_698f28f2ef1d91::t_820b67f99eb065 371
+  s_698f28f2ef1d91::t_8183bede05f7c3 343
+  s_698f28f2ef1d91::t_cf60c0cfdaf069 149-159,161-198
+  s_698f28f2ef1d91::t_1d164d9a10d9d3 380
+  s_698f28f2ef1d91::t_0945575fad8476 210
+  s_698f28f2ef1d91::t_71f83ff2ee6773 160
+  s_698f28f2ef1d91::t_4de36bbc4103f2 59-72
+  s_698f28f2ef1d91::t_bb1f49bdc6565e 246
+  s_698f28f2ef1d91::t_735f5b79ed9005 323-324
+  s_698f28f2ef1d91::t_6a440dd3e8db66 329,331,337-338,346-352
+src/components/Faq.astro
+  s_698f28f2ef1d91::t_4d0f69987602dc 103-115
+src/components/OpenSource.astro
+  s_698f28f2ef1d91::t_d22904eb1cfd1d 98
+  s_698f28f2ef1d91::t_e3b58b85a6a9f5 215
+src/components/Nav.astro
+  s_698f28f2ef1d91::t_e96d84e64f2d76 113-115
+src/components/Hero.astro
+  s_698f28f2ef1d91::t_1d9244d1375090 40-41
+  s_698f28f2ef1d91::t_91abfca91ea4f7 104-108,113
+src/components/KeptStrip.astro
+  s_698f28f2ef1d91::t_f1d96d083c9b0d 19-21
+src/components/Privacy.astro
+  s_698f28f2ef1d91::t_b6bacf95bb07b9 116
+src/components/DiffBand.astro
+  s_698f28f2ef1d91::t_27b8bbd7e11c3b 62
+  s_698f28f2ef1d91::t_81711dd61325c4 144-145
+src/components/Cta.astro
+  s_698f28f2ef1d91::t_46231a4bbc00e8 25
+DESIGN-SYSTEM.md
+  s_698f28f2ef1d91::t_7aef6aa4a60382 134-138
+  s_698f28f2ef1d91::t_9d014989d52ecf 158
+  s_698f28f2ef1d91::t_d2d93b014611ef 120
+src/styles/global.css
+  s_698f28f2ef1d91::t_1fedada1578793 438-441,444,448,470-478,481-482,488
+  s_698f28f2ef1d91::t_aed419dd66734c 555-568
+  s_698f28f2ef1d91::t_aa73b71bb390b2 251
+  s_698f28f2ef1d91::t_94dcf802761a90 25-27
+  s_698f28f2ef1d91::t_79d8783468f467 468
+  s_698f28f2ef1d91::t_9794de5e8f88f8 479-480
+  s_698f28f2ef1d91::t_d9d53724cc9ef7 290-291
+  s_698f28f2ef1d91::t_4e4e50df967bd4 391
+  s_698f28f2ef1d91::t_40b3cb884978e3 452
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "7771ecf1e2d941a2a7b1a9ac0e0486e39297fd86",
+  "prompts": {},
+  "sessions": {
+    "s_698f28f2ef1d91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a7a191c-1fbe-42ce-b808-77765e30a953",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
