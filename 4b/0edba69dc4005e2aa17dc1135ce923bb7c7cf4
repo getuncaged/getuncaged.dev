@@ -1,0 +1,25 @@
+src/components/Downloads.astro
+  s_698f28f2ef1d91::t_15bf4a51f0b54f 186
+  s_698f28f2ef1d91::t_ccd60034de7d66 59
+  s_698f28f2ef1d91::t_3cdef36f7e7545 4-11,16-23,26-33,44-45,52-54,58,61-62,66-70,72-74,79-110,146,158-160,168,170,173-174,176-177,181,183-185,189,191,243-258,260-304,306-309,312-319,321-325,332,340,343,345,348-349
+DESIGN-SYSTEM.md
+  s_698f28f2ef1d91::t_c80ab1e7a19cc0 124
+  s_698f28f2ef1d91::t_b1bf414ce6cd39 135,139-142
+  s_698f28f2ef1d91::t_4036b7fb4a0ccb 143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "4b0edba69dc4005e2aa17dc1135ce923bb7c7cf4",
+  "prompts": {},
+  "sessions": {
+    "s_698f28f2ef1d91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a7a191c-1fbe-42ce-b808-77765e30a953",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
