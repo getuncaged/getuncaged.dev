@@ -431,6 +431,67 @@ section {
   border-color: var(--ember);
 }
 
+/* copy-able install command surfaced in the hero + CTA (the curl one-liner) */
+.install-cmd {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 100%;
+  padding: 12px 12px 12px 15px;
+  background: #151311;
+  border: 1px solid var(--bar);
+  border-radius: var(--radius, 12px);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color var(--fast, 0.15s) ease,
+    transform var(--fast, 0.15s) ease;
+}
+
+.install-cmd:hover {
+  border-color: var(--muted);
+  transform: translateY(-1px);
+}
+
+.install-cmd > code {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.install-cmd .hi-prompt {
+  color: var(--ember);
+  font-weight: 700;
+  margin-right: 9px;
+  user-select: none;
+}
+
+.install-cmd .hi-copy {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--ash);
+  border: 1px solid var(--bar);
+  border-radius: 7px;
+  padding: 4px 9px;
+  transition:
+    color var(--fast, 0.15s) ease,
+    border-color var(--fast, 0.15s) ease;
+}
+
+.install-cmd:hover .hi-copy {
+  color: var(--ink);
+  border-color: var(--ash);
+}
+
+.install-cmd.copied .hi-copy {
+  color: var(--ember);
+  border-color: var(--ember);
+}
+
 /* the sanctioned animation: a blinking block cursor */
 .cursor-blink {
   display: inline-block;

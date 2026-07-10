@@ -10,14 +10,10 @@ import { SITE } from '../data/site';
     <h2 class="cta-h">Your terminal. Your models.<br />Uncaged.</h2>
     <p class="cta-sub">Thirty seconds from download to a working agent — none of them spent on a sign-up form.</p>
     <div class="cta-btns">
-      <a class="btn btn-primary" href="#download" data-dl-mac>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M8 2.75v7"></path>
-          <path d="M4.75 6.75 8 10l3.25-3.25"></path>
-          <path d="M3 13.25h10"></path>
-        </svg>
-        <span class="dl-label">Install on macOS</span>
-      </a>
+      <button class="install-cmd" type="button" data-install-copy aria-label="Copy the install command">
+        <code><span class="hi-prompt">$</span><span data-install-cmd>curl -fsSL https://getuncaged.dev/install.sh | bash</span></code>
+        <span class="hi-copy" data-copy-label>copy</span>
+      </button>
       <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">Star on GitHub</a>
     </div>
   </div>

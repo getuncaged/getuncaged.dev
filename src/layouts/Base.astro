@@ -79,6 +79,33 @@ const jsonLd = JSON.stringify({
           }
         });
       });
+
+      // OS-aware install command, surfaced in the hero, nav and CTA. macOS and
+      // Linux use the curl installer (curl never sets the quarantine flag, so
+      // there's no Gatekeeper prompt); Windows visitors get the PowerShell one.
+      const installCmd = /Windows/.test(navigator.userAgent)
+        ? 'irm https://getuncaged.dev/install.ps1 | iex'
+        : 'curl -fsSL https://getuncaged.dev/install.sh | bash';
+      document.querySelectorAll<HTMLElement>('[data-install-cmd]').forEach((el) => {
+        el.textContent = installCmd;
+      });
+      document.querySelectorAll<HTMLElement>('[data-install-copy]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const label = btn.querySelector<HTMLElement>('[data-copy-label]');
+          try {
+            await navigator.clipboard.writeText(installCmd);
+            const prev = label?.textContent ?? null;
+            if (label) label.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              if (label && prev !== null) label.textContent = prev;
+              btn.classList.remove('copied');
+            }, 1400);
+          } catch {
+            if (label) label.textContent = 'select & copy';
+          }
+        });
+      });
     </script>
   </body>
 </html>
