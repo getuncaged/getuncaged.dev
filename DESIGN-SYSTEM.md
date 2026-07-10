@@ -117,7 +117,7 @@ sanctioned off-palette moment — they depict *other people's* brands.
 | Token/pattern | Value |
 |---|---|
 | Container | `min(1120px, 100% − 48px)`, centered, `z-index: 1` |
-| Section rhythm | `padding-block: 128px` · head → content gap 64–72px |
+| Section rhythm | `padding-block: clamp(84px, 6vw + 44px, 128px)` — 128px on desktop, compressing on small screens · head → content gap 64–72px |
 | Radii | 8 (`--radius-s`) · 12 (`--radius`) · 16 (`--radius-l`) · buttons 10–12 · windows 14 |
 | Hairline | 1px `--bar` at 0.6 opacity, full container width |
 | Bands | Full-bleed `#0E1117` + `border-block: 1px solid --bar` for one section per page region |
@@ -130,6 +130,11 @@ the install/CTA action moments.
 
 **Grid discipline:** every multi-column track is `minmax(0, 1fr)` — never bare `1fr` (min-content
 blowout) and never implicit auto columns for card stacks. Code blocks scroll inside their boxes.
+
+**The command never wraps.** The install one-liner is the product's proof, so it renders on one
+line everywhere it appears (hero, install matrix, CTA). When space runs out it scrolls inside its
+box like a real terminal line, with a fade cue on the clipped edge (`.is-overflowing`, set by the
+shared script) — never a URL broken mid-word.
 
 ---
 
@@ -150,6 +155,7 @@ The sanctioned animations — each exists to say something, not to decorate:
 | Glow breathe | 13–16s alternate on hero/CTA radials | The one warm light |
 | Wire pulse | 2.8s dot along the outbound line | Exactly one call leaves |
 | Ticker marquee | 36s linear, duplicated list, edge-masked | Everything kept |
+| FAQ answer settle | 220ms fade + 5px rise on `[open]` | Response to input, not decoration |
 
 Scroll-triggered reveals are banned (tried, removed). Content is present at first paint.
 

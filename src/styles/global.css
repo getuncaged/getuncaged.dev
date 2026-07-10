@@ -22,6 +22,9 @@
   --ember-deep: #ff5e10;
   --flame: #ff4d1c;
 
+  /* artifact surfaces (windows, code) — cool, per the system's rule 2 */
+  --code-bg: #0f131a;
+
   --grad-prompt: linear-gradient(180deg, var(--gold) 0%, var(--ember) 100%);
 
   /* type */
@@ -245,7 +248,7 @@ pre {
   color: var(--ash);
   letter-spacing: 0.02em;
   display: flex;
-  align-items: center;
+  align-items: baseline; /* the ❯ rides the first line when the label wraps */
   gap: 10px;
   margin-bottom: 18px;
 }
@@ -284,7 +287,8 @@ pre {
 }
 
 section {
-  padding-block: 128px;
+  /* 128px of air on desktop, compressing gracefully on small screens */
+  padding-block: clamp(84px, 6vw + 44px, 128px);
 }
 
 .hairline {
@@ -384,7 +388,7 @@ section {
 
 .codeblock {
   position: relative;
-  background: #151311;
+  background: var(--code-bg);
   border: 1px solid var(--bar);
   border-radius: var(--radius);
   font-size: 13px;
@@ -431,18 +435,21 @@ section {
   border-color: var(--ember);
 }
 
-/* copy-able install command surfaced in the hero + CTA (the curl one-liner) */
+/* copy-able install command surfaced in the hero + CTA (the curl one-liner).
+   The command is the product's proof — it NEVER wraps. When space runs out it
+   scrolls inside its box like a real terminal line, with a fade cue at the
+   clipped edge (`.is-overflowing` is set by the shared script in Base). */
 .install-cmd {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   max-width: 100%;
   padding: 12px 12px 12px 15px;
-  background: #151311;
+  background: var(--code-bg);
   border: 1px solid var(--bar);
   border-radius: var(--radius, 12px);
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 12.5px;
   line-height: 1.5;
   color: var(--ink);
   cursor: pointer;
@@ -458,15 +465,27 @@ section {
 }
 
 .install-cmd > code {
+  flex: 1;
   min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.install-cmd > code::-webkit-scrollbar {
+  display: none;
+}
+
+/* any flagged command line fades at its clipped edge (see Base's script) */
+code.is-overflowing {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
 }
 
 .install-cmd .hi-prompt {
   color: var(--ember);
   font-weight: 700;
-  margin-right: 9px;
+  margin-right: 8px;
   user-select: none;
 }
 
@@ -532,4 +551,18 @@ section {
 
 * {
   scrollbar-color: var(--bar) transparent;
+}
+
+/* ----------------------------------------------------------------- a11y */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }

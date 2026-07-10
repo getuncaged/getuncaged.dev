@@ -100,6 +100,19 @@ import { FAQ, SITE } from '../data/site';
     max-width: 64ch;
   }
 
+  /* the answer settles in on open — a response to input, not decoration
+     (the global reduced-motion kill switch flattens it) */
+  .faq-item[open] .faq-a {
+    animation: faq-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes faq-in {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+  }
+
   .faq-a :global(code) {
     font-size: 13px;
     color: var(--ink);

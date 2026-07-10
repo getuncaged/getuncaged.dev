@@ -3,18 +3,22 @@ import { SITE, DOWNLOADS } from '../data/site';
 
 const { macos, linux, windows } = DOWNLOADS;
 
-// Uniform per OS: the one-line install command on top (the recommended path),
-// then direct-download buttons below — a primary arch/format plus variants.
-// macOS & Linux install via the shell script; Windows via the PowerShell one.
+// The recommended path first: two full-width one-liners (macOS & Linux share
+// the shell installer; Windows gets the PowerShell one) — full width so the
+// whole command, domain included, is visible. Below them, the per-OS columns
+// hold the direct downloads: a primary arch/format plus variants.
 const SH = 'curl -fsSL https://getuncaged.dev/install.sh | bash';
 const PS = 'irm https://getuncaged.dev/install.ps1 | iex';
+const installs = [
+  { label: 'macOS · Linux', prompt: '$', cmd: SH, aria: 'Copy the macOS and Linux install command' },
+  { label: 'Windows · PowerShell', prompt: '>', cmd: PS, aria: 'Copy the Windows install command' },
+];
 const columns = [
   {
     id: 'mac',
     name: 'macOS',
     icon: 'apple',
     req: 'macOS 10.14 or later',
-    install: { prompt: '$', cmd: SH },
     primary: { label: 'Apple Silicon', sub: '.dmg', href: macos.primary.href },
     alts: [{ label: 'Intel', href: macos.others[0].href }],
   },
@@ -23,7 +27,6 @@ const columns = [
     name: 'Linux',
     icon: 'linux',
     req: 'x86_64 · arm64 coming',
-    install: { prompt: '$', cmd: SH },
     primary: { label: '.deb', sub: 'Debian · Ubuntu', href: linux.others[0].href },
     alts: [
       { label: '.rpm', href: linux.others[1].href },
@@ -36,7 +39,6 @@ const columns = [
     name: 'Windows',
     icon: 'windows',
     req: 'Windows 11 / 10',
-    install: { prompt: '>', cmd: PS },
     primary: { label: 'x64', sub: '.exe', href: windows.primary.href },
     alts: [{ label: 'ARM64', href: windows.others[0].href }],
   },
@@ -53,6 +55,20 @@ const columns = [
         activate.
       </p>
     </div>
+
+    <div class="dl-cmds">
+      {installs.map((ins) => (
+        <div class="dl-cmd-group">
+          <p class="dl-cmd-label">{ins.label}</p>
+          <div class="dl-cmd is-hero">
+            <code><span class="dl-cmd-p">{ins.prompt}</span>{ins.cmd}</code>
+            <button class="copy-btn" type="button" data-copy={ins.cmd} aria-label={ins.aria}>copy</button>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="dl-sep" aria-hidden="true"><span>or download directly</span></div>
 
     <div class="dl-grid">
       {columns.map((col) => (
@@ -74,13 +90,7 @@ const columns = [
             <h3>{col.name}</h3>
           </div>
 
-          <div class="dl-cmd is-hero">
-            <code><span class="dl-cmd-p">{col.install.prompt}</span>{col.install.cmd}</code>
-            <button class="copy-btn" type="button" data-copy={col.install.cmd} aria-label={`Copy the ${col.name} install command`}>copy</button>
-          </div>
-
           <div class="dl-dl">
-            <div class="dl-dl-sep"><span>or download</span></div>
             <a class="dl-btn dl-btn-primary" href={col.primary.href} aria-label={`Download Uncaged for ${col.name} (${col.primary.label})`}>
               <svg class="dl-btn-ico" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M8 2.5v7"></path>
@@ -136,6 +146,56 @@ const columns = [
     max-width: 52ch;
   }
 
+  /* the recommended path: two full-width command bars — the whole command,
+     domain included, always visible */
+  .dl-cmds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    width: 100%;
+  }
+
+  .dl-cmd-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    align-content: start;
+  }
+
+  .dl-cmd-label {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--ash);
+  }
+
+  /* between the one command and the download matrix */
+  .dl-sep {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    margin: 34px 0 30px;
+  }
+
+  .dl-sep::before,
+  .dl-sep::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--bar);
+    opacity: 0.6;
+  }
+
+  .dl-sep span {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+
   .dl-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -147,7 +207,7 @@ const columns = [
   .dl-os {
     display: flex;
     flex-direction: column;
-    padding: 4px 36px;
+    padding: 4px 30px;
   }
 
   .dl-os:first-child {
@@ -183,30 +243,7 @@ const columns = [
 
   /* download area: a primary button + arch/format variant buttons */
   .dl-dl {
-    margin-top: 4px;
-  }
-
-  .dl-dl-sep {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 18px 0 14px;
-  }
-
-  .dl-dl-sep::before,
-  .dl-dl-sep::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--bar);
-  }
-
-  .dl-dl-sep span {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
+    margin-top: 2px;
   }
 
   .dl-btn {
@@ -283,29 +320,36 @@ const columns = [
     margin: 14px 0 0;
     padding-left: 2px;
     font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
+    font-size: 11.5px;
+    color: var(--ash);
   }
 
   .dl-cmd {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
-    background: #151311;
+    background: var(--code-bg);
     border: 1px solid var(--bar);
     border-radius: var(--radius-s);
     padding: 10px 10px 10px 13px;
   }
 
+  /* one line, always — a clipped command scrolls (with a fade cue) rather
+     than breaking the URL mid-word. `.is-overflowing` comes from Base. */
   .dl-cmd code {
     flex: 1;
     min-width: 0;
     font-family: var(--mono);
-    font-size: 11.5px;
+    font-size: 12.5px;
     line-height: 1.55;
     color: var(--ink);
-    white-space: normal;
-    overflow-wrap: break-word;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .dl-cmd code::-webkit-scrollbar {
+    display: none;
   }
 
   .dl-cmd-p {
@@ -324,16 +368,16 @@ const columns = [
   /* the install command — the recommended, emphasised path (sits on top) */
   .dl-cmd.is-hero {
     border-color: rgba(255, 122, 24, 0.45);
-    background: linear-gradient(180deg, rgba(255, 122, 24, 0.06), #151311 60%);
+    background: linear-gradient(180deg, rgba(255, 122, 24, 0.06), var(--code-bg) 60%);
     box-shadow: 0 8px 26px -14px rgba(255, 122, 24, 0.6);
-    margin-bottom: 2px;
+    padding: 12px 12px 12px 15px;
   }
 
   /* single shared footnote under the whole grid */
   .dl-foot {
     text-align: center;
     font-size: 13px;
-    color: var(--muted);
+    color: var(--ash);
     max-width: 72ch;
   }
 
@@ -353,6 +397,11 @@ const columns = [
   }
 
   @media (max-width: 980px) {
+    .dl-cmds {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+    }
+
     .dl-grid {
       grid-template-columns: minmax(0, 1fr);
       gap: 40px;
