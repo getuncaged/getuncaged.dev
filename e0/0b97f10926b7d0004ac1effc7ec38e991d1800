@@ -1,0 +1,30 @@
+src/components/Downloads.astro
+  s_3e4cc0ba3e0ede::t_1957f194986276 6-10,16-19,25-31,38-41
+  s_3e4cc0ba3e0ede::t_8d54507fe988a7 77-95,98
+  s_3e4cc0ba3e0ede::t_5ce113790190b6 5,184-186,189,192-193,196-201,204,206-208,212,224-232,235,237,241-244,247-248,251-255,258,260-262,265-270,272-274,277-279,282-283,285-287,324-325,329
+src/components/Hero.astro
+  s_3e4cc0ba3e0ede::t_153f9f7ea1bbcf 20,26
+  s_3e4cc0ba3e0ede::t_4469b0afbc3b66 150-151,157
+src/components/Cta.astro
+  s_3e4cc0ba3e0ede::t_e878645b216d16 13,19
+public/install.ps1
+  s_3e4cc0ba3e0ede::t_7d2a2b8764bec3 1-25
+public/install.sh
+  s_3e4cc0ba3e0ede::t_c6249273758c1c 6-9,23-24,31-60,62-73,75-78,80-89,91-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e00b97f10926b7d0004ac1effc7ec38e991d1800",
+  "prompts": {},
+  "sessions": {
+    "s_3e4cc0ba3e0ede": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3e772dcd-0cc7-45ef-b232-59d0e8d0d1c9",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
