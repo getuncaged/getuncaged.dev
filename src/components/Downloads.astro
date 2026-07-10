@@ -2,55 +2,43 @@
 import { SITE, DOWNLOADS } from '../data/site';
 
 const { macos, linux, windows } = DOWNLOADS;
-const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/Uncaged.app';
 
-// One uniform shape for every OS: a bordered list of format rows (each row a
-// format label + subtitle on the left and architecture download chips on the
-// right, the recommended arch `primary`), then a "terminal" stack of copy-able
-// one-liners. `install` is the recommended, accented command (macOS: a curl
-// installer that sidesteps Gatekeeper entirely — curl never sets the quarantine
-// flag). `curl` is a plain download; `pm` a package manager; `note` a caption;
-// `caveat` the labelled macOS Gatekeeper block for the .dmg path.
-const installUrl = 'https://getuncaged.dev/install.sh';
+// Uniform per OS: the one-line install command on top (the recommended path),
+// then direct-download buttons below — a primary arch/format plus variants.
+// macOS & Linux install via the shell script; Windows via the PowerShell one.
+const SH = 'curl -fsSL https://getuncaged.dev/install.sh | bash';
+const PS = 'irm https://getuncaged.dev/install.ps1 | iex';
 const columns = [
   {
     id: 'mac',
     name: 'macOS',
     icon: 'apple',
-    // One command. curl never sets the quarantine flag, so the app opens with
-    // no Gatekeeper prompt; the script auto-detects Apple Silicon vs Intel.
-    intro: 'Requires macOS 10.14 or later.',
-    installs: [{ cmd: `curl -fsSL ${installUrl} | bash`, primary: true }],
+    req: 'macOS 10.14 or later',
+    install: { prompt: '$', cmd: SH },
+    primary: { label: 'Apple Silicon', sub: '.dmg', href: macos.primary.href },
+    alts: [{ label: 'Intel', href: macos.others[0].href }],
   },
   {
     id: 'linux',
     name: 'Linux',
     icon: 'linux',
-    formats: [
-      { label: '.deb', sub: 'Debian · Ubuntu', arches: [{ name: 'x64', href: linux.others[0].href, primary: true }] },
-      { label: '.rpm', sub: 'Fedora · RHEL · SUSE', arches: [{ name: 'x64', href: linux.others[1].href }] },
-      { label: 'AppImage', sub: 'any distro', arches: [{ name: 'x64', href: linux.others[2].href }] },
-      { label: '.tar.gz', sub: 'any distro', arches: [{ name: 'x64', href: linux.primary.href }] },
+    req: 'x86_64 · arm64 coming',
+    install: { prompt: '$', cmd: SH },
+    primary: { label: '.deb', sub: 'Debian · Ubuntu', href: linux.others[0].href },
+    alts: [
+      { label: '.rpm', href: linux.others[1].href },
+      { label: 'AppImage', href: linux.others[2].href },
+      { label: '.tar.gz', href: linux.primary.href },
     ],
-    curl: `curl -LO ${linux.primary.href}`,
-    note: 'arm64 builds are on the way.',
   },
   {
     id: 'windows',
     name: 'Windows',
     icon: 'windows',
-    formats: [
-      {
-        label: '.exe',
-        sub: 'Windows 11 / 10',
-        arches: [
-          { name: 'x64', href: windows.primary.href, primary: true },
-          { name: 'ARM64', href: windows.others[0].href },
-        ],
-      },
-    ],
-    curl: `curl -LO ${windows.primary.href}`,
-    pm: { label: 'winget', cmd: windows.winget.cmd },
+    req: 'Windows 11 / 10',
+    install: { prompt: '>', cmd: PS },
+    primary: { label: 'x64', sub: '.exe', href: windows.primary.href },
+    alts: [{ label: 'ARM64', href: windows.others[0].href }],
   },
 ];
 ---
@@ -86,76 +74,28 @@ const columns = [
             <h3>{col.name}</h3>
           </div>
 
-          {col.formats && (
-            <div class="dl-list">
-              {col.formats.map((f) => (
-                <div class="dl-row">
-                  <div class="dl-row-info">
-                    <span class="dl-row-label">{f.label}</span>
-                    <span class="dl-row-sub">{f.sub}</span>
-                  </div>
-                  <div class="dl-archs">
-                    {f.arches.map((a) => (
-                      <a class:list={['dl-chip', a.primary && 'is-primary']} href={a.href} aria-label={`Download ${col.name} ${f.label} for ${a.name}`}>
-                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                          <path d="M8 2.75v7"></path>
-                          <path d="M4.75 6.75 8 10l3.25-3.25"></path>
-                          <path d="M3 13.25h10"></path>
-                        </svg>
-                        {a.name}
-                      </a>
-                    ))}
-                  </div>
-                </div>
+          <div class="dl-cmd is-hero">
+            <code><span class="dl-cmd-p">{col.install.prompt}</span>{col.install.cmd}</code>
+            <button class="copy-btn" type="button" data-copy={col.install.cmd} aria-label={`Copy the ${col.name} install command`}>copy</button>
+          </div>
+
+          <div class="dl-dl">
+            <div class="dl-dl-sep"><span>or download</span></div>
+            <a class="dl-btn dl-btn-primary" href={col.primary.href} aria-label={`Download Uncaged for ${col.name} (${col.primary.label})`}>
+              <svg class="dl-btn-ico" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 2.5v7"></path>
+                <path d="M4.75 6.5 8 9.75 11.25 6.5"></path>
+                <path d="M3 13h10"></path>
+              </svg>
+              <span class="dl-btn-label">{col.primary.label}</span>
+              <span class="dl-btn-sub">{col.primary.sub}</span>
+            </a>
+            <div class="dl-btn-alts">
+              {col.alts.map((a) => (
+                <a class="dl-btn dl-btn-alt" href={a.href} aria-label={`Download Uncaged for ${col.name} (${a.label})`}>{a.label}</a>
               ))}
             </div>
-          )}
-
-          <div class="dl-term">
-            {col.intro && <p class="dl-intro">{col.intro}</p>}
-
-            {col.installs && col.installs.map((i) => (
-              <div class:list={['dl-cmd-group', i.primary && 'is-primary']}>
-                {i.label && <span class="dl-cmd-label">{i.label}</span>}
-                <div class="dl-cmd">
-                  <code><span class="dl-cmd-p">$</span>{i.cmd}</code>
-                  <button class="copy-btn" type="button" data-copy={i.cmd} aria-label={`Copy the ${col.name} install command`}>copy</button>
-                </div>
-              </div>
-            ))}
-
-            {col.curl && (
-              <div class="dl-cmd-group">
-                <span class="dl-cmd-label">curl</span>
-                <div class="dl-cmd">
-                  <code><span class="dl-cmd-p">$</span>{col.curl}</code>
-                  <button class="copy-btn" type="button" data-copy={col.curl} aria-label={`Copy the ${col.name} curl download command`}>copy</button>
-                </div>
-              </div>
-            )}
-
-            {col.pm && (
-              <div class="dl-cmd-group">
-                <span class="dl-cmd-label">{col.pm.label}</span>
-                <div class="dl-cmd">
-                  <code><span class="dl-cmd-p">$</span>{col.pm.cmd}</code>
-                  <button class="copy-btn" type="button" data-copy={col.pm.cmd} aria-label={`Copy the ${col.pm.label} install command`}>copy</button>
-                </div>
-              </div>
-            )}
-
-            {col.caveat && (
-              <div class="dl-cmd-group dl-cmd-caveat">
-                <span class="dl-cmd-label">{col.caveat.label}</span>
-                <span class="dl-cmd-hint">{col.caveat.text}</span>
-                <div class="dl-cmd">
-                  <code><span class="dl-cmd-p">$</span>{col.caveat.cmd}</code>
-                  <button class="copy-btn" type="button" data-copy={col.caveat.cmd} aria-label="Copy the clear-quarantine command">copy</button>
-                </div>
-              </div>
-            )}
-
-            {col.note && <p class="dl-note">{col.note}</p>}
+            <p class="dl-req">{col.req}</p>
           </div>
         </div>
       ))}
@@ -241,68 +181,39 @@ const columns = [
     letter-spacing: -0.01em;
   }
 
-  /* the bordered list of format rows */
-  .dl-list {
-    border: 1px solid var(--bar);
-    border-radius: var(--radius);
-    background: var(--panel);
-    overflow: hidden;
+  /* download area: a primary button + arch/format variant buttons */
+  .dl-dl {
+    margin-top: 4px;
   }
 
-  .dl-row {
+  .dl-dl-sep {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 13px 15px;
+    gap: 12px;
+    margin: 18px 0 14px;
   }
 
-  .dl-row + .dl-row {
-    border-top: 1px solid var(--line-soft);
+  .dl-dl-sep::before,
+  .dl-dl-sep::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--bar);
   }
 
-  .dl-row-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .dl-row-label {
+  .dl-dl-sep span {
     font-family: var(--mono);
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: -0.01em;
-  }
-
-  .dl-row-sub {
-    font-family: var(--mono);
-    font-size: 11.5px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--muted);
-    white-space: nowrap;
   }
 
-  .dl-archs {
-    display: flex;
-    gap: 7px;
-    flex-shrink: 0;
-  }
-
-  /* architecture download chip — the action */
-  .dl-chip {
+  .dl-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 11px;
-    border: 1px solid var(--bar);
     border-radius: var(--radius-s);
-    background: var(--raised);
     font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--ash);
-    white-space: nowrap;
     transition:
       color 0.14s ease,
       border-color 0.14s ease,
@@ -310,74 +221,70 @@ const columns = [
       transform 0.14s ease;
   }
 
-  .dl-chip svg {
-    opacity: 0.7;
-    transition: opacity 0.14s ease;
+  .dl-btn-primary {
+    gap: 10px;
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--bar);
+    background: var(--raised);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
   }
 
-  .dl-chip:hover {
-    color: var(--ink);
+  .dl-btn-primary:hover {
     border-color: var(--muted);
+    background: var(--panel);
     transform: translateY(-1px);
   }
 
-  .dl-chip:hover svg {
-    opacity: 1;
-  }
-
-  /* recommended architecture — the one warm action in the section */
-  .dl-chip.is-primary {
-    color: #16100a;
-    background: linear-gradient(180deg, var(--gold), var(--ember));
-    border-color: transparent;
-    box-shadow: 0 6px 20px -8px rgba(255, 122, 24, 0.55);
-  }
-
-  .dl-chip.is-primary svg {
-    opacity: 0.85;
-  }
-
-  .dl-chip.is-primary:hover {
-    color: #16100a;
-    filter: brightness(1.06);
-    box-shadow: 0 8px 24px -8px rgba(255, 122, 24, 0.7);
-  }
-
-  /* terminal stack: curl download + package manager + Gatekeeper caveat */
-  .dl-term {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  /* short lead-in above a curl-only column (macOS) */
-  .dl-intro {
-    margin: 0 0 -2px;
-    padding-left: 2px;
-    font-size: 12.5px;
-    line-height: 1.55;
+  .dl-btn-ico {
     color: var(--ash);
-    max-width: 42ch;
+    flex-shrink: 0;
+    transition: color 0.14s ease;
   }
 
-  .dl-cmd-label {
-    display: block;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  .dl-btn-primary:hover .dl-btn-ico {
+    color: var(--ember);
+  }
+
+  .dl-btn-sub {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 500;
     color: var(--muted);
-    margin-bottom: 8px;
-    padding-left: 2px;
   }
 
-  .dl-cmd-hint {
-    display: block;
-    font-size: 12px;
+  .dl-btn-alts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 7px;
+  }
+
+  .dl-btn-alt {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 8px 12px;
+    border: 1px solid var(--bar);
+    background: var(--panel);
     color: var(--ash);
-    margin: -3px 0 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .dl-btn-alt:hover {
+    color: var(--ink);
+    border-color: var(--muted);
+  }
+
+  .dl-req {
+    margin: 14px 0 0;
     padding-left: 2px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
   }
 
   .dl-cmd {
@@ -414,28 +321,12 @@ const columns = [
     flex-shrink: 0;
   }
 
-  /* recommended install — the one warm, emphasised path in the column */
-  .dl-cmd-group.is-primary .dl-cmd-label {
-    color: var(--ember);
-  }
-
-  .dl-cmd-group.is-primary .dl-cmd {
+  /* the install command — the recommended, emphasised path (sits on top) */
+  .dl-cmd.is-hero {
     border-color: rgba(255, 122, 24, 0.45);
     background: linear-gradient(180deg, rgba(255, 122, 24, 0.06), #151311 60%);
     box-shadow: 0 8px 26px -14px rgba(255, 122, 24, 0.6);
-  }
-
-  /* Gatekeeper caveat — a warm accent marks it as a caution, not an install */
-  .dl-cmd-caveat .dl-cmd-label {
-    color: var(--gold);
-  }
-
-  /* Linux has no package manager yet — a plain, honest note */
-  .dl-note {
-    margin: 0;
-    padding-left: 2px;
-    font-size: 12.5px;
-    color: var(--muted);
+    margin-bottom: 2px;
   }
 
   /* single shared footnote under the whole grid */
@@ -477,23 +368,6 @@ const columns = [
       border-left: 0;
       border-top: 1px solid var(--bar);
       padding-top: 36px;
-    }
-  }
-
-  @media (max-width: 460px) {
-    .dl-row {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .dl-archs {
-      width: 100%;
-    }
-
-    .dl-chip {
-      flex: 1;
-      justify-content: center;
     }
   }
 </style>

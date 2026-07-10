@@ -17,13 +17,13 @@ import { SITE } from '../data/site';
         or the CLI plan you already pay for. Your keys never leave your device.
       </p>
       <div class="hero-ctas">
-        <a class="btn btn-primary" id="hero-dl" href={SITE.dmg} data-dl-mac>
+        <a class="btn btn-primary" id="hero-dl" href="#download" data-dl-mac>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M8 2.75v7"></path>
             <path d="M4.75 6.75 8 10l3.25-3.25"></path>
             <path d="M3 13.25h10"></path>
           </svg>
-          <span class="dl-label">Download for macOS</span>
+          <span class="dl-label">Install on macOS</span>
         </a>
         <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">View source</a>
       </div>
@@ -147,18 +147,15 @@ import { SITE } from '../data/site';
 </style>
 
 <script>
-  // Hand every visitor their own platform's artifact.
-  import { SITE } from '../data/site';
-
+  // Personalise the CTA label to the visitor's platform; it scrolls to the
+  // install section (curl-first), so there's no direct-download href to swap.
   const ua = navigator.userAgent;
   const isWin = /Windows/.test(ua);
   const isLinux = /Linux|X11/.test(ua) && !/Android/.test(ua);
 
   if (isWin || isLinux) {
-    const href = isWin ? SITE.windowsSetup : SITE.linuxTar;
-    const label = isWin ? 'Download for Windows' : 'Download for Linux';
+    const label = isWin ? 'Install on Windows' : 'Install on Linux';
     document.querySelectorAll<HTMLAnchorElement>('a[data-dl-mac]').forEach((a) => {
-      a.href = href;
       const l = a.querySelector('.dl-label');
       if (l) l.textContent = label;
     });
