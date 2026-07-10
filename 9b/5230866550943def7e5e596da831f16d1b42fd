@@ -1,0 +1,34 @@
+src/pages/llms-full.txt.ts
+  s_698f28f2ef1d91::t_ebf24cee532d99 1-104
+public/robots.txt
+  s_698f28f2ef1d91::t_8af5aae9300b75 1-3,7-46
+  s_698f28f2ef1d91::t_9f62bbc2b80860 47
+src/pages/llms.txt.ts
+  s_698f28f2ef1d91::t_859bd774fc6042 1-43
+src/layouts/Base.astro
+  s_698f28f2ef1d91::t_8c8ddb7f25d0cc 36-40,46-47,53,55,58,60
+  s_698f28f2ef1d91::t_6e0c9222fac511 10-11,14-19,21
+src/pages/404.astro
+  s_698f28f2ef1d91::t_13b8f860aa3545 6
+src/data/site.ts
+  s_698f28f2ef1d91::t_b3c80a394eeb8e 10-14,16-18
+  s_698f28f2ef1d91::t_84cef4d063218a 138
+src/pages/index.astro
+  s_698f28f2ef1d91::t_010734e220ec2f 14-77,81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "9b5230866550943def7e5e596da831f16d1b42fd",
+  "prompts": {},
+  "sessions": {
+    "s_698f28f2ef1d91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a7a191c-1fbe-42ce-b808-77765e30a953",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
