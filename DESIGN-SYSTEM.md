@@ -121,7 +121,7 @@ sanctioned off-palette moment — they depict *other people's* brands.
 | Radii | 8 (`--radius-s`) · 12 (`--radius`) · 16 (`--radius-l`) · buttons 10–12 · windows 14 |
 | Hairline | 1px `--bar` at 0.6 opacity, full container width |
 | Bands | Full-bleed `#0E1117` + `border-block: 1px solid --bar` for one section per page region |
-| Column dividers | `border-left: 1px solid --bar` between equal grid columns (the install matrix) |
+| Column dividers | `border-left: 1px solid --bar` between equal grid columns (mockup panels) |
 
 **The stage rail** is the page's spine: numbered eyebrows (`01…05`) with one unnumbered intro
 artifact ("the fork"). Nav labels quote the rail vocabulary verbatim — one vocabulary, two places.
@@ -132,9 +132,14 @@ the install/CTA action moments.
 blowout) and never implicit auto columns for card stacks. Code blocks scroll inside their boxes.
 
 **The command never wraps.** The install one-liner is the product's proof, so it renders on one
-line everywhere it appears (hero, install matrix, CTA). When space runs out it scrolls inside its
+line everywhere it appears (hero, install section, CTA). When space runs out it scrolls inside its
 box like a real terminal line, with a fade cue on the clipped edge (`.is-overflowing`, set by the
 shared script) — never a URL broken mid-word.
+
+**The script is the funnel.** Install surfaces lead with the one-liners; direct packages are
+reference material (quiet text links, no buttons). The macOS `.dmg` is deliberately not a button —
+browser downloads get quarantined without an Apple Dev ID, and the script path avoids Gatekeeper
+entirely — so the site never routes a first run into "app is damaged".
 
 ---
 
