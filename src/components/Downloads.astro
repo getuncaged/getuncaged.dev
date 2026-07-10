@@ -17,13 +17,10 @@ const columns = [
     id: 'mac',
     name: 'macOS',
     icon: 'apple',
-    // curl-only by design: it never sets the quarantine flag, so the app opens
-    // instantly with no Gatekeeper prompt — no .dmg, no Homebrew, no xattr.
+    // One command. curl never sets the quarantine flag, so the app opens with
+    // no Gatekeeper prompt; the script auto-detects Apple Silicon vs Intel.
     intro: 'Requires macOS 10.14 or later.',
-    installs: [
-      { label: 'Apple Silicon', cmd: `curl -fsSL ${installUrl} | bash -s -- arm64`, primary: true },
-      { label: 'Intel', cmd: `curl -fsSL ${installUrl} | bash -s -- intel` },
-    ],
+    installs: [{ cmd: `curl -fsSL ${installUrl} | bash`, primary: true }],
   },
   {
     id: 'linux',
@@ -119,10 +116,10 @@ const columns = [
 
             {col.installs && col.installs.map((i) => (
               <div class:list={['dl-cmd-group', i.primary && 'is-primary']}>
-                <span class="dl-cmd-label">{i.label}</span>
+                {i.label && <span class="dl-cmd-label">{i.label}</span>}
                 <div class="dl-cmd">
                   <code><span class="dl-cmd-p">$</span>{i.cmd}</code>
-                  <button class="copy-btn" type="button" data-copy={i.cmd} aria-label={`Copy the ${col.name} ${i.label} install command`}>copy</button>
+                  <button class="copy-btn" type="button" data-copy={i.cmd} aria-label={`Copy the ${col.name} install command`}>copy</button>
                 </div>
               </div>
             ))}
