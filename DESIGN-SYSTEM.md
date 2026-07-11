@@ -121,7 +121,7 @@ sanctioned off-palette moment — they depict *other people's* brands.
 | Radii | 8 (`--radius-s`) · 12 (`--radius`) · 16 (`--radius-l`) · buttons 10–12 · windows 14 |
 | Hairline | 1px `--bar` at 0.6 opacity, full container width |
 | Bands | Full-bleed `#0E1117` + `border-block: 1px solid --bar` for one section per page region |
-| Column dividers | `border-left: 1px solid --bar` between equal grid columns (mockup panels) |
+| Column dividers | `border-left: 1px solid --bar` between equal grid columns (the install matrix) |
 
 **The stage rail** is the page's spine: numbered eyebrows (`01…05`) with one unnumbered intro
 artifact ("the fork"). Nav labels quote the rail vocabulary verbatim — one vocabulary, two places.
@@ -136,10 +136,11 @@ line everywhere it appears (hero, install section, CTA). When space runs out it 
 box like a real terminal line, with a fade cue on the clipped edge (`.is-overflowing`, set by the
 shared script) — never a URL broken mid-word.
 
-**The script is the funnel.** Install surfaces lead with the one-liners; direct packages are
-reference material (quiet text links, no buttons). The macOS `.dmg` is deliberately not a button —
-browser downloads get quarantined without an Apple Dev ID, and the script path avoids Gatekeeper
-entirely — so the site never routes a first run into "app is damaged".
+**The script leads.** Every column of the install matrix puts the one-line installer on top
+(the ember-bordered `is-hero` command) with direct downloads demoted below an "or download"
+separator. The macOS column pairs its `.dmg` buttons with the one-time Gatekeeper-clear command
+(`xattr -dr com.apple.quarantine …`, copyable) — a browser download gets quarantined without an
+Apple Dev ID, and the first run must never dead-end in "app is damaged".
 
 ---
 
