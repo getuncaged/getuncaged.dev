@@ -59,7 +59,7 @@ const added = [
 
 <style>
   .changes {
-    padding-block: 128px;
+    padding-block: clamp(84px, 6vw + 44px, 128px);
   }
 
   .ch-head {
@@ -141,8 +141,8 @@ const added = [
     display: block;
     font-style: normal;
     font-size: 12.5px;
-    color: var(--muted, #5d6577);
-    margin-top: 2px;
+    color: var(--ash);
+    margin-top: 3px;
   }
 
   .ledger-add span {

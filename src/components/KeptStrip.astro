@@ -16,8 +16,9 @@ const kept = [
 ];
 ---
 
-<div class="kept" role="marquee" aria-label="Everything Warp got right, kept: blocks, agent mode, workflows, keymaps, IDE-grade editing, GPU-fast rendering, synced with upstream Warp">
-  <p class="kept-label">kept from warp</p>
+<div class="kept">
+  <p class="sr-only">Everything Warp got right, kept: {kept.join(', ')}.</p>
+  <p class="kept-label" aria-hidden="true">kept from warp</p>
   <div class="kept-track" aria-hidden="true">
     <div class="kept-run">
       {[...kept, ...kept].map((k) => <span><b>❯</b> {k}</span>)}

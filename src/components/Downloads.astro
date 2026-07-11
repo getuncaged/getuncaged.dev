@@ -6,8 +6,12 @@ const { macos, linux, windows } = DOWNLOADS;
 // Uniform per OS: the one-line install command on top (the recommended path),
 // then direct-download buttons below — a primary arch/format plus variants.
 // macOS & Linux install via the shell script; Windows via the PowerShell one.
+// The macOS column also carries the one-time Gatekeeper-clear command, so a
+// browser-downloaded .dmg (quarantined — no Apple Dev ID) never dead-ends in
+// "app is damaged".
 const SH = 'curl -fsSL https://getuncaged.dev/install.sh | bash';
 const PS = 'irm https://getuncaged.dev/install.ps1 | iex';
+const GK = 'xattr -dr com.apple.quarantine /Applications/Uncaged.app';
 const columns = [
   {
     id: 'mac',
@@ -17,6 +21,7 @@ const columns = [
     install: { prompt: '$', cmd: SH },
     primary: { label: 'Apple Silicon', sub: '.dmg', href: macos.primary.href },
     alts: [{ label: 'Intel', href: macos.others[0].href }],
+    gatekeeper: { label: 'grabbed the .dmg? clear Gatekeeper once:', prompt: '$', cmd: GK },
   },
   {
     id: 'linux',
@@ -95,6 +100,15 @@ const columns = [
                 <a class="dl-btn dl-btn-alt" href={a.href} aria-label={`Download Uncaged for ${col.name} (${a.label})`}>{a.label}</a>
               ))}
             </div>
+            {col.gatekeeper && (
+              <div class="dl-gk">
+                <p class="dl-gk-label">{col.gatekeeper.label}</p>
+                <div class="dl-cmd dl-cmd-mini">
+                  <code><span class="dl-cmd-p">{col.gatekeeper.prompt}</span>{col.gatekeeper.cmd}</code>
+                  <button class="copy-btn" type="button" data-copy={col.gatekeeper.cmd} aria-label="Copy the Gatekeeper clear command">copy</button>
+                </div>
+              </div>
+            )}
             <p class="dl-req">{col.req}</p>
           </div>
         </div>
@@ -147,7 +161,14 @@ const columns = [
   .dl-os {
     display: flex;
     flex-direction: column;
-    padding: 4px 36px;
+    padding: 4px 30px;
+  }
+
+  /* flex-column items must be allowed to shrink below their content width —
+     without this the nowrap command rows refuse to shrink and bleed across
+     the column dividers */
+  .dl-os > * {
+    min-width: 0;
   }
 
   .dl-os:first-child {
@@ -279,24 +300,48 @@ const columns = [
     border-color: var(--muted);
   }
 
+  /* the one-time Gatekeeper clear, for people who took the .dmg path —
+     a browser download gets quarantined (no Apple Dev ID yet) */
+  .dl-gk {
+    margin-top: 16px;
+  }
+
+  .dl-gk-label {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ash);
+    margin-bottom: 7px;
+  }
+
+  .dl-cmd-mini {
+    padding: 7px 7px 7px 11px;
+  }
+
+  .dl-cmd-mini code {
+    font-size: 10.5px;
+  }
+
   .dl-req {
     margin: 14px 0 0;
     padding-left: 2px;
     font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
+    font-size: 11.5px;
+    color: var(--ash);
   }
 
   .dl-cmd {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
-    background: #151311;
+    background: var(--code-bg);
     border: 1px solid var(--bar);
     border-radius: var(--radius-s);
     padding: 10px 10px 10px 13px;
   }
 
+  /* one line, always — a clipped command scrolls (with a fade cue) rather
+     than breaking the URL mid-word. `.is-overflowing` comes from Base. */
   .dl-cmd code {
     flex: 1;
     min-width: 0;
@@ -304,8 +349,13 @@ const columns = [
     font-size: 11.5px;
     line-height: 1.55;
     color: var(--ink);
-    white-space: normal;
-    overflow-wrap: break-word;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .dl-cmd code::-webkit-scrollbar {
+    display: none;
   }
 
   .dl-cmd-p {
@@ -324,7 +374,7 @@ const columns = [
   /* the install command — the recommended, emphasised path (sits on top) */
   .dl-cmd.is-hero {
     border-color: rgba(255, 122, 24, 0.45);
-    background: linear-gradient(180deg, rgba(255, 122, 24, 0.06), #151311 60%);
+    background: linear-gradient(180deg, rgba(255, 122, 24, 0.06), var(--code-bg) 60%);
     box-shadow: 0 8px 26px -14px rgba(255, 122, 24, 0.6);
     margin-bottom: 2px;
   }
@@ -333,7 +383,7 @@ const columns = [
   .dl-foot {
     text-align: center;
     font-size: 13px;
-    color: var(--muted);
+    color: var(--ash);
     max-width: 72ch;
   }
 

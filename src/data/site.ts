@@ -7,8 +7,15 @@
 export const SITE = {
   name: 'Uncaged',
   url: 'https://getuncaged.dev',
-  title: 'Uncaged — No account. No cloud. No cage.',
+  // SERP title (57 chars): brand + the queries that matter — "warp terminal",
+  // "open source terminal". The brand tagline lives on as `tagline` (OG/social).
+  title: 'Uncaged — Open-Source Warp Terminal, No Cloud, No Account',
+  tagline: 'No account. No cloud. No cage.',
+  // Meta description, 152 chars — front-loaded keywords, truncation-safe.
   description:
+    'Free, open-source Warp terminal fork with the cloud cut out — no account, no telemetry. The same agentic terminal, any AI model: local, API key, or CLI.',
+  // The full pitch — JSON-LD, llms.txt, anywhere length isn't capped.
+  descriptionLong:
     'Uncaged is a fork of the open-source Warp terminal that removes the cloud. The full agentic experience — blocks, workflows, keymaps — running entirely on your machine. No account, no login, no relay. Bring any model: local, API key, or a CLI agent. Your keys never leave your device.',
   version: '0.2.4',
   license: 'AGPL-3.0',
@@ -128,7 +135,7 @@ export const FAQ = [
   },
   {
     q: 'How is this different from Warp?',
-    a: 'Warp open-sourced its client, but the premium agent runs on Warp’s servers behind a login and subscription. Uncaged replaces that with a local agent engine, removes the account and paywall gates, and ships with telemetry off. Same terminal, same speed — the cloud is gone.',
+    a: 'Warp open-sourced its terminal emulator, but the premium agent runs on Warp’s servers behind a login and subscription. Uncaged replaces that with a local agent engine, removes the account and paywall gates, and ships with telemetry off — a fully open-source Warp alternative: same terminal, same speed, none of the cloud.',
   },
   {
     q: 'Can I fork it and ship my own terminal?',

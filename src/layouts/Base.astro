@@ -7,24 +7,18 @@ import { SITE } from '../data/site';
 interface Props {
   title?: string;
   description?: string;
+  /** Social-card headline — defaults to the brand tagline, not the SERP title. */
+  ogTitle?: string;
   noindex?: boolean;
 }
-const { title = SITE.title, description = SITE.description, noindex = false } = Astro.props;
+const {
+  title = SITE.title,
+  description = SITE.description,
+  ogTitle = `${SITE.name} — ${SITE.tagline}`,
+  noindex = false,
+} = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-
-const jsonLd = JSON.stringify({
-  '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Uncaged',
-  operatingSystem: 'macOS',
-  applicationCategory: 'DeveloperApplication',
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  license: 'https://www.gnu.org/licenses/agpl-3.0.html',
-  downloadUrl: SITE.dmg,
-  url: SITE.url,
-  sameAs: [SITE.github],
-  description: SITE.description,
-});
+const ogImageAlt = `${SITE.name} — ${SITE.tagline} The open-source Warp terminal without the cloud.`;
 ---
 
 <!doctype html>
@@ -39,29 +33,45 @@ const jsonLd = JSON.stringify({
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    {noindex && <meta name="robots" content="noindex" />}
+    {noindex ? (
+      <meta name="robots" content="noindex" />
+    ) : (
+      <meta name="robots" content="index, follow, max-image-preview:large" />
+    )}
     <meta name="theme-color" content="#0B0D12" />
     <meta name="generator" content={Astro.generator} />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Uncaged" />
-    <meta property="og:title" content={title} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content={ogTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={new URL('/og.png', Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
+    <meta name="twitter:title" content={ogTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={new URL('/og.png', Astro.site)} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
-    <script type="application/ld+json" set:html={jsonLd} />
+    <slot name="head" />
   </head>
   <body>
     <div class="atmosphere" aria-hidden="true"><i class="orb-ember"></i><i class="orb-gold"></i><i class="orb-teal"></i></div>
     <slot />
+    <div class="sr-only" id="copy-live" aria-live="polite"></div>
     <script>
+      // one shared polite live region announces copy success to assistive tech
+      const live = document.getElementById('copy-live');
+      const announce = (msg: string) => {
+        if (!live) return;
+        live.textContent = '';
+        requestAnimationFrame(() => (live.textContent = msg));
+      };
+
       // shared page behavior: copy-to-clipboard buttons
       document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
@@ -70,6 +80,7 @@ const jsonLd = JSON.stringify({
             await navigator.clipboard.writeText(text);
             btn.textContent = 'copied';
             btn.classList.add('copied');
+            announce('Command copied to clipboard');
             setTimeout(() => {
               btn.textContent = 'copy';
               btn.classList.remove('copied');
@@ -97,6 +108,7 @@ const jsonLd = JSON.stringify({
             const prev = label?.textContent ?? null;
             if (label) label.textContent = 'Copied!';
             btn.classList.add('copied');
+            announce('Install command copied to clipboard');
             setTimeout(() => {
               if (label && prev !== null) label.textContent = prev;
               btn.classList.remove('copied');
@@ -106,6 +118,18 @@ const jsonLd = JSON.stringify({
           }
         });
       });
+
+      // command strings never wrap — when one is clipped, flag it so CSS can
+      // fade the cut edge (the scroll affordance of a real terminal line)
+      const cmdBoxes = document.querySelectorAll<HTMLElement>('.install-cmd > code, .dl-cmd > code');
+      const flagOverflow = () => {
+        cmdBoxes.forEach((el) => {
+          el.classList.toggle('is-overflowing', el.scrollWidth > el.clientWidth + 1);
+        });
+      };
+      flagOverflow();
+      window.addEventListener('resize', flagOverflow, { passive: true });
+      document.fonts?.ready.then(flagOverflow);
     </script>
   </body>
 </html>
