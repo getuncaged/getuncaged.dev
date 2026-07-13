@@ -1,0 +1,19 @@
+astro.config.mjs
+  s_698f28f2ef1d91::t_8392ea8a945003 10-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "73b98ca66ec6500f87903838a5b913458073ab5f",
+  "prompts": {},
+  "sessions": {
+    "s_698f28f2ef1d91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a7a191c-1fbe-42ce-b808-77765e30a953",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
