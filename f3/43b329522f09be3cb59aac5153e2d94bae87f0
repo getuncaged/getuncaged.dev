@@ -1,0 +1,24 @@
+src/components/Hero.astro
+  s_698f28f2ef1d91::t_65d7865bee07ef 12
+  s_698f28f2ef1d91::t_c896c9dd2eaf61 77-79
+src/components/Cta.astro
+  s_698f28f2ef1d91::t_3cd2c4a677124f 10
+DESIGN-SYSTEM.md
+  s_698f28f2ef1d91::t_b9df975314654d 97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "f343b329522f09be3cb59aac5153e2d94bae87f0",
+  "prompts": {},
+  "sessions": {
+    "s_698f28f2ef1d91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a7a191c-1fbe-42ce-b808-77765e30a953",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
