@@ -7,6 +7,8 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => !page.includes('/design'),
+      // stamp build time so index-refresh requests see the page as fresh
+      serialize: (item) => ({ ...item, lastmod: new Date().toISOString() }),
     }),
   ],
 });
