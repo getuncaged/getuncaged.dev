@@ -7,7 +7,10 @@ import { SITE } from '../data/site';
   <div class="sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <div class="container cta-inner">
     <Logo idp="cta" size={76} class="cta-mark" />
-    <h2 class="cta-h">No account. No cloud.<br />No cage.</h2>
+    <h2 class="cta-h">
+      <span class="beat">No account.</span> <span class="beat">No cloud.</span>
+      <span class="beat">No cage.</span>
+    </h2>
     <p class="cta-sub">Thirty seconds from download to a working agent — none of them spent on a sign-up form.</p>
     <div class="cta-btns">
       <button class="install-cmd" type="button" data-install-copy aria-label="Copy the install command">
@@ -55,6 +58,18 @@ import { SITE } from '../data/site';
     letter-spacing: -0.02em;
   }
 
+  /* each beat is unbreakable — wraps happen only between sentences, so the
+     line reads as one strap on desktop and three staccato lines on phones */
+  .cta-h .beat {
+    white-space: nowrap;
+  }
+
+  .cta-btns :global(.install-cmd) {
+    /* flex items must be allowed to shrink — otherwise the command box
+       refuses to compress and gets clipped by the section's overflow */
+    min-width: 0;
+  }
+
   .cta-sub {
     margin-top: 18px;
     color: var(--ash);
@@ -67,5 +82,15 @@ import { SITE } from '../data/site';
     justify-content: center;
     gap: 14px;
     margin-top: 36px;
+    /* centered flex-column items size to max-content — cap them, or the
+       command row overflows the container on phones */
+    max-width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    /* three staccato lines — the old hero composition, closing the page */
+    .cta-h .beat {
+      display: block;
+    }
   }
 </style>
