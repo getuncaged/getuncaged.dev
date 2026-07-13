@@ -9,7 +9,7 @@ import { SITE } from '../data/site';
     <div class="hero-copy">
       <p class="eyebrow">a fork of the open-source warp terminal</p>
       <h1 class="hero-h">
-        No account.<br />No cloud.<br /><span class="h-flame">No cage.</span><span class="cursor-blink" aria-hidden="true"></span>
+        Your terminal.<br />Your models.<br /><span class="h-flame">Uncaged.</span><span class="cursor-blink" aria-hidden="true"></span>
       </h1>
       <p class="hero-sub">
         Uncaged is the open-source Warp terminal with the cloud cut out — the same agentic
@@ -74,7 +74,9 @@ import { SITE } from '../data/site';
   }
 
   .hero-h {
-    font-size: clamp(46px, 5vw, 68px);
+    /* sized so the longest beat ("Your terminal.", 14ch) holds one line
+       at every width — three tight lines, never four */
+    font-size: clamp(38px, 4.9vw, 56px);
     font-weight: 800;
     line-height: 1.06;
     letter-spacing: -0.025em;

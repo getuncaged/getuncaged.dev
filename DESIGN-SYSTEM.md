@@ -94,7 +94,7 @@ sanctioned off-palette moment — they depict *other people's* brands.
 
 | Style | Spec |
 |---|---|
-| Display (hero H1) | Mono 800 · `clamp(46px, 5vw, 68px)` · lh 1.06 · ls −0.025em |
+| Display (hero H1) | Mono 800 · `clamp(38px, 4.9vw, 56px)` (longest beat holds one line) · lh 1.06 · ls −0.025em |
 | Section H2 | Mono 700 · `clamp(30px, 3.6vw, 42px)` · lh 1.2 · max-width 22ch |
 | Card/column H3 | Mono 700 · 13.5–17px |
 | Body / section sub | Inter 400 · 17px · lh 1.65 · `--ash` · max-width 52–56ch |
