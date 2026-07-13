@@ -138,7 +138,7 @@ const year = new Date().getFullYear();
 
   @media (max-width: 900px) {
     .foot-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .foot-bottom {
@@ -147,6 +147,13 @@ const year = new Date().getFullYear();
 
     .foot-legal {
       text-align: left;
+    }
+  }
+
+  @media (max-width: 560px) {
+    /* tighter gutter so labels like "license · AGPL-3.0" hold one line */
+    .foot-grid {
+      gap: 36px 28px;
     }
   }
 </style>

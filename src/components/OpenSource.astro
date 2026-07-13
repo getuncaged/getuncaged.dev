@@ -64,7 +64,8 @@ const files = [
         {
           files.map((f) => (
             <li>
-              <code class="os-path">{f.path}</code>
+              {/* <wbr> after each slash: long paths break at separators, never mid-segment */}
+              <code class="os-path" set:html={f.path.replaceAll('/', '/<wbr>')} />
               <span class="os-what">{f.what}</span>
             </li>
           ))
@@ -200,6 +201,7 @@ const files = [
     font-size: 13px;
     font-weight: 700;
     color: var(--ink);
+    overflow-wrap: anywhere; /* safety net below the <wbr> break points */
   }
 
   .os-what {
