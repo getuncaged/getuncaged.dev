@@ -1,0 +1,20 @@
+src/components/OpenSource.astro
+  s_698f28f2ef1d91::t_9495c8ea32c349 204
+  s_698f28f2ef1d91::t_3ab0ffd22ceaea 67-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "d8283a708db6297f8435be2838f4c910c74575ee",
+  "prompts": {},
+  "sessions": {
+    "s_698f28f2ef1d91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a7a191c-1fbe-42ce-b808-77765e30a953",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
