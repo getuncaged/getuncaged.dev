@@ -1,0 +1,22 @@
+src/pages/index.astro
+  s_698f28f2ef1d91::t_d1c5185639015e 52-53
+src/layouts/Base.astro
+  s_698f28f2ef1d91::t_a713b433aa4e99 50
+  s_698f28f2ef1d91::t_da698bd6ab8a2f 57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "9a2bce728e40eb19aec26ff9338687c215dccb3f",
+  "prompts": {},
+  "sessions": {
+    "s_698f28f2ef1d91": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1a7a191c-1fbe-42ce-b808-77765e30a953",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
