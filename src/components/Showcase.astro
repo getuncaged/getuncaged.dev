@@ -1,0 +1,212 @@
+---
+/**
+ * Stage — a look inside the real app. Faithful screenshots of Uncaged running
+ * the "Uncaged Midnight" theme (matched to this site's palette). Alternating
+ * rows: one claim, one frame. Product depictions are the real thing, on-palette.
+ */
+const shots = [
+  {
+    n: '01',
+    label: 'the terminal',
+    title: 'The same fast terminal. Minus the cloud.',
+    body:
+      'Blocks, git-aware prompts, GPU-fast rendering — the full agentic terminal you already know, running entirely on your machine. Pictured: Uncaged’s own release history, in the Uncaged Midnight theme.',
+    img: '/shots/terminal.png',
+    alt: 'Uncaged terminal showing a colourful git-log graph of the Uncaged repository, in the Uncaged Midnight theme.',
+  },
+  {
+    n: '02',
+    label: 'your models',
+    title: 'Bring your own model. No account, ever.',
+    body:
+      'Point Uncaged at a local runtime (Ollama, LM Studio), the CLI plan you already pay for (Claude, Gemini, Codex), or any API key. Nothing is relayed through our cloud — your keys never leave the machine.',
+    img: '/shots/ai-models.png',
+    alt: 'Uncaged Settings — AI Models. Local models connected (LM Studio, Claude Code, Ollama) with the note “Nothing goes to Uncaged; your keys stay on this machine.”',
+  },
+  {
+    n: '03',
+    label: 'agentic',
+    title: 'An agent that writes code, right in your terminal.',
+    body:
+      'Ask for a change and the agent proposes it as a reviewable diff — accept, refine, or edit. Powered by the model you chose, running on your own hardware. The same agentic terminal as Warp, with the cloud cut out.',
+    img: '/shots/agent.png',
+    alt: 'Uncaged agent proposing a new Rust ring-buffer file as a reviewable diff, with Accept / Refine / Edit controls.',
+  },
+  {
+    n: '04',
+    label: 'make it yours',
+    title: 'A terminal that looks the way you want.',
+    body:
+      'A built-in theme studio, live window opacity and blur, and a one-click theme gallery. Shown here in “Uncaged Midnight” — the same cold-blue-and-ember palette as this page.',
+    img: '/shots/appearance.png',
+    alt: 'Uncaged Settings — Appearance. The Uncaged Midnight theme is active, with window opacity and blur controls.',
+  },
+];
+---
+
+<section class="showcase" id="screenshots">
+  <div class="container">
+    <div class="sc-head">
+      <p class="eyebrow sc-eyebrow">see it in action</p>
+      <h2 class="section-h">A look inside Uncaged</h2>
+      <p class="section-sub">
+        Real screenshots, no mockups — the app running the <span class="hi">Uncaged Midnight</span> theme.
+      </p>
+    </div>
+
+    <div class="sc-rows">
+      {
+        shots.map((s) => (
+          <article class="shot-row">
+            <div class="shot-copy">
+              <p class="shot-label">
+                <span class="shot-n">{s.n}</span>
+                {s.label}
+              </p>
+              <h3 class="shot-title">{s.title}</h3>
+              <p class="shot-body">{s.body}</p>
+            </div>
+            <div class="shot-frame">
+              <img
+                src={s.img}
+                alt={s.alt}
+                width="1578"
+                height="1013"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .showcase {
+    position: relative;
+    overflow: clip;
+  }
+
+  .sc-head {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 88px;
+  }
+
+  .sc-eyebrow {
+    justify-content: center;
+  }
+
+  .sc-head .section-h {
+    max-width: none;
+  }
+
+  .sc-head .section-sub {
+    text-align: center;
+  }
+
+  .hi {
+    color: var(--ink);
+  }
+
+  .sc-rows {
+    display: grid;
+    gap: 112px;
+  }
+
+  .shot-row {
+    display: grid;
+    grid-template-columns: minmax(0, 32fr) minmax(0, 44fr);
+    align-items: center;
+    gap: 64px;
+  }
+
+  /* Alternate: even rows put the frame on the left — and keep it in the WIDE
+     column (swap the track widths too, or the frame shrinks). */
+  .shot-row:nth-child(even) {
+    grid-template-columns: minmax(0, 44fr) minmax(0, 32fr);
+  }
+
+  .shot-row:nth-child(even) .shot-copy {
+    order: 2;
+  }
+
+  .shot-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    color: var(--ash);
+    margin-bottom: 18px;
+  }
+
+  .shot-n {
+    font-weight: 700;
+    color: var(--ember);
+  }
+
+  .shot-title {
+    font-size: clamp(24px, 2.6vw, 32px);
+    font-weight: 700;
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 18ch;
+  }
+
+  .shot-body {
+    margin-top: 18px;
+    color: var(--ash);
+    font-size: 16.5px;
+    line-height: 1.62;
+    max-width: 46ch;
+  }
+
+  /* The window frame — a clean hairline card with a deep shadow. No glow. */
+  .shot-frame {
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    background: #10141c;
+    box-shadow: 0 32px 80px -28px rgba(0, 0, 0, 0.9);
+  }
+
+  .shot-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 900px) {
+    .sc-head {
+      margin-bottom: 56px;
+    }
+
+    .sc-rows {
+      gap: 72px;
+    }
+
+    .shot-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 28px;
+    }
+
+    /* Stack: copy always above its frame, regardless of row parity. */
+    .shot-row:nth-child(even) .shot-copy {
+      order: 0;
+    }
+
+    .shot-title,
+    .shot-body {
+      max-width: none;
+    }
+  }
+</style>
