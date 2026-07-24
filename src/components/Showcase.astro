@@ -70,7 +70,7 @@ const shots = [
               <img
                 src={s.img}
                 alt={s.alt}
-                width="1600"
+                width="1578"
                 height="1013"
                 loading="lazy"
                 decoding="async"
@@ -170,31 +170,16 @@ const shots = [
     max-width: 46ch;
   }
 
-  /* The window frame — a hairline card with a deep shadow and a low ember glow. */
+  /* The window frame — a clean hairline card with a deep shadow. No glow. */
   .shot-frame {
-    position: relative;
     border: 1px solid var(--bar);
     border-radius: var(--radius-l);
     overflow: hidden;
     background: #10141c;
-    box-shadow:
-      0 32px 80px -28px rgba(0, 0, 0, 0.9),
-      0 2px 0 0 rgba(230, 235, 245, 0.03) inset;
-  }
-
-  .shot-frame::before {
-    content: '';
-    position: absolute;
-    inset: -40% -20% auto;
-    height: 70%;
-    pointer-events: none;
-    background: radial-gradient(52% 100% at 70% 0%, rgba(255, 122, 24, 0.14), transparent 70%);
-    z-index: 0;
+    box-shadow: 0 32px 80px -28px rgba(0, 0, 0, 0.9);
   }
 
   .shot-frame img {
-    position: relative;
-    z-index: 1;
     display: block;
     width: 100%;
     height: auto;
