@@ -1,0 +1,20 @@
+src/components/Showcase.astro
+  s_6e5dc450e2113a::t_9993a61db583a1 33
+  s_6e5dc450e2113a::t_c001f57f194751 73-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "7e0f426f9eb4d9f857cc7db6f72b765eed706b52",
+  "prompts": {},
+  "sessions": {
+    "s_6e5dc450e2113a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "88173777-993a-4bc3-b1df-b6f62d73fe24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
