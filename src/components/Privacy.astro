@@ -6,11 +6,13 @@ import { AUDIT, SITE } from '../data/site';
   <div class="container">
     <div class="sec-head">
       <p class="eyebrow">01 · no cloud</p>
-      <h2 class="section-h">Zero telemetry. One outbound call.</h2>
+      <h2 class="section-h">Zero telemetry. Never phones home.</h2>
       <p class="section-sub">
-        The only network request Uncaged ever makes is the one to your model endpoint. Accounts,
-        telemetry, crash reporting, cloud sync — none of it exists in this build. The source is
-        public, so you can verify that instead of trusting it.
+        The only request Uncaged makes on its own initiative is to the model endpoint you chose.
+        Accounts, telemetry, crash reporting and cloud sync are gone from this build. Anything else
+        that touches the network is something you asked for — installing a language server,
+        browsing the theme gallery — never a background call about you. The source is public, so
+        you can check that rather than trust it.
       </p>
     </div>
 
@@ -28,7 +30,7 @@ import { AUDIT, SITE } from '../data/site';
             </ul>
           </div>
           <div class="wire-arrow" aria-hidden="true">
-            <span class="wire-label">the only outbound call</span>
+            <span class="wire-label">the only call it starts</span>
             <span class="wire-line"><i class="wire-pulse"></i></span>
           </div>
           <div class="wire-endpoint">the endpoint <br />you chose</div>

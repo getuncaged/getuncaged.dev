@@ -113,8 +113,8 @@ export const DOWNLOADS = {
 
 export const AUDIT = [
   { surface: 'Account & login', state: 'none — the app has no concept of one' },
-  { surface: 'Telemetry & analytics', state: 'off, enforced in code' },
-  { surface: 'Crash reporting', state: 'not compiled into the build' },
+  { surface: 'Telemetry & analytics', state: 'no destination and no write key — nothing to send to' },
+  { surface: 'Crash reporting', state: 'not compiled into the build — sentry never enters the dependency graph' },
   { surface: 'Cloud sync & conversation storage', state: 'none — history stays in ~/.uncaged/' },
   { surface: 'Update checks', state: 'none — updates are manual, from GitHub Releases' },
 ];
@@ -126,7 +126,7 @@ export const FAQ = [
   },
   {
     q: 'Does my data go anywhere?',
-    a: 'Not to us — there is no "us" server-side. The only outbound traffic is to the model endpoint you configure yourself. No telemetry, no analytics, no crash reporting, no cloud sync. It’s enforced in code, and the code is public.',
+    a: 'Not to us — there is no "us" server-side. Uncaged never phones home: the only request it makes on its own initiative is to the model endpoint you configure. No telemetry, no analytics, no crash reporting, no cloud sync. Other traffic only happens when you ask for it — installing a language server pulls from nodejs.org and npm, and the theme gallery reads from GitHub. It’s enforced in code, and the code is public.',
   },
   {
     q: 'What does it cost?',
