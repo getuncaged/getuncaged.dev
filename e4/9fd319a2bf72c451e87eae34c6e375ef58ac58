@@ -1,0 +1,36 @@
+src/lib/downloads.ts
+  s_6e5dc450e2113a::t_71f7a320739584 1-112
+src/data/site.ts
+  s_6e5dc450e2113a::t_a66b43b2025b50 137
+  s_6e5dc450e2113a::t_9b6ab5875785f7 22
+  s_6e5dc450e2113a::t_bfaa96a7908a5e 7-8
+  s_6e5dc450e2113a::t_9aa0f48536444e 55-58
+  s_6e5dc450e2113a::t_59c6560c3a9079 65,67-68,71,78,81-90,97,103,106,109
+src/pages/dl/[slug].ts
+  s_6e5dc450e2113a::t_da8fdd9f59c3a4 40-42
+  s_6e5dc450e2113a::t_c3dcf825c9e0b7 1-39,43-49
+astro.config.mjs
+  s_6e5dc450e2113a::t_11d1f30b901f21 4,8-13,16-17
+package-lock.json
+  s_6e5dc450e2113a::t_9da9673fc83c28 12,100-612,1581-1649,1656-1676,1683-1692,2191-2277,2290-2324,2559-2564,2584-2589,2596-2604,2633-2641,2721-2729,2766-2783,2809-2817,2837-2850,3128-3133,3232-3245,3263-3268,3299-3314,3347-3373,3590-3602,3691-3711,3734-3740,4593-4628,4684-4703,4710-4720,4727-4741,4840-4845,4882-4925,5010-5019,5205-5213,5385-5405,5422-5433,5513-5554,5584-5605,5631-5646,5678-5683,6031-6040,6643-6673,6715-6788,6795-6803
+package.json
+  s_6e5dc450e2113a::t_fca2f4097aa299 14
+src/components/Downloads.astro
+  s_6e5dc450e2113a::t_27f7056ef6b02a 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "e49fd319a2bf72c451e87eae34c6e375ef58ac58",
+  "prompts": {},
+  "sessions": {
+    "s_6e5dc450e2113a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "88173777-993a-4bc3-b1df-b6f62d73fe24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
