@@ -1,0 +1,25 @@
+src/data/site.ts
+  s_6e5dc450e2113a::t_da956d1f9ed2eb 129
+  s_6e5dc450e2113a::t_996fdfba63b7c1 116-117
+src/components/Privacy.astro
+  s_6e5dc450e2113a::t_e68ba68ec7d0e8 33
+  s_6e5dc450e2113a::t_b25ccef959d395 9,11-15
+src/pages/llms-full.txt.ts
+  s_6e5dc450e2113a::t_26d1e29e6dc38e 36,38-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "89fa9e58b44384f022400d03cb9f33fcf3430443",
+  "prompts": {},
+  "sessions": {
+    "s_6e5dc450e2113a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "88173777-993a-4bc3-b1df-b6f62d73fe24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
