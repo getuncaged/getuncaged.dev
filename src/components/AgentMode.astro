@@ -1,0 +1,110 @@
+---
+/**
+ * 01 · agent mode — the one beat that has to be a real screenshot.
+ *
+ * Everything else on this page is an argument (no cloud, any model, forkable)
+ * and arguments are better as design elements. This is the product *doing*
+ * something: the agent proposing a change as a reviewable diff. No mockup can
+ * carry that, so it gets the photograph.
+ */
+---
+
+<section id="agent">
+  <div class="container">
+    <div class="sec-head">
+      <p class="eyebrow">01 · agent mode</p>
+      <h2 class="section-h">An agent that writes code, in your terminal.</h2>
+      <p class="section-sub">
+        Ask for a change and it comes back as a diff you review — accept, refine, or edit. Run by
+        the model you chose, on your own hardware. The same Agent Mode as Warp, without the account
+        or the relay.
+      </p>
+    </div>
+
+    <figure class="agent-shot">
+      <img
+        src="/shots/agent.png"
+        alt="Uncaged's agent proposing a new Rust file as a reviewable diff, with Accept, Refine and Edit controls"
+        width="1600"
+        height="1040"
+        loading="lazy"
+        decoding="async"
+      />
+    </figure>
+
+    <ul class="agent-notes">
+      <li><b>Reviewable, not automatic.</b> Nothing lands until you accept it.</li>
+      <li><b>Tools run locally.</b> Your shell, your files, your MCP servers.</li>
+      <li><b>Any backend.</b> A local model, an API key, or a CLI agent you already pay for.</li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .sec-head {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 56px;
+  }
+
+  .sec-head .eyebrow {
+    justify-content: center;
+  }
+
+  .sec-head .section-h {
+    max-width: 20ch;
+  }
+
+  .sec-head .section-sub {
+    text-align: center;
+  }
+
+  .agent-shot {
+    margin: 0 auto;
+    width: min(940px, 100%);
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    background: #10141c;
+    box-shadow: 0 32px 80px -28px rgba(0, 0, 0, 0.9);
+  }
+
+  .agent-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .agent-notes {
+    list-style: none;
+    margin: 40px auto 0;
+    padding: 0;
+    width: min(940px, 100%);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+
+  .agent-notes li {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ash);
+  }
+
+  .agent-notes b {
+    display: block;
+    color: var(--ink);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 860px) {
+    .agent-notes {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+      margin-top: 32px;
+    }
+  }
+</style>

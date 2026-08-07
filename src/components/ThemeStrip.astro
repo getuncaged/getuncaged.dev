@@ -1,0 +1,141 @@
+---
+/**
+ * Themes — a design element, not a screenshot.
+ *
+ * This used to be a photograph of the Appearance settings form, which showed a
+ * form rather than the thing the form produces. Swatches say it in a fifth of
+ * the space: here are the palettes, they are real, there is a gallery.
+ *
+ * Every colour below is copied from the published theme YAML in
+ * getuncaged/uncaged-themes (themes/system/*.yaml) — the same files the app
+ * installs. If a theme's palette changes there, change it here.
+ */
+const themes = [
+  { name: 'Uncaged Midnight', bg: '#12151d', bg2: '#0b0d12', fg: '#e8ebf2', accent: '#ff7a18' },
+  { name: 'Uncaged', bg: '#15110c', bg2: '#0c0a08', fg: '#e9e1d4', accent: '#ff7a18' },
+  { name: 'Solarized Dark', bg: '#002b36', bg2: '#002b36', fg: '#f8f8f2', accent: '#cb4b16' },
+  { name: 'Dark', bg: '#000000', bg2: '#000000', fg: '#ffffff', accent: '#19aad8' },
+  { name: 'Light', bg: '#ffffff', bg2: '#ffffff', fg: '#111111', accent: '#00c2ff' },
+];
+---
+
+<section class="themes" aria-labelledby="themes-h">
+  <div class="container">
+    <div class="th-head">
+      <h2 id="themes-h" class="th-title">Make it yours.</h2>
+      <p class="th-sub">
+        A built-in theme studio with a colour wheel, live opacity and blur, and a one-click gallery
+        — themes install and share as plain YAML.
+      </p>
+    </div>
+
+    <ul class="th-row">
+      {
+        themes.map((t) => (
+          <li class="th-chip">
+            <span
+              class="th-swatch"
+              style={`background: linear-gradient(160deg, ${t.bg} 0%, ${t.bg2} 100%);`}
+              aria-hidden="true"
+            >
+              <i class="th-fg" style={`background:${t.fg}`}></i>
+              <i class="th-accent" style={`background:${t.accent}`}></i>
+            </span>
+            <span class="th-name">{t.name}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .themes {
+    padding-block: clamp(56px, 5vw, 80px);
+  }
+
+  .th-head {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .th-title {
+    font-size: clamp(22px, 2.2vw, 28px);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  .th-sub {
+    margin: 12px auto 0;
+    max-width: 56ch;
+    color: var(--ash);
+    font-size: 15.5px;
+  }
+
+  .th-row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .th-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px 8px 8px;
+    border: 1px solid var(--bar);
+    border-radius: 999px;
+    background: var(--panel);
+  }
+
+  /* A theme reduced to what actually distinguishes it: the background it
+     paints, the text colour on top, and its one accent. */
+  .th-swatch {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(230, 235, 245, 0.12);
+    flex-shrink: 0;
+  }
+
+  .th-fg,
+  .th-accent {
+    position: absolute;
+    border-radius: 50%;
+    display: block;
+  }
+
+  /* Offset on a diagonal, not side by side — level dots read as a face. */
+  .th-fg {
+    width: 7px;
+    height: 7px;
+    left: 7px;
+    bottom: 7px;
+  }
+
+  .th-accent {
+    width: 11px;
+    height: 11px;
+    right: 6px;
+    top: 6px;
+  }
+
+  .th-name {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ash);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 560px) {
+    .th-name {
+      font-size: 11.5px;
+    }
+  }
+</style>

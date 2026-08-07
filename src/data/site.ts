@@ -4,6 +4,8 @@
  * they go live the moment a release with that asset name is published.
  */
 
+import { dl } from '../lib/downloads';
+
 export const SITE = {
   name: 'Uncaged',
   url: 'https://getuncaged.dev',
@@ -17,7 +19,7 @@ export const SITE = {
   // The full pitch — JSON-LD, llms.txt, anywhere length isn't capped.
   descriptionLong:
     'Uncaged is a fork of the open-source Warp terminal that removes the cloud. The full agentic experience — blocks, workflows, keymaps — running entirely on your machine. No account, no login, no relay. Bring any model: local, API key, or a CLI agent. Your keys never leave your device.',
-  version: '0.2.4',
+  version: '0.2.9',
   license: 'AGPL-3.0',
   github: 'https://github.com/getuncaged/uncaged',
   githubOrg: 'https://github.com/getuncaged',
@@ -50,64 +52,69 @@ export const SITE = {
  * (the Apple Silicon .dmg finishes ~an hour after each release cut) — it's
  * shown de-emphasised rather than as a working download.
  */
-const asset = (name: string) => `${SITE.latestBase}/${name}`;
+// Download hrefs now go through the first-party `/dl/<slug>` counter route
+// (see ../lib/downloads.ts), which records the click and then redirects to the
+// GitHub asset. `SITE.latestBase` is still the canonical asset base used by
+// structured data and docs.
 
 export const DOWNLOADS = {
   macos: {
     primary: {
       label: 'Download .dmg',
       arch: 'Apple Silicon',
-      href: asset('Uncaged-macos-aarch64.dmg'),
+      href: dl('macos-arm64'),
     },
-    others: [
-      { label: 'Intel .dmg', arch: 'x86_64', href: asset('Uncaged-macos-x86_64.dmg') },
-    ],
-    // Homebrew tap isn't published yet — surfaced as "coming", not runnable.
+    others: [{ label: 'Intel .dmg', arch: 'x86_64', href: dl('macos-x64') }],
+    // The tap is live (getuncaged/homebrew-tap) and re-synced on every release.
     brew: {
       cmd: 'brew install --cask getuncaged/tap/uncaged',
-      status: 'coming' as const,
+      status: 'live' as const,
     },
   },
   linux: {
     primary: {
       label: 'Download .tar.gz',
       arch: 'x86_64',
-      href: asset('Uncaged-linux-x86_64.tar.gz'),
+      href: dl('linux-x64-tar'),
     },
-    // The full x86_64 package set, all live in the v0.2.4 release.
     others: [
-      { label: '.deb', arch: 'Debian · Ubuntu', href: asset('Uncaged-linux-x86_64.deb') },
-      { label: '.rpm', arch: 'Fedora · RHEL · SUSE', href: asset('Uncaged-linux-x86_64.rpm') },
-      { label: 'AppImage', arch: 'any distro', href: asset('Uncaged-linux-x86_64.AppImage') },
+      { label: '.deb', arch: 'Debian · Ubuntu', href: dl('linux-x64-deb') },
+      { label: '.rpm', arch: 'Fedora · RHEL · SUSE', href: dl('linux-x64-rpm') },
+      { label: 'AppImage', arch: 'any distro', href: dl('linux-x64-appimage') },
     ],
-    // arm64 Linux is best-effort and not published yet.
-    note: 'arm64 Linux builds are on the way.',
+    // arm64 Linux now builds natively in CI and ships the same four formats.
+    arm64: [
+      { label: '.deb', arch: 'Debian · Ubuntu', href: dl('linux-arm64-deb') },
+      { label: '.rpm', arch: 'Fedora · RHEL · SUSE', href: dl('linux-arm64-rpm') },
+      { label: 'AppImage', arch: 'any distro', href: dl('linux-arm64-appimage') },
+      { label: '.tar.gz', arch: 'aarch64', href: dl('linux-arm64-tar') },
+    ],
   },
   windows: {
     primary: {
       label: 'Download installer',
       arch: 'x64 · Windows 11 / 10',
-      href: asset('Uncaged-windows-x86_64-setup.exe'),
+      href: dl('windows-x64'),
     },
     others: [
       {
         label: 'ARM64 installer',
         arch: 'Windows 11 / 10',
-        href: asset('Uncaged-windows-aarch64-setup.exe'),
+        href: dl('windows-arm64'),
       },
     ],
-    // winget submission is pending upstream — surfaced as "coming".
+    // Published in microsoft/winget-pkgs.
     winget: {
       cmd: 'winget install Uncaged.Uncaged',
-      status: 'coming' as const,
+      status: 'live' as const,
     },
   },
 };
 
 export const AUDIT = [
   { surface: 'Account & login', state: 'none — the app has no concept of one' },
-  { surface: 'Telemetry & analytics', state: 'off, enforced in code' },
-  { surface: 'Crash reporting', state: 'not compiled into the build' },
+  { surface: 'Telemetry & analytics', state: 'no destination and no write key — nothing to send to' },
+  { surface: 'Crash reporting', state: 'not compiled into the build — sentry never enters the dependency graph' },
   { surface: 'Cloud sync & conversation storage', state: 'none — history stays in ~/.uncaged/' },
   { surface: 'Update checks', state: 'none — updates are manual, from GitHub Releases' },
 ];
@@ -119,7 +126,7 @@ export const FAQ = [
   },
   {
     q: 'Does my data go anywhere?',
-    a: 'Not to us — there is no "us" server-side. The only outbound traffic is to the model endpoint you configure yourself. No telemetry, no analytics, no crash reporting, no cloud sync. It’s enforced in code, and the code is public.',
+    a: 'Not to us — there is no "us" server-side. Uncaged never phones home: the only request it makes on its own initiative is to the model endpoint you configure. No telemetry, no analytics, no crash reporting, no cloud sync. Other traffic only happens when you ask for it — installing a language server pulls from nodejs.org and npm, and the theme gallery reads from GitHub. It’s enforced in code, and the code is public.',
   },
   {
     q: 'What does it cost?',
@@ -127,7 +134,7 @@ export const FAQ = [
   },
   {
     q: 'Which platforms are supported?',
-    a: 'macOS (Apple Silicon and Intel, .dmg), Linux x86_64 (.deb, .rpm, AppImage and .tar.gz) and Windows (x64 and ARM64 installers) — all from GitHub Releases. Homebrew, winget and arm64 Linux builds are on the way.',
+    a: 'macOS (Apple Silicon and Intel, .dmg), Linux x86_64 and arm64 (.deb, .rpm, AppImage and .tar.gz) and Windows (x64 and ARM64 installers) — all from GitHub Releases. You can also install with Homebrew (brew install --cask getuncaged/tap/uncaged) or winget (winget install Uncaged.Uncaged).',
   },
   {
     q: 'Which models can I connect?',

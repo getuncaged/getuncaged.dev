@@ -33,10 +33,13 @@ and a swappable brand layer (the whole identity in three files).
 Kept from Warp: blocks, agent mode, code review, tools panel, workflows,
 keymaps, IDE-grade editing, GPU-fast rendering — synced with upstream Warp.
 
-## Privacy: zero telemetry, one outbound call
+## Privacy: zero telemetry, never phones home
 
-The only network request Uncaged ever makes is the one to the model endpoint
-the user configures. The source is public, so this is verifiable:
+The only request Uncaged makes on its own initiative is to the model endpoint
+the user configures. Other network traffic happens only when the user asks for
+it — installing a language server fetches from nodejs.org and the npm registry,
+and the theme gallery reads from GitHub. There is no background call about the
+user. The source is public, so this is verifiable:
 
 ${AUDIT.map((row) => `- ${row.surface}: ${row.state}`).join('\n')}
 
