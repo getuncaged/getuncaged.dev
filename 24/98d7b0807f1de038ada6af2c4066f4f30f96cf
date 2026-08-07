@@ -1,0 +1,37 @@
+src/components/ThemeStrip.astro
+  s_6e5dc450e2113a::t_ec0ee9f9007764 114,117-119,123-126
+  s_6e5dc450e2113a::t_4e364fb1a55fe1 3-11,13-19,22-29,32-50,52-54,57-59,62-66,69-73,76-83,86-87,89-90,93,96-104,107-110,115,122,129-130,132-133,136-137
+src/components/AgentMode.astro
+  s_6e5dc450e2113a::t_5f0d4a112edaa1 1-110
+src/components/Hero.astro
+  s_6e5dc450e2113a::t_06512d4139f797 91-107
+  s_6e5dc450e2113a::t_7b41848bb32f73 30-36,38-47
+src/components/Downloads.astro
+  s_6e5dc450e2113a::t_a4d19b9249e7ae 54
+src/components/Faq.astro
+  s_6e5dc450e2113a::t_ed24f22de64d58 8
+src/components/Models.astro
+  s_6e5dc450e2113a::t_089b50989f4253 45
+src/components/OpenSource.astro
+  s_6e5dc450e2113a::t_97c10262d6424f 24
+src/components/Privacy.astro
+  s_6e5dc450e2113a::t_240a40f78b364c 8
+src/pages/index.astro
+  s_6e5dc450e2113a::t_07c9373f956288 7-8,89,93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "2498d7b0807f1de038ada6af2c4066f4f30f96cf",
+  "prompts": {},
+  "sessions": {
+    "s_6e5dc450e2113a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "88173777-993a-4bc3-b1df-b6f62d73fe24",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Anton Arnaudov <anton.arnaudov.me@gmail.com>"
+    }
+  }
+}
