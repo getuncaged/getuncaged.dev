@@ -186,7 +186,7 @@ const code = (s: string) =>
           }
         </div>
         <p class="in-meta" aria-hidden="true">
-          <span>v{SITE.version}</span><span>15 assets</span><span>github releases</span>
+          <span>v{SITE.version}</span><span>15 assets</span><span>github releases</span><span class="in-count" data-dl-total hidden></span>
         </p>
       </div>
 
@@ -453,6 +453,12 @@ const code = (s: string) =>
     text-transform: uppercase;
     color: var(--ash);
     white-space: nowrap;
+  }
+  .in-meta [hidden] {
+    display: none;
+  }
+  .in-count {
+    color: var(--ink);
   }
   .in-meta span + span::before {
     content: '·';
@@ -793,6 +799,20 @@ const code = (s: string) =>
 </style>
 
 <script>
+  // Total downloads, from GitHub's release counters via /api/downloads.json (cached at the edge).
+  // Shown only when it loads; never a placeholder 0.
+  const dlTotal = document.querySelector<HTMLElement>('[data-dl-total]');
+  if (dlTotal) {
+    fetch('/api/downloads.json')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { total?: number | null } | null) => {
+        if (!d || typeof d.total !== 'number' || d.total <= 0) return;
+        dlTotal.textContent = `${d.total.toLocaleString('en-US')} downloads`;
+        dlTotal.hidden = false;
+      })
+      .catch(() => {});
+  }
+
   const root = document.querySelector<HTMLElement>('[data-inst]');
   if (root) {
     const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));

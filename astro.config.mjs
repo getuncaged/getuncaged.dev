@@ -6,9 +6,9 @@ import vercel from '@astrojs/vercel';
 export default defineConfig({
   site: 'https://getuncaged.dev',
   // Everything is prerendered to static HTML by default — the homepage keeps
-  // shipping as a plain file with no JS. The adapter exists only so the single
-  // `/dl/<slug>` counting route (which opts out via `prerender = false`) can
-  // run server-side. See src/lib/downloads.ts for why that route exists.
+  // shipping as a plain file. The adapter exists only for two small routes that
+  // opt out via `prerender = false`: the `/dl/<slug>` download redirect and
+  // `/api/downloads.json` (the GitHub download count). See src/lib/downloads.ts.
   output: 'static',
   adapter: vercel(),
   integrations: [

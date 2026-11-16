@@ -1,16 +1,12 @@
 import type { APIRoute } from 'astro';
-import { assetUrl, recordDownload, ASSETS } from '../../lib/downloads';
+import { assetUrl, ASSETS } from '../../lib/downloads';
 
 /**
- * `/dl/<slug>` — count a download, then hand the visitor to GitHub.
+ * `/dl/<slug>` — hand the visitor to the GitHub release asset.
  *
- * This is the only server-rendered route on the site; everything else stays
- * static. It exists so we can report *real* downloads started by a browser
- * from getuncaged.dev, instead of GitHub's asset counter (which is dominated by
- * package-manager CI and crawlers walking every file in every release).
- *
- * We store one integer per asset and nothing else — no IP, no user-agent, no
- * cookie, no timestamp. Nothing here can identify a visitor.
+ * A stable first-party link for every download button. Nothing is recorded:
+ * the download count comes from GitHub's own asset counters (see
+ * src/lib/downloads.ts and /api/downloads.json).
  */
 export const prerender = false;
 
@@ -29,18 +25,12 @@ export const GET: APIRoute = async ({ params }) => {
     });
   }
 
-  // Best-effort: a metrics failure must never cost someone their download.
-  await recordDownload(slug);
-
   return new Response(null, {
     status: 302,
     headers: {
       Location: target,
-      // Never cache the hop, or intermediaries would swallow the count.
-      // The site-wide Referrer-Policy (strict-origin-when-cross-origin) still
-      // applies, so GitHub sees getuncaged.dev as the referrer — which lets
-      // GitHub's own traffic stats corroborate this counter.
-      'Cache-Control': 'no-store, max-age=0',
+      // The hop always points at /releases/latest, so the edge can keep it.
+      'Cache-Control': 'public, max-age=0, s-maxage=3600',
     },
   });
 };
