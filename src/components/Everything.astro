@@ -1,0 +1,765 @@
+---
+/**
+ * 05 · everything else — the rest of the terminal, five tiles and a line of extras.
+ * Every label is the app's own string (app repo at v0.3.3). Themes have their own section.
+ * Mini UIs, with the app's own icons (AppIcon):
+ *   block header per 0.3.5: `<path> git:(<branch>) ❯ <command>` on one row, duration at the end
+ *   (terminal/model/block.rs inline_prompt_label), stacked when it does not fit (global [data-blkh]);
+ *   failed block = red at 10% + red left stripe (terminal/block_list_element.rs:2425-2440);
+ *   its menu: Copy ⌘C, Copy command ⇧⌘C, separator, Ask agent to fix this (terminal/view.rs:16355-16395,
+ *   util/bindings.rs:356). Code review header/file rows: code_review/code_review_header/header_revamp.rs,
+ *   code_review_view.rs:1150-1185, 4405-5180, diff_selector.rs:158-230. File tree: shots-in/explorer.png.
+ *   Drive "+" menu: drive/index.rs:3730-3830. Gist archive: gist_sync.rs:30, settings_backup.rs:16-26.
+ *   Code search (uncaged-0.3): Settings → Indexing and projects as captured (shots-in/v2/indexing.png;
+ *   settings_view/code_page.rs), the local index (crates/ai/src/index/lexical.rs, local_store.rs) and
+ *   the MCP server CLI agents get it through (crates/uncaged_engine/src/code_search.rs: server
+ *   "uncaged", tool "search_codebase", so Claude Code calls it mcp__uncaged__search_codebase;
+ *   providers/acp.rs hands it to every session whose agent can reach HTTP MCP servers).
+ */
+import AppIcon from './AppIcon.astro';
+---
+
+<section class="section ev" id="everything" aria-labelledby="everything-h">
+  <div class="container">
+    <span class="sec-tag"><b>05</b> everything else</span>
+
+    <header class="ev-head">
+      <div>
+        <p class="eyebrow">Still a full terminal</p>
+        <h2 class="h2" id="everything-h">Everything else <span class="dim">you'd expect.</span></h2>
+      </div>
+    </header>
+
+    <div class="bento">
+      <!-- 01 · Blocks -->
+      <article class="tile s6 ct">
+        <header class="t-h"><h3 class="t-name">Blocks</h3></header>
+        <p class="t-txt">Each command and its output are one block. The prompt sits in front of the command, like a classic shell, with the duration at the end for anything that took a second or more. A failed block's menu offers <q>Ask agent to fix this</q>.</p>
+        <p class="t-short">One block per command and its output.</p>
+        <div class="viz v-blocks" role="img" aria-label="Two terminal blocks, each with the prompt in front of its command: cargo test passing in 3.2 seconds, and cargo clippy failing, tinted red, with its menu open: Copy, Copy command, and Ask agent to fix this.">
+          <div class="vb">
+            <div class="vb-h" data-blkh><span class="vb-meta" data-p>~/code/uncaged git:(main)<span class="bh-sep"> ❯</span><span class="bh-dur"> (3.214s)</span></span><span class="vb-cmd" data-c><b class="cn">cargo</b> test -p uncaged_engine</span><span class="vb-d" data-d>3.214s</span></div>
+            <div class="vb-out">test result: <span class="g">ok</span>. 30 passed; 0 failed; 0 ignored</div>
+          </div>
+          <div class="vb is-fail">
+            <div class="vb-h" data-blkh><span class="vb-meta" data-p>~/code/uncaged git:(main)<span class="bh-sep"> ❯</span><span class="bh-dur"> (6.802s)</span></span><span class="vb-cmd" data-c><b class="cn">cargo</b> clippy -- -D warnings</span><span class="vb-d" data-d>6.802s</span></div>
+            <div class="vb-out"><b class="r">error</b><b>:</b> could not compile `uncaged_core`</div>
+            <div class="vb-menu">
+              <span><i>Copy</i><kbd>⌘C</kbd></span>
+              <span><i>Copy command</i><kbd>⇧⌘C</kbd></span>
+              <hr />
+              <span class="is-hl"><i>Ask agent to fix this</i></span>
+            </div>
+          </div>
+        </div>
+      </article>
+      <!-- 04 · Code review -->
+      <article class="tile s6 cm">
+        <header class="t-h"><h3 class="t-name">Code review</h3></header>
+        <p class="t-txt"><q>Toggle code review</q> (<span class="keys" data-k-pc="Ctrl ⇧ +"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>+</kbd></span>) opens your working-tree diff beside the panes.</p>
+        <p class="t-short">Your working-tree diff, beside the panes.</p>
+        <!-- header (code_review_header/header_revamp.rs): diff selector left; Commit + its chevron,
+             the file-navigation toggle and the header menu right. File headers (code_review_view.rs
+             render_file_header): chevron, path, copy path, +N • -N; add as context, discard, open. -->
+        <div class="viz v-review" role="img" aria-label="The code review panel: Uncommitted changes, a Commit button, and two collapsed changed files, app/src/brand.rs with 4 lines added and 4 removed, and app/src/themes/default_themes.rs with 1 added and 1 removed.">
+          <div class="vr-head">
+            <span class="vr-sel"><AppIcon name="switch-horizontal-01" size={13} />Uncommitted changes</span>
+            <span class="vr-tools">
+              <span class="vr-commit"><span><AppIcon name="git-commit" size={13} />Commit</span><span><AppIcon name="chevron-down" size={11} /></span></span>
+              <span class="vr-ib"><AppIcon name="file_copy" size={13} /></span>
+              <span class="vr-ib"><AppIcon name="dots-vertical" size={13} /></span>
+            </span>
+          </div>
+          <div class="vr-file">
+            <span class="vr-l"><AppIcon name="chevron-right" size={12} /><span class="vr-path">app/src/brand.rs</span><AppIcon name="copy" size={12} /><span class="vr-st"><b>+4</b><i>•</i><s>-4</s></span></span>
+            <span class="vr-r"><AppIcon name="paperclip" size={12} /><AppIcon name="reverse-left" size={12} /><AppIcon name="link-external-02" size={12} /></span>
+          </div>
+          <div class="vr-file">
+            <span class="vr-l"><AppIcon name="chevron-right" size={12} /><span class="vr-path">app/src/themes/default_themes.rs</span><AppIcon name="copy" size={12} /><span class="vr-st"><b>+1</b><i>•</i><s>-1</s></span></span>
+            <span class="vr-r"><AppIcon name="paperclip" size={12} /><AppIcon name="reverse-left" size={12} /><AppIcon name="link-external-02" size={12} /></span>
+          </div>
+        </div>
+      </article>
+      <!-- 07 · Code editor -->
+      <article class="tile s6 cm">
+        <header class="t-h"><h3 class="t-name">Files and code</h3></header>
+        <p class="t-txt">A project tree in the left rail opens files in a code pane: file tabs, <q>Go to definition</q> and <q>Find references</q> over LSP, <q>Go to line</q>, Markdown preview, <span class="keys" data-k-pc="Ctrl S"><kbd>⌘</kbd><kbd>S</kbd></span>.</p>
+        <p class="t-short">Project tree and a code pane with LSP.</p>
+        <!-- the left panel as captured (shots-in/explorer.png): rail = Project explorer, Agent
+             conversations, Global search, Drive, SSH hosts, Skills, Config, close; then the tree -->
+        <div class="viz v-tree" aria-hidden="true">
+          <div class="vt-rail">
+            <span class="is-on"><AppIcon name="file_copy" size={14} /></span>
+            <span><AppIcon name="conversation" size={14} /></span>
+            <span><AppIcon name="search" size={14} /></span>
+            <span><AppIcon name="drive" size={14} /></span>
+            <span><AppIcon name="link-03" size={14} /></span>
+            <span><AppIcon name="book-open" size={14} /></span>
+            <span><AppIcon name="gear" size={14} /></span>
+            <span class="vt-x"><AppIcon name="x-close" size={14} /></span>
+          </div>
+          <div class="vt-row is-on"><AppIcon name="chevron-down" size={12} /><AppIcon name="folder" size={14} /><span>uncaged</span></div>
+          <div class="vt-row d1"><AppIcon name="chevron-right" size={12} /><AppIcon name="folder" size={14} /><span>.agents</span></div>
+          <div class="vt-row d1"><AppIcon name="chevron-right" size={12} /><AppIcon name="folder" size={14} /><span>.cargo</span></div>
+          <div class="vt-row d1"><AppIcon name="chevron-right" size={12} /><AppIcon name="folder" size={14} /><span>.claude</span></div>
+          <div class="vt-row d1"><AppIcon name="chevron-right" size={12} /><AppIcon name="folder" size={14} /><span>.config</span></div>
+          <div class="vt-row d1"><AppIcon name="chevron-right" size={12} /><AppIcon name="folder" size={14} /><span><em>.git</em></span></div>
+        </div>
+      </article>
+      <!-- 11 · Drive + config backup -->
+      <article class="tile s6 cm">
+        <header class="t-h"><h3 class="t-name">Workflows and Drive</h3></header>
+        <p class="t-txt">Saved, parameterised workflows, prompts, notebooks and environment variables, saved on your machine and never behind a login. <q>Sync to gist…</q> backs up your config to a secret gist through your own <code>gh</code> CLI. API keys are never included.</p>
+        <p class="t-short">Saved locally, never behind a login.</p>
+        <div class="viz v-drive" role="img" aria-label="The Drive create menu: Folder, Workflow, Prompt, Notebook, Environment variables, Import; next to it, what the gist backup holds: settings.toml, keybindings.yaml, themes, workflows, notebooks, launch configurations and snippets, with connections.json and engine.json left out.">
+          <ul class="vd-menu">
+            <li><AppIcon name="folder" size={13} />Folder</li>
+            <li><AppIcon name="workflow" size={13} />Workflow</li>
+            <li><AppIcon name="prompt" size={13} />Prompt</li>
+            <li><AppIcon name="notebook" size={13} />Notebook</li>
+            <li><AppIcon name="env-var-collection" size={13} />Environment variables</li>
+            <li><AppIcon name="import" size={13} />Import</li>
+          </ul>
+          <ul class="vd-tgz">
+            <li class="vd-h">uncaged-config-backup.tgz.base64</li>
+            <li>settings.toml</li><li>keybindings.yaml</li><li>themes/ workflows/ notebooks/</li><li>launch_configurations/ snippets/</li>
+            <li class="vd-x">connections.json engine.json</li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- 05 · Code search, on this machine -->
+      <article class="tile s12 cm t-wide">
+        <div class="t-col">
+          <header class="t-h"><h3 class="t-name">Code search, on your machine</h3></header>
+          <p class="t-txt">Uncaged indexes your repositories locally, the first time you open a terminal in one, and keeps up with your edits. Nothing is uploaded. Agent Mode searches it with <code>search_codebase</code>, and Claude Code, Gemini CLI and Codex get the same search as an MCP tool served on <code>127.0.0.1</code>, so they find the code before they read files.</p>
+          <p class="t-short">A local code index, shared with your CLI agents.</p>
+        </div>
+        <div class="viz v-search" role="img" aria-label="Settings, Indexing and projects: the folder /Users/you/code/uncaged, indexing Synced. Beside it, Claude Code calling mcp__uncaged__search_codebase on 127.0.0.1 with the query 'where does the gallery cache its catalogue', and the index answering with two files from the repository.">
+          <div class="vs-card">
+            <div class="vs-path">/Users/you/code/uncaged</div>
+            <div class="vs-k">Indexing</div>
+            <div class="vs-ok"><AppIcon name="check" size={12} />Synced</div>
+          </div>
+          <div class="vs-call">
+            <div class="vs-who">
+              <span class="vs-ag"><AppIcon name="claude" size={12} /><AppIcon name="gemini_cli" size={12} /><AppIcon name="openai" size={12} /></span>
+              <span class="vs-mcp">MCP · 127.0.0.1</span>
+            </div>
+            <div class="vs-tool"><b>mcp__uncaged__search_codebase</b>(<span class="vs-q">"where does the gallery cache its catalogue"</span>)</div>
+            <div class="vs-hit">app/src/themes/theme_gallery.rs</div>
+            <div class="vs-hit">app/src/themes/theme_explorer_body.rs</div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <p class="ev-also">
+      <span class="ea-h">also</span>
+      <span>Native Rust, drawn on the GPU. Not Electron</span>
+      <span>Idle at about 0.01% CPU and 150 MB</span>
+      <span>Grouped and pinned tabs</span>
+      <span>Opt-in updates, checked against GitHub's SHA-256</span>
+      <span>Vertical tabs</span>
+      <span>Command palette <span class="keys" data-k-pc="Ctrl ⇧ P"><kbd>⌘</kbd><kbd>P</kbd></span></span>
+      <span>SSH hosts and skills in the left rail</span>
+      <span>Vim keybindings, every shortcut rebindable</span>
+      <span>Restore windows, tabs and panes on startup</span>
+      <span>MCP servers</span>
+      <span>Import settings from iTerm and Alacritty</span>
+    </p>
+  </div>
+</section>
+
+<style>
+  .ev-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: clamp(40px, 5vw, 72px);
+  }
+  .ev-head .eyebrow {
+    margin-bottom: 22px;
+  }
+
+  /* ---------------- the grid: hairlines are the gaps ---------------- */
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    gap: 1px;
+    background: var(--rule-strong);
+    border: 1px solid var(--rule-strong);
+  }
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: clamp(18px, 2vw, 26px);
+    background: var(--void);
+    transition: background var(--fast);
+  }
+  .tile:hover {
+    background: #0a0c11;
+  }
+  .s6 {
+    grid-column: span 6;
+  }
+  .s12 {
+    grid-column: 1 / -1;
+  }
+  /* the wide tile: the words on the left, the depiction on the right */
+  .t-wide {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(18px, 3vw, 40px);
+    align-items: center;
+  }
+  .t-col {
+    display: grid;
+    gap: 14px;
+  }
+  .v-search {
+    margin-top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+  .vs-card,
+  .vs-call {
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--a-line);
+    border-radius: 8px;
+    background: var(--a-ctl);
+  }
+  .vs-path {
+    font: 600 12px/1.3 var(--mono);
+    color: var(--a-ink);
+    overflow-wrap: anywhere;
+  }
+  .vs-k {
+    margin-top: 12px;
+    font: 600 10px/1 var(--sans);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--a-faint);
+  }
+  .vs-ok {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font: 400 12px/1 var(--sans);
+    color: var(--a-green);
+  }
+  .vs-who {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .vs-ag {
+    display: inline-flex;
+    gap: 7px;
+    color: var(--a-ink);
+  }
+  .vs-mcp {
+    font: 600 10px/1 var(--mono);
+    letter-spacing: 0.08em;
+    color: var(--a-faint);
+  }
+  .vs-tool {
+    line-height: 1.5;
+    color: var(--a-dim);
+    overflow-wrap: anywhere;
+  }
+  .vs-tool b {
+    color: var(--a-ink);
+    font-weight: 600;
+  }
+  .vs-q {
+    color: var(--a-green);
+  }
+  .vs-hit {
+    margin-top: 4px;
+    padding-left: 10px;
+    border-left: 2px solid var(--a-line);
+    color: var(--a-ink);
+    overflow-wrap: anywhere;
+  }
+  .vs-hit:first-of-type {
+    margin-top: 8px;
+  }
+
+  .t-h {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .t-name {
+    font: 700 16px/1.2 var(--mono);
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .t-txt {
+    font: 400 14.5px/1.55 var(--sans);
+    color: var(--ash);
+    text-wrap: pretty;
+  }
+  .t-txt q {
+    quotes: none;
+    font: 600 13px/1 var(--mono);
+    color: var(--ink);
+  }
+  .t-txt code {
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .t-txt kbd {
+    font-size: 11px;
+    margin-inline: 1px;
+  }
+  /* the phone version of a tile's sentence (see max-width: 640px) */
+  .t-short {
+    display: none;
+  }
+
+  /* micro-depictions sit at the foot of every tile */
+  .viz {
+    margin-top: auto;
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: #aab2c3;
+  }
+
+  /* app chrome greys, as measured in the v0.3.3 captures */
+  .viz {
+    --a-ink: #e8ebf1;
+    --a-dim: #919399;
+    --a-faint: #6a6c71;
+    --a-line: #2f3136;
+    --a-ctl: #191b21;
+    --a-green: #76d198;
+    font-variant-ligatures: none;
+  }
+
+  /* blocks */
+  .v-blocks {
+    display: grid;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    background: #0e1016;
+    overflow: hidden;
+  }
+  .vb {
+    position: relative;
+    padding: 9px 12px 10px 14px;
+  }
+  .vb + .vb {
+    border-top: 1px solid rgba(60, 67, 82, 0.4);
+  }
+  /* a failed block: the terminal red at 10% over the block, and a red stripe down its left edge */
+  .vb.is-fail {
+    background: rgba(240, 106, 120, 0.1);
+  }
+  .vb.is-fail::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #f06a78;
+  }
+  /* 0.3.5 one-line header (layout in global.css [data-blkh]) */
+  .vb-h {
+    margin-bottom: 4px;
+  }
+  .vb-meta {
+    color: var(--a-dim);
+  }
+  .vb-cmd {
+    color: var(--a-ink);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vb-d {
+    color: var(--a-dim);
+  }
+  .vb-cmd .cn {
+    color: var(--a-green);
+  }
+  .vb-out {
+    color: var(--a-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .g {
+    color: var(--a-green);
+  }
+  .r {
+    color: #f06a78;
+  }
+  /* the block's context menu: sans labels, shortcuts on the right */
+  /* opened from the failed (last) block, it rises over the block above so nothing clips */
+  .vb-menu {
+    position: absolute;
+    z-index: 1;
+    right: 12px;
+    bottom: 8px;
+    display: grid;
+    min-width: 196px;
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--a-line);
+    background: #16181d;
+    box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.9);
+    font: 400 12px/1.2 var(--sans);
+  }
+  .vb-menu span {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 5px 9px;
+    border-radius: 5px;
+    white-space: nowrap;
+    color: var(--a-ink);
+  }
+  .vb-menu i {
+    font-style: normal;
+  }
+  .vb-menu kbd {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    font: inherit;
+    color: var(--a-dim);
+  }
+  .vb-menu hr {
+    margin: 4px 2px;
+    border: 0;
+    border-top: 1px solid var(--a-line);
+  }
+  .vb-menu .is-hl {
+    background: rgba(232, 235, 242, 0.08);
+  }
+
+  /* review: sans, like the app's panel */
+  .v-review {
+    display: grid;
+    gap: 6px;
+    font: 400 12px/1.2 var(--sans);
+    color: var(--a-ink);
+  }
+  .vr-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+    min-width: 0;
+  }
+  .vr-sel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .vr-sel svg,
+  .vr-tools,
+  .vr-file svg {
+    flex: none;
+  }
+  .vr-tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  /* Commit + its chevron: one secondary button split in two */
+  .vr-commit {
+    display: inline-flex;
+    height: 22px;
+    border: 1px solid var(--a-line);
+    border-radius: 5px;
+    background: var(--a-ctl);
+    overflow: hidden;
+  }
+  .vr-commit > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 7px;
+  }
+  .vr-commit > span + span {
+    padding: 0 5px;
+    border-left: 1px solid var(--a-line);
+    color: var(--a-dim);
+  }
+  .vr-ib {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    color: var(--a-dim);
+  }
+  /* a collapsed file header: a bordered, rounded row */
+  .vr-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+    padding: 7px 10px 7px 8px;
+    border: 1px solid var(--a-line);
+    border-radius: 8px;
+    color: var(--a-dim);
+  }
+  .vr-l,
+  .vr-r {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+  }
+  .vr-r {
+    flex: none;
+    gap: 9px;
+  }
+  .vr-path {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    color: var(--a-ink);
+  }
+  .vr-st {
+    flex: none;
+    display: inline-flex;
+    gap: 4px;
+    margin-left: 1px;
+  }
+  .vr-st b {
+    font-weight: 400;
+    color: var(--a-green);
+  }
+  .vr-st i {
+    font-style: normal;
+    color: var(--a-dim);
+  }
+  .vr-st s {
+    text-decoration: none;
+    color: #f06a78;
+  }
+
+  /* the left panel's project explorer */
+  .v-tree {
+    display: grid;
+    gap: 1px;
+    padding: 6px;
+    border: 1px solid var(--a-line);
+    border-radius: 10px;
+    background: #0e1016;
+    font: 400 12.5px/1 var(--sans);
+    color: var(--a-dim);
+  }
+  .vt-rail {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 3px;
+  }
+  .vt-rail span {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    color: var(--a-dim);
+  }
+  .vt-rail .is-on {
+    background: rgba(232, 235, 242, 0.1);
+    color: var(--a-ink);
+  }
+  .vt-rail .vt-x {
+    margin-left: auto;
+  }
+  .vt-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 23px;
+    padding: 0 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .vt-row svg {
+    flex: none;
+  }
+  .vt-row.d1 {
+    padding-left: 24px;
+  }
+  .vt-row.is-on {
+    background: rgba(232, 235, 242, 0.12);
+    color: var(--a-ink);
+  }
+  .vt-row em {
+    font-style: italic;
+  }
+
+  /* drive */
+  .v-drive {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+  .v-drive ul {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    display: grid;
+    gap: 1px;
+    align-content: start;
+  }
+  .v-drive li {
+    padding: 3px 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* the Drive "+" menu, sans with each item's icon */
+  .vd-menu {
+    background: #16181d;
+    border-color: var(--a-line) !important;
+    font: 400 12px/1.2 var(--sans);
+    color: var(--a-ink);
+  }
+  .vd-menu li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 7px;
+  }
+  .vd-menu svg {
+    flex: none;
+    color: var(--a-dim);
+  }
+  .vd-tgz {
+    border-style: dashed !important;
+  }
+  .vd-h {
+    color: var(--gold);
+  }
+  .vd-x {
+    color: var(--t-red);
+    text-decoration: line-through;
+  }
+
+  /* also strip */
+  .ev-also {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 26px;
+    margin-top: 22px;
+    font: 500 13.5px/1.4 var(--mono);
+    color: var(--ash);
+  }
+  .ev-also .ea-h {
+    color: var(--ember);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-size: 12px;
+    align-self: center;
+  }
+  .ev-also kbd {
+    font-size: 11px;
+    margin-left: 2px;
+  }
+
+  @media (max-width: 1100px) {
+    .bento {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .s6 {
+      grid-column: span 6;
+    }
+    .t-wide {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    .bento {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .s6,
+    .s12 {
+      grid-column: auto;
+    }
+    .t-wide {
+      display: flex;
+    }
+    .t-col {
+      gap: 4px;
+    }
+    .v-drive {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .vb-menu {
+      position: static;
+      margin-top: 8px;
+      width: fit-content;
+    }
+    /* phones: only Blocks and Themes keep their depiction; the rest are a title and one line */
+    .tile.cm {
+      gap: 4px;
+      padding-block: 12px 13px;
+    }
+    .tile.cm .t-txt,
+    .tile.cm .viz,
+    .tile.cm .t-live,
+    .tile.ct .t-txt {
+      display: none;
+    }
+    .tile.cm .t-short,
+    .tile.ct .t-short {
+      display: block;
+      font: 400 14.5px/1.45 var(--sans);
+      color: var(--ash);
+      text-wrap: pretty;
+    }
+  }
+</style>
+
+<script>
+  // Platform key swaps, and mark the section live so its CSS loops only run while visible.
+  const section = document.getElementById('everything');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // shortcuts are written for macOS; elsewhere show the Linux/Windows binding (app/src/workspace/mod.rs, util/bindings.rs)
+  if (section && !/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
+    section.querySelectorAll<HTMLElement>('[data-k-pc]').forEach((k) => {
+      k.replaceChildren(
+        ...k.dataset.kPc!.split(' ').map((t) => Object.assign(document.createElement('kbd'), { textContent: t })),
+      );
+    });
+  }
+  if (section && !reduce) section.classList.add('is-live');
+
+</script>

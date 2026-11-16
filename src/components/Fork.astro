@@ -1,0 +1,1054 @@
+---
+/**
+ * 09 · fork it — the rebrand bench.
+ *
+ * Every line in the diff below is a real line at tag v0.3.5 (path:line noted in
+ * each hunk header). The visitor's name/accent rewrites the "+" side live, and a
+ * mini Settings → About page (whose description and source line come straight
+ * from brand.rs) re-renders with it. Fork-tile tints are sanctioned here: they
+ * depict other people's brands, so they appear only once picked: the HTML
+ * ships a complete "Driftwood / stock ember" frame (single accent at rest); the
+ * script only makes it editable.
+ *
+ * Honesty notes (v0.3.5): brand.rs and the default themes now live in the
+ * `uncaged_app_theme` crate. `brand::NAME` is read by exactly one dialog
+ * (workspace/view/prompt_suggestions_unavailable_modal.rs) and the `ember`
+ * palette by nothing — the display name is a literal in ~200 strings across the
+ * tree and the accent lives in the default theme. So the diff edits the files
+ * that actually drive each surface, and the copy says the name is a
+ * find-and-replace.
+ *
+ * App identity: `ChannelState::init()` in uncaged_core/src/channel/state.rs:41
+ * is only the pre-main default; the binary's `main` (app/src/bin/oss.rs:16)
+ * sets the real app id, and on macOS the bundle id in the embedded plist
+ * (oss.rs:51) overrides it. A packaged bundle also takes its id from
+ * script/macos/bundle:273 and app/Cargo.toml:816 ("a handful of app-identity
+ * files" in the lede; FORKING.md §4 lists them). The home config dir name is in
+ * uncaged_core/src/paths.rs twice: :40 (~/.uncaged) and :89 (macOS data_dir).
+ */
+import { SITE } from '../data/site';
+import AppIcon from './AppIcon.astro';
+
+const DEFAULT_NAME = 'Driftwood';
+const DEFAULT_SLUG = 'driftwood';
+const DEFAULT_HEX = 'FF7A18';
+const STOCK_HEX = 'FF7A18';
+const accentSame = DEFAULT_HEX === STOCK_HEX;
+
+const accents = [
+  { hex: 'FF7A18', label: 'stock ember' },
+  { hex: '6AA8FF', label: 'blue' },
+  { hex: '7BD88F', label: 'green' },
+  { hex: 'FF6AC1', label: 'pink' },
+  { hex: 'C8B8FF', label: 'violet' },
+];
+
+// the settings sidebar: four always-open, labelled groups (settings_view/mod.rs base_nav_items)
+const sidebar: [string, string[]][] = [
+  ['Agents', ['Models', 'Profiles', 'MCP servers', 'Knowledge', 'CLI agents']],
+  ['Code', ['Indexing and projects', 'Editor and code review']],
+  ['Look & feel', ['Appearance', 'Theme gallery', 'Theme creator', 'Interface']],
+  ['App', ['Features', 'Keyboard shortcuts', 'About']],
+];
+---
+
+<section class="section fork" id="fork" aria-labelledby="fork-h">
+  <div class="container">
+    <span class="sec-tag"><b>07</b> fork it</span>
+
+    <div class="fk-head">
+      <div>
+        <p class="eyebrow">built to be re-forked</p>
+        <h2 class="h2 fk-h" id="fork-h">
+          <span>Fork it.</span>
+          <span class="dim">Rename it.</span>
+          <span>Ship it<span class="ember">.</span></span>
+        </h2>
+      </div>
+      <div class="fk-lede">
+        <p class="lede">
+          Upstream services are cut off, accounts are gone, and the Warp and Oz marks are replaced. What makes it
+          <em>Uncaged</em> is a thin brand layer: <strong>one Rust file for links and About text, three SVGs for the
+          marks, one list for the model gallery</strong>, and a handful of app-identity files if you want your own bundle.
+        </p>
+        <p class="fk-small">
+          Try it on the bench: type a name, pick an accent, and watch the diff your fork would carry.
+        </p>
+      </div>
+    </div>
+
+    <div class="fk-bench" data-fork style={`--acc:#${DEFAULT_HEX}`}>
+      <span class="fk-corner fk-c1" aria-hidden="true">bench · brand layer</span>
+      <span class="fk-corner fk-c2" aria-hidden="true">tag v0.3.5</span>
+
+      <!-- ===== left: the controls + the window they drive ===== -->
+      <div class="fk-left">
+        <div class="fk-ctl">
+          <div class="fk-field">
+            <label class="fk-label" for="fk-name"><b>A</b> name</label>
+            <input
+              class="fk-input"
+              id="fk-name"
+              type="text"
+              value={DEFAULT_NAME}
+              maxlength="14"
+              autocomplete="off"
+              autocapitalize="words"
+              spellcheck="false"
+              data-fk-name
+            />
+          </div>
+          <div class="fk-field">
+            <span class="fk-label" id="fk-acc-l"><b>B</b> accent</span>
+            <div class="fk-swatches" role="group" aria-labelledby="fk-acc-l">
+              {
+                accents.map((a) => (
+                  <button
+                    type="button"
+                    class="fk-sw"
+                    style={`--sw:#${a.hex}`}
+                    aria-pressed={a.hex === DEFAULT_HEX ? 'true' : 'false'}
+                    aria-label={`Accent #${a.hex}, ${a.label}`}
+                    data-hex={a.hex}
+                  >
+                    <i aria-hidden="true"></i>
+                    <span>{a.hex === 'FF7A18' ? 'stock' : `#${a.hex}`}</span>
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings → About, as v0.3.5 lays it out (settings_view/about_page.rs:57-141): the
+             wordmark art (uncaged-logo-dark-title.svg: the cage mark, its caret in the accent, and the
+             lowercase mono wordmark), the version with a copy button, ABOUT_DESCRIPTION, ABOUT_SOURCE.
+             Chrome as captured (shots-in/v2/about.png): tab bar with the plain gear, then two outlined
+             panels: the sidebar (Search, four labelled groups, the selected page on a quiet raised fill,
+             the three footer buttons, settings_view/settings_file_footer.rs) and the page with its title. -->
+        <div
+          class="fk-win glass"
+          role="img"
+          aria-label={`Preview of the forked app's Settings, About page: the ${DEFAULT_NAME} wordmark, version v${SITE.version}, the line "${DEFAULT_NAME} — an open source fork of Warp", and "Source: github.com/you/${DEFAULT_SLUG} · AGPL-3.0".`}
+          data-fk-win
+        >
+          <div class="fw-top" aria-hidden="true">
+            <div class="glass-dots"><i></i><i></i><i></i></div>
+            <span class="fw-ic"><AppIcon name="layout-left" size={12} /></span>
+            <span class="fw-tab">~</span>
+            <span class="fw-tab is-on">Settings</span>
+            <span class="fw-ic"><AppIcon name="plus" size={12} /></span>
+            <span class="fw-ic fw-chev"><AppIcon name="chevron-down" size={9} /></span>
+            <span class="fw-right">
+              <span class="fw-ic"><AppIcon name="claude" size={11} /></span>
+              <span class="fw-ic"><AppIcon name="diff" size={11} /></span>
+              <span class="fw-ic"><AppIcon name="inbox-01" size={11} /></span>
+              <span class="fw-ic"><AppIcon name="gear" size={11} /></span>
+            </span>
+          </div>
+          <div class="fw-body" aria-hidden="true">
+            <div class="fw-side">
+              <div class="fw-search"><AppIcon name="search" size={11} />Search</div>
+              <ul>
+                {
+                  sidebar.map(([h, items]) => (
+                    <>
+                      <li class="fw-gl">{h}</li>
+                      {items.map((s) => (
+                        <li class={s === 'About' ? 'is-on' : undefined}>
+                          <span>{s}</span>
+                        </li>
+                      ))}
+                    </>
+                  ))
+                }
+              </ul>
+              <div class="fw-foot">
+                <span><AppIcon name="code-02" size={10} />Open settings file</span>
+                <span><AppIcon name="download-02" size={10} />Back up settings…</span>
+                <span><AppIcon name="import" size={10} />Restore settings…</span>
+              </div>
+            </div>
+            <div class="fw-page">
+            <span class="fw-title">About</span>
+            <div class="fw-about">
+              <div class="fw-lockup">
+                <svg class="fw-mark" viewBox="17 20 84 80" width="34" height="32" fill="none">
+                  <defs><clipPath id="fw-gap"><path clip-rule="evenodd" d="M0 0 H120 V120 H0 Z M78 49 H108 V71 H78 Z"></path></clipPath></defs>
+                  <path clip-path="url(#fw-gap)" d="M31 22 H86 C97 22 101 28 96 38 L86 60 L96 82 C101 92 97 98 86 98 H31 Q19 98 19 86 V34 Q19 22 31 22 Z" stroke="#E9E1D4" stroke-width="7" stroke-linejoin="round"></path>
+                  <polyline class="fw-caret" points="36,49 52,60 36,71" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                  <line class="fw-caret" x1="53" y1="71" x2="69" y2="71" stroke-width="5" stroke-linecap="round"></line>
+                </svg>
+                <span class="fw-word" data-f="lower">{DEFAULT_NAME.toLowerCase()}</span>
+              </div>
+              <span class="fw-ver">v{SITE.version} <AppIcon name="copy" size={11} /></span>
+              <span class="fw-desc"><span data-f="name">{DEFAULT_NAME}</span> — an open source fork of Warp</span>
+              <span class="fw-src">Source: github.com/you/<span data-f="slug">{DEFAULT_SLUG}</span> <span class="nw">· AGPL-3.0</span></span>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== right: the diff the fork carries ===== -->
+      <div class="fk-diff glass" role="region" aria-label="The diff your fork carries, against Uncaged v0.3.5">
+        <div class="glass-bar fd-bar">
+          <div class="glass-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="fd-cmd"><span class="fd-p">❯</span> git diff --stat v{SITE.version}</span>
+          <span class="fd-files" data-fk-files>6 files</span>
+        </div>
+        <div class="fd-scroll" tabindex="0" aria-label="Diff lines (scrolls sideways)">
+          <div class="fd-inner">
+            <!-- brand.rs -->
+            <div class="fd-file" data-file>
+              <div class="fd-fh"><span>crates/uncaged_app_theme/src/brand.rs</span><span class="fd-stat" data-stat>+4 −4</span></div>
+              <div class="fd-hh">@@ :53 @@ macro_rules! repo_url — every in-app link reads this</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-        concat!("https://github.com/getuncaged/uncaged", $suffix)</div>
+                <div class="ln p">+        concat!("https://github.com/you/<span data-f="slug">{DEFAULT_SLUG}</span>", $suffix)</div>
+              </div>
+              <div class="fd-hh">@@ :82 @@ LATEST_RELEASE_API_URL — the updater reads your releases</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-    "getuncaged/uncaged",</div>
+                <div class="ln p">+    "you/<span data-f="slug">{DEFAULT_SLUG}</span>",</div>
+              </div>
+              <div class="fd-hh">@@ :160 @@ ABOUT_DESCRIPTION</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-pub const ABOUT_DESCRIPTION: &amp;str = "Uncaged — an open source fork of Warp";</div>
+                <div class="ln p">+pub const ABOUT_DESCRIPTION: &amp;str = "<span data-f="name">{DEFAULT_NAME}</span> — an open source fork of Warp";</div>
+              </div>
+              <div class="fd-hh">@@ :166 @@ ABOUT_SOURCE — AGPL §13: offer the source</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-pub const ABOUT_SOURCE: &amp;str = "Source: github.com/getuncaged/uncaged · AGPL-3.0";</div>
+                <div class="ln p">+pub const ABOUT_SOURCE: &amp;str = "Source: github.com/you/<span data-f="slug">{DEFAULT_SLUG}</span> · AGPL-3.0";</div>
+              </div>
+            </div>
+
+            <!-- default theme: where the accent actually lives -->
+            <div class="fd-file" data-file>
+              <div class="fd-fh"><span>crates/uncaged_app_theme/src/themes/default_themes.rs</span><span class="fd-stat" data-stat>{accentSame ? '+1 −1' : '+2 −2'}</span></div>
+              <div class="fd-hh">@@ :654 @@ fn uncaged() -&gt; WarpTheme</div>
+              <div class={`dp${accentSame ? ' is-same' : ''}`} data-pair>
+                <div class="ln m">-        Fill::Solid(ColorU::from_u32(0xFF7A18FF)), // ember accent</div>
+                <div class="ln p">+        Fill::Solid(ColorU::from_u32(0x<span data-f="hex">{DEFAULT_HEX}</span>FF)), // ember accent</div>
+              </div>
+              <div class="dp" data-pair>
+                <div class="ln m">-        Some("Uncaged".to_string()),</div>
+                <div class="ln p">+        Some("<span data-f="name">{DEFAULT_NAME}</span>".to_string()),</div>
+              </div>
+            </div>
+
+            <!-- app identity: own bundle id + config dir -->
+            <div class="fd-file" data-file>
+              <div class="fd-fh"><span>app/src/bin/oss.rs</span><span class="fd-stat" data-stat>+2 −2</span></div>
+              <div class="fd-hh">@@ :16 @@ app id — your data dirs never collide with Warp or Uncaged</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-            app_id: AppId::new("dev", "uncaged", "Uncaged"),</div>
+                <div class="ln p">+            app_id: AppId::new("dev", "<span data-f="slug">{DEFAULT_SLUG}</span>", "Uncaged"),</div>
+              </div>
+              <div class="fd-hh">@@ :51 @@ CFBundleIdentifier — the bundle id macOS sees</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-    &lt;string&gt;dev.uncaged.Uncaged&lt;/string&gt;</div>
+                <div class="ln p">+    &lt;string&gt;dev.<span data-f="slug">{DEFAULT_SLUG}</span>.Uncaged&lt;/string&gt;</div>
+              </div>
+            </div>
+            <div class="fd-file" data-file>
+              <div class="fd-fh"><span>crates/uncaged_core/src/paths.rs</span><span class="fd-stat" data-stat>+2 −2</span></div>
+              <div class="fd-hh">@@ :40 @@ the home config dir</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-        Channel::Oss =&gt; ".uncaged".to_owned(),</div>
+                <div class="ln p">+        Channel::Oss =&gt; ".<span data-f="slug">{DEFAULT_SLUG}</span>".to_owned(),</div>
+              </div>
+              <div class="fd-hh">@@ :89 @@ macOS data + local config dir</div>
+              <div class="dp" data-pair>
+                <div class="ln m">-        Channel::Oss =&gt; ".uncaged".to_owned(),</div>
+                <div class="ln p">+        Channel::Oss =&gt; ".<span data-f="slug">{DEFAULT_SLUG}</span>".to_owned(),</div>
+              </div>
+            </div>
+
+            <!-- the marks -->
+            <div class="fd-file">
+              <div class="fd-fh"><span>app/assets/bundled/svg/brand/</span><span class="fd-stat">3 svg</span></div>
+              <div class="ln r">M  uncaged-mark.svg   in-app glyph, rgb(255,0,0) recolour sentinel</div>
+              <div class="ln r">M  ai-caret.svg       the agent caret</div>
+              <div class="ln r">M  uncaged-icon.svg   app-icon master → .icns / PNGs</div>
+            </div>
+
+            <!-- the About wordmark art -->
+            <div class="fd-file">
+              <div class="fd-fh"><span>app/assets/bundled/svg/</span><span class="fd-stat">2 svg</span></div>
+              <div class="ln r">M  uncaged-logo-dark-title.svg    About wordmark, dark themes</div>
+              <div class="ln r">M  uncaged-logo-light-title.svg   About wordmark, light themes</div>
+            </div>
+
+            <!-- the gallery -->
+            <div class="fd-file">
+              <div class="fd-fh"><span>crates/uncaged_engine/src/catalog.rs</span><span class="fd-stat is-ctx">keep · cut · add</span></div>
+              <div class="ln c"> pub const PRESETS: &amp;[Preset] = &amp;[   // 14 providers + Custom</div>
+            </div>
+
+            <div class="fd-file fd-untouched">
+              <div class="ln c"> crates/uncaged_*   20 crates keep their names, so Uncaged fixes still merge</div>
+            </div>
+          </div>
+        </div>
+        <div class="fd-build" data-fk-build>
+          <span class="fd-p">❯</span> cargo build --bin uncaged
+          <span class="fd-ok" data-fk-status>✓ Finished</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="fk-honest">
+      The display name is still spelled out as a literal in a couple of hundred strings (window title, app menu,
+      onboarding); only one dialog reads <code>brand::NAME</code> so far. A full rename finishes with a find-and-replace. <a href={SITE.forkingDoc} rel="noopener">FORKING.md</a> walks
+      the rest, file by file.
+    </p>
+
+    <ul class="fk-meta">
+      <li><b>AGPL-3.0</b> keep Warp's attribution in <code>NOTICE</code></li>
+      <li><b>uncaged-0.3</b> its own line, not a patched mirror</li>
+      <li>
+        <b><a href={`${SITE.github}/pull/36`} rel="noopener">#36</a> · <a href={`${SITE.github}/pull/37`} rel="noopener">#37</a></b>
+        first outside fixes, by <a href="https://github.com/colmcgiv" rel="noopener">@colmcgiv</a>
+      </li>
+      <li class="fk-meta-go">
+        <a href={SITE.forkingDoc} rel="noopener">Read FORKING.md ›</a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* ---------------- head ---------------- */
+  .fk-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 72px);
+    align-items: end;
+    margin-bottom: clamp(40px, 5vw, 80px);
+  }
+  .fk-head .eyebrow {
+    margin-bottom: 22px;
+  }
+  .fk-h {
+    display: flex;
+    flex-direction: column;
+  }
+  .fk-lede {
+    display: grid;
+    gap: 16px;
+  }
+  .fk-lede em {
+    font-style: normal;
+    color: var(--ink);
+  }
+  .fk-small {
+    font: 500 13.5px/1.5 var(--mono);
+    color: var(--ash);
+  }
+
+  /* ---------------- the bench ---------------- */
+  .fk-bench {
+    --acc: #ff7a18;
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(16px, 2vw, 28px);
+    padding: clamp(16px, 2.4vw, 32px);
+    border: 1px solid var(--rule-strong);
+    background:
+      linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, var(--rule) 1px, transparent 1px) 0 0 / 32px 32px,
+      rgba(11, 13, 18, 0.7);
+  }
+  .fk-corner {
+    position: absolute;
+    top: 0;
+    transform: translateY(-50%);
+    padding: 3px 8px;
+    background: var(--void);
+    font: 600 11px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .fk-c1 {
+    left: 16px;
+  }
+  .fk-c2 {
+    right: 16px;
+  }
+  .fk-left {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+    min-width: 0;
+  }
+  @media (min-width: 1081px) {
+    /* the window rides along while you read the diff */
+    .fk-left {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+    }
+  }
+
+  /* controls */
+  .fk-ctl {
+    display: grid;
+    gap: 16px;
+    padding: 18px;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius);
+    background: var(--panel);
+  }
+  .fk-field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+  .fk-label {
+    font: 600 12px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .fk-label b {
+    color: var(--ember);
+    margin-right: 6px;
+  }
+  .fk-input {
+    width: 100%;
+    min-width: 0;
+    height: 52px;
+    padding: 0 16px;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-s);
+    background: var(--glass-deep);
+    font: 800 clamp(17px, 1.6vw, 21px) / 1 var(--mono);
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    caret-color: var(--acc);
+    transition: border-color var(--fast);
+  }
+  .fk-input:hover {
+    border-color: var(--rule-strong);
+  }
+  .fk-input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-color: transparent;
+  }
+  .fk-swatches {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .fk-sw {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 8px 2px 7px;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-s);
+    background: var(--glass-deep);
+    font: 600 11px/1 var(--mono);
+    color: var(--ash);
+    min-width: 0;
+    transition: border-color var(--fast), color var(--fast), background var(--fast);
+  }
+  .fk-sw span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fk-sw i {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--sw);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+    transition: transform var(--fast);
+  }
+  .fk-sw:hover {
+    border-color: var(--rule-strong);
+    color: var(--ink);
+  }
+  .fk-sw[aria-pressed='true'] {
+    border-color: var(--sw);
+    color: var(--ink);
+    background: color-mix(in srgb, var(--sw) 10%, var(--glass-deep));
+  }
+  .fk-sw[aria-pressed='true'] i {
+    transform: scale(1.12);
+  }
+
+  /* mini Settings → About window; greys measured from shots-in/ai-models-z.png */
+  .fk-win {
+    border-radius: 12px;
+    background: #0c0e14;
+    font-family: var(--sans);
+    user-select: none;
+    overflow: hidden;
+  }
+  .fw-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 8px 0 12px;
+    background: #171920;
+    color: #5a5c62;
+    font-size: 11px;
+  }
+  .fw-top .glass-dots {
+    margin-right: 4px;
+  }
+  .fw-top .glass-dots i {
+    width: 9px;
+    height: 9px;
+  }
+  .fw-ic {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+  }
+  /* tabs stretch across the bar, titles centred; the active one is a filled rounded tab */
+  .fw-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 22px;
+    display: block;
+    padding: 0 4px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fw-tab.is-on {
+    background: #22242a;
+    color: #7d7f85;
+  }
+  .fw-chev {
+    margin-left: -2px;
+  }
+  .fw-right {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: 8px;
+  }
+  .fw-body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.55fr);
+    gap: 5px;
+    padding: 5px;
+    min-height: 236px;
+    background: #0f1117;
+  }
+  /* the sidebar and the page: two outlined, rounded panels side by side */
+  .fw-side,
+  .fw-page {
+    border-radius: 9px;
+    background: linear-gradient(180deg, #12141b, #0b0d12);
+    border: 1px solid #24262c;
+    min-width: 0;
+  }
+  .fw-side {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 6px 6px;
+    font-size: 10px;
+    color: #b4b6bc;
+  }
+  .fw-page {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px;
+  }
+  .fw-title {
+    font: 600 14px/1.2 var(--sans);
+    color: #e2e4ea;
+  }
+  .fw-search {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 2px 6px 4px;
+    color: #686a71;
+  }
+  .fw-search svg {
+    color: #c9cbd0;
+  }
+  .fw-side ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+  .fw-side li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px 3px 10px;
+    border-radius: 5px;
+  }
+  /* group labels: plain, uppercase, dim */
+  .fw-side li.fw-gl {
+    margin-top: 6px;
+    padding: 2px 4px 1px;
+    font-size: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #93959b;
+  }
+  .fw-side li.fw-gl:first-child {
+    margin-top: 0;
+  }
+  .fw-side li span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* the selected page: a quiet raised fill, main text colour, semibold */
+  .fw-side li.is-on {
+    color: #d5d7dd;
+    background: #24262c;
+    font-weight: 600;
+  }
+  .fw-foot {
+    display: grid;
+    gap: 4px;
+    margin-top: auto;
+    padding-top: 6px;
+  }
+  .fw-foot span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 20px;
+    border: 1px solid #22242a;
+    border-radius: 5px;
+    font-size: 9.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  /* the page itself sits on the window ground, centred */
+  .fw-about {
+    flex: 1;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0;
+    padding: 16px 10px;
+    text-align: center;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .fw-lockup {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 100%;
+  }
+  .fw-mark {
+    flex: none;
+  }
+  .fw-caret {
+    stroke: var(--acc);
+    transition: stroke 0.3s;
+  }
+  .fw-word {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 700 clamp(22px, 2.3vw, 28px) / 1 var(--mono);
+    letter-spacing: -0.042em;
+    color: #e9e1d4;
+  }
+  .fw-ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .fw-desc,
+  .fw-src {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .fw-desc {
+    margin-top: 10px;
+  }
+  .fw-src {
+    margin-top: 4px;
+  }
+  .nw {
+    white-space: nowrap;
+  }
+
+  /* ---------------- the diff ---------------- */
+  .fk-diff {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: 12px;
+    background: #090b10;
+  }
+  .fd-bar {
+    gap: 12px;
+  }
+  .fd-cmd {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .fd-p {
+    color: var(--ember);
+    font-weight: 700;
+  }
+  .fd-files {
+    margin-left: auto;
+    flex: none;
+    color: var(--ash);
+  }
+  .fd-scroll {
+    flex: 1;
+    overflow-x: auto;
+    padding: 10px 0 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bar) transparent;
+  }
+  .fd-scroll:focus-visible {
+    outline-offset: -2px;
+  }
+  .fd-inner {
+    display: inline-block;
+    min-width: 100%;
+    font: 500 12.5px/1.75 var(--mono);
+    /* after the shorthand, which would reset it: `->` and `=>` stay two glyphs */
+    font-variant-ligatures: none;
+    color: var(--ash);
+  }
+  .fd-file + .fd-file {
+    margin-top: 10px;
+  }
+  .fd-fh {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    padding: 2px 16px;
+    color: var(--ink);
+    font-weight: 700;
+    white-space: pre;
+  }
+  .fd-stat {
+    color: var(--t-green);
+    font-weight: 600;
+  }
+  .fd-stat.is-ctx {
+    color: var(--ash);
+  }
+  .fd-hh {
+    padding: 0 16px;
+    color: var(--t-cyan);
+    white-space: pre;
+  }
+  .ln {
+    padding: 0 16px;
+    white-space: pre;
+  }
+  .ln.m {
+    color: var(--t-red);
+    background: rgba(255, 107, 116, 0.07);
+  }
+  .ln.p {
+    color: var(--t-green);
+    background: rgba(123, 216, 143, 0.08);
+  }
+  .ln.p :global([data-f]) {
+    color: var(--ink);
+    background: color-mix(in srgb, var(--acc) 26%, transparent);
+    border-radius: 3px;
+    transition: background 0.3s;
+  }
+  .ln.r {
+    color: var(--t-violet);
+  }
+  .ln.c {
+    color: var(--ash);
+  }
+  .fd-untouched .ln {
+    color: var(--muted);
+  }
+  /* an unchanged pair collapses to one context line */
+  .dp.is-same .ln.m {
+    display: none;
+  }
+  .dp.is-same .ln.p {
+    color: var(--ash);
+    background: none;
+  }
+  .dp.is-same .ln.p :global([data-f]) {
+    background: none;
+    color: inherit;
+  }
+  .dp.flash .ln.p {
+    animation: fk-flash 0.7s var(--ease);
+  }
+  @keyframes fk-flash {
+    from {
+      background: color-mix(in srgb, var(--acc) 30%, transparent);
+    }
+  }
+  .fd-build {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    height: 40px;
+    border-top: 1px solid var(--line-soft);
+    font: 500 12.5px/1 var(--mono);
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .fd-ok {
+    margin-left: auto;
+    color: var(--t-green);
+  }
+  .fd-build.is-busy .fd-ok {
+    color: var(--ash);
+  }
+
+  /* ---------------- after the bench ---------------- */
+  .fk-honest {
+    margin-top: 20px;
+    max-width: 82ch;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ash);
+  }
+  .fk-honest a,
+  .fk-meta a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule-strong);
+  }
+  .fk-honest a:hover,
+  .fk-meta a:hover {
+    text-decoration-color: var(--ember);
+  }
+  .fk-honest code,
+  .fk-meta code {
+    font-size: 0.92em;
+    color: var(--ink);
+  }
+  /* one meta line: licence · lineage · first contributions · the doc */
+  .fk-meta {
+    list-style: none;
+    margin: clamp(28px, 3vw, 44px) 0 0;
+    padding: 14px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 0;
+    border-top: 1px solid var(--rule-strong);
+    font: 500 12.5px/1.5 var(--mono);
+    color: var(--ash);
+  }
+  .fk-meta li {
+    min-width: 0;
+    padding: 0 16px;
+    border-left: 1px solid var(--rule);
+  }
+  .fk-meta li:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .fk-meta b {
+    margin-right: 6px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .fk-meta-go {
+    margin-left: auto;
+  }
+  .fk-meta-go a {
+    font-weight: 700;
+    text-decoration-color: var(--ember);
+  }
+
+  @media (max-width: 1080px) {
+    .fk-bench {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fk-left {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+  }
+  @media (max-width: 860px) {
+    .fk-head {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+    .fk-left {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fk-meta {
+      flex-direction: column;
+    }
+    .fk-meta li,
+    .fk-meta li:first-child {
+      padding: 0;
+      border-left: 0;
+    }
+    .fk-meta-go {
+      margin: 4px 0 0;
+    }
+  }
+  @media (max-width: 520px) {
+    .fw-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fw-side {
+      display: none;
+    }
+    .fk-c2 {
+      display: none;
+    }
+    .fk-sw span {
+      display: none;
+    }
+    .fk-sw {
+      padding: 10px 2px;
+    }
+    .fw-body {
+      min-height: 0;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-fork]');
+  if (root) {
+    const input = root.querySelector<HTMLInputElement>('[data-fk-name]')!;
+    const swatches = Array.from(root.querySelectorAll<HTMLButtonElement>('.fk-sw'));
+    const win = root.querySelector<HTMLElement>('[data-fk-win]');
+    const build = root.querySelector<HTMLElement>('[data-fk-build]');
+    const status = root.querySelector<HTMLElement>('[data-fk-status]');
+    const filesLabel = root.querySelector<HTMLElement>('[data-fk-files]');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const FALLBACK = 'Driftwood';
+    let hex = (swatches.find((b) => b.getAttribute('aria-pressed') === 'true')?.dataset.hex ?? 'FF7A18').toUpperCase();
+    let timer = 0;
+
+    // display form keeps the visitor's casing; machine form is what a config
+    // dir / bundle id / repo slug would actually use
+    const clean = (s: string) => s.replace(/[^\p{L}\p{N} ._-]/gu, '').replace(/\s+/g, ' ').trim();
+    const slugify = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'yourterm';
+
+    const set = (key: string, value: string) => {
+      root.querySelectorAll<HTMLElement>(`[data-f="${key}"]`).forEach((el) => {
+        if (el.textContent !== value) el.textContent = value;
+      });
+    };
+
+    const render = (changed: boolean) => {
+      const name = clean(input.value) || FALLBACK;
+      const slug = slugify(name);
+      set('name', name);
+      set('slug', slug);
+      set('hex', hex);
+      set('lower', name.toLowerCase());
+      root.style.setProperty('--acc', `#${hex}`);
+
+      // collapse pairs that no longer differ, recount each file's stat
+      let files = 0;
+      root.querySelectorAll<HTMLElement>('[data-file]').forEach((file) => {
+        let n = 0;
+        file.querySelectorAll<HTMLElement>('[data-pair]').forEach((pair) => {
+          const m = pair.querySelector('.m')?.textContent?.slice(1) ?? '';
+          const p = pair.querySelector('.p')?.textContent?.slice(1) ?? '';
+          const same = m === p;
+          pair.classList.toggle('is-same', same);
+          // an unchanged pair reads as a context line: swap the "+" for a space
+          const lead = pair.querySelector('.p')?.firstChild;
+          if (lead && lead.nodeType === Node.TEXT_NODE) {
+            const t = lead as Text;
+            t.data = (same ? ' ' : '+') + t.data.slice(1);
+          }
+          if (!same) n++;
+        });
+        const stat = file.querySelector<HTMLElement>('[data-stat]');
+        if (stat) stat.textContent = n ? `+${n} −${n}` : 'unchanged';
+        if (n) files++;
+      });
+      // + the two svg folders (marks, About wordmark), which a fork always replaces
+      if (filesLabel) filesLabel.textContent = `${files + 2} files`;
+
+      if (win) {
+        win.setAttribute(
+          'aria-label',
+          `Preview of the forked app's Settings, About page: the ${name} wordmark with its caret in accent #${hex}, the line "${name} — an open source fork of Warp", and "Source: github.com/you/${slug} · AGPL-3.0".`,
+        );
+      }
+
+      if (changed) {
+        // replay the flash on the lines that just changed
+        root.querySelectorAll<HTMLElement>('[data-pair]').forEach((pair) => {
+          const now = pair.querySelector('.p')?.textContent ?? '';
+          if (pair.dataset.prev === now) return;
+          pair.dataset.prev = now;
+          if (pair.classList.contains('is-same')) return;
+          pair.classList.remove('flash');
+          void pair.offsetWidth;
+          pair.classList.add('flash');
+        });
+        if (build && status && !reduce.matches) {
+          build.classList.add('is-busy');
+          status.textContent = 'Compiling…';
+          clearTimeout(timer);
+          timer = window.setTimeout(() => {
+            build.classList.remove('is-busy');
+            status.textContent = '✓ Finished';
+          }, 650);
+        }
+      }
+    };
+
+    input.addEventListener('input', () => render(true));
+    swatches.forEach((btn) =>
+      btn.addEventListener('click', () => {
+        hex = (btn.dataset.hex ?? hex).toUpperCase();
+        swatches.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        render(true);
+      }),
+    );
+    render(false);
+    root.querySelectorAll<HTMLElement>('[data-pair]').forEach((pair) => {
+      pair.dataset.prev = pair.querySelector('.p')?.textContent ?? '';
+    });
+  }
+</script>

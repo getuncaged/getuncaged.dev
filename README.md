@@ -21,8 +21,10 @@ npm run preview    # serve the production build locally
 | Design tokens (palette, type, motion) | [`src/styles/global.css`](src/styles/global.css) — spec in [`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md), living gallery at [`/design`](src/pages/design.astro) |
 | Page sections | [`src/components/`](src/components/) |
 | Brand assets (favicon, mark, touch icon) | [`public/`](public/) |
+| Real app screenshots (not on the page today) | [`public/shots/`](public/shots/) · `./scripts/capture-shot.sh <name>` |
+| The app's real icons (tinted with CSS `color`) | [`src/data/app-icons.ts`](src/data/app-icons.ts) · [`AppIcon.astro`](src/components/AppIcon.astro) |
 
-Colors, type and voice follow **Midnight**, the site's own design system
+Colors, type and voice follow **Midnight / Brutal** (v2), the site's own design system
 ([`DESIGN-SYSTEM.md`](DESIGN-SYSTEM.md), living gallery at `/design`):
 JetBrains Mono + Inter on a cool blue-black ground, with the gold→ember family
 as the only warmth on the page. The logo itself is governed by the separate

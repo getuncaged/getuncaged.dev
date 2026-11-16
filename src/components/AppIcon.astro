@@ -1,0 +1,38 @@
+---
+/** One of the app's real icons (see src/data/app-icons.ts), tinted by `color`. */
+import { APP_ICONS } from '../data/app-icons';
+interface Props {
+  name: string;
+  size?: number;
+  class?: string;
+  label?: string;
+}
+const { name, size = 14, class: cls, label } = Astro.props;
+const icon = APP_ICONS[name];
+if (!icon) throw new Error(`AppIcon: unknown icon "${name}"`);
+const [, , w, h] = icon.vb.split(/\s+/).map(Number);
+const width = w >= h ? size : Math.round((size * w) / h);
+const height = h >= w ? size : Math.round((size * h) / w);
+// icons that define ids (clipPaths) get a per-instance suffix, so the page never repeats an id
+const ids = [...icon.body.matchAll(/id="([^"]+)"/g)].map((m) => m[1]);
+let body = icon.body;
+if (ids.length) {
+  const sfx = Math.random().toString(36).slice(2, 8);
+  for (const id of ids) {
+    body = body
+      .replaceAll(`id="${id}"`, `id="${id}-${sfx}"`)
+      .replaceAll(`url(#${id})`, `url(#${id}-${sfx})`)
+      .replaceAll(`href="#${id}"`, `href="#${id}-${sfx}"`);
+  }
+}
+---
+
+<svg
+  class:list={['app-icon', cls]}
+  viewBox={icon.vb}
+  width={width}
+  height={height}
+  fill="none"
+  {...label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' }}
+  set:html={body}
+/>

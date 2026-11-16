@@ -3,6 +3,7 @@
  * AI search engines (llmstxt.org "full" companion). Generated from
  * src/data/site.ts at build time: one source of truth, zero drift.
  */
+import { ASSETS, assetUrl } from '../lib/downloads';
 import type { APIRoute } from 'astro';
 import { SITE, DOWNLOADS, AUDIT, FAQ } from '../data/site';
 
@@ -18,9 +19,9 @@ Website: ${SITE.url} · Source: ${SITE.github}
 ## What Uncaged is
 
 Uncaged is a fork of the open-source Warp terminal with the cloud cut out —
-the same agentic terminal emulator, running entirely on the user's machine.
+the same agentic terminal emulator, running on the user's machine.
 There is no account, no login, no subscription, no telemetry and no cloud
-relay. It is a fully open-source Warp alternative: same terminal, same speed,
+relay. It is a fully open-source Warp alternative: the same Rust terminal,
 none of the cloud.
 
 Removed from Warp: account & login, cloud-relayed AI requests, telemetry &
@@ -28,33 +29,64 @@ crash reporting, subscription/credits/caps, Warp & Oz branding.
 
 In their place: a local agent engine (uncaged_engine) that runs on the user's
 machine, the model the user chooses (local runtime, API key, or CLI agent),
-and a swappable brand layer (the whole identity in three files).
+and a swappable brand layer (the identity lives in a thin layer of files).
 
-Kept from Warp: blocks, agent mode, code review, tools panel, workflows,
-keymaps, IDE-grade editing, GPU-fast rendering — synced with upstream Warp.
+Kept from Warp: blocks, agent mode, code review, workflows, keymaps,
+IDE-grade editing, GPU-fast rendering.
 
-## Privacy: zero telemetry, never phones home
+New in Uncaged 0.3 (the first releases from Uncaged's own line):
+- Split panes as rounded cards. Split and Arrange from the tab menu (side by
+  side, one large with the rest stacked, grid, unsplit into tabs), drag a tab
+  onto a pane to split it there, open a conversation in a split pane.
+- One input, two modes: a Terminal / Agent Mode switch (Cmd-I), lit only in
+  the focused pane. Natural-language autodetection is off by default.
+- Effort control in the model chip (e.g. "sonnet | Medium effort"), and a model
+  menu that lists what your provider actually serves.
+- Themes: 23 built in ("Uncaged" by default), a community library in
+  the "Theme gallery" (getuncaged/uncaged-themes), and the "Theme creator":
+  colours, a gradient or picture background, Dark or Light, and all 16 terminal
+  colours, with a live terminal preview, or a theme generated from an image in
+  three steps. "Share with the community" submits yours to the gallery as a PR.
+- Code search on your machine: repositories are indexed locally (nothing is
+  uploaded) and searched with search_codebase in Agent Mode. Claude Code,
+  Gemini CLI and Codex get the same search as an MCP tool served on 127.0.0.1.
+- One-line command headers: a finished block reads like a classic shell, the
+  prompt then the command on the same row.
+- Grouped tabs (macOS) and pinned tabs.
+- Light on the machine (0.3.5): an idle window uses about 0.01% CPU and about
+  150 MB; the macOS DMG is about 92 MB. Uncaged never starts at login.
+- Opt-in, checksum-verified updates from GitHub Releases.
 
-The only request Uncaged makes on its own initiative is to the model endpoint
-the user configures. Other network traffic happens only when the user asks for
-it — installing a language server fetches from nodejs.org and the npm registry,
-and the theme gallery reads from GitHub. There is no background call about the
-user. The source is public, so this is verifiable:
+## Privacy: no account, no telemetry, no Warp servers
+
+Prompts go only to the model endpoint the user configures (or nowhere, with a
+local model). Update checks are off until the user accepts a one-time banner;
+when on, Uncaged reads GitHub's public releases API with no identifier beyond
+its version in the User-Agent. Other traffic happens only when the user asks
+for it: installing a language server (nodejs.org, npm), the theme gallery
+(GitHub), gist backup (via the user's own gh CLI). Since 0.3.5 the code that
+talked to Warp's servers (account, telemetry, crash reporting, cloud sync,
+shared sessions, cloud agents) is removed, not just switched off; the one
+leftover server address is an unroutable placeholder. The source is public, so
+this is verifiable:
 
 ${AUDIT.map((row) => `- ${row.surface}: ${row.state}`).join('\n')}
 
 ## Models: every model, no middleman
 
 The AI inside Uncaged runs on a model the user chooses — picked once in
-Settings → AI Models, switchable any time:
+Settings → Models, switchable any time:
 
-- CLI agents over ACP (use an existing plan, no API key): Claude Code,
-  Gemini CLI, Codex CLI
+- CLI agents (use an existing plan, no API key): Claude Code, Gemini CLI,
+  Codex CLI. They run their own tool loop, so in Agent Mode they answer in
+  text for now; API and local models get Uncaged's native tools.
 - Local runtimes (fully private, no key): Ollama, LM Studio, llama.cpp, vLLM
 - Provider API keys: Anthropic, OpenAI, OpenRouter, Google, Groq, DeepSeek,
   Mistral, xAI, Together — or any OpenAI-compatible endpoint
 
-Keys are stored on disk (~/.uncaged/) and never leave the device.
+Connections, API keys included, are stored as plain JSON in
+~/.uncaged/connections.json (not encrypted, not in the Keychain) and are sent
+only to the provider they belong to.
 
 ## Install
 
@@ -66,14 +98,7 @@ Windows (PowerShell):
 
 Direct downloads (latest release):
 
-- macOS: Apple Silicon .dmg — ${DOWNLOADS.macos.primary.href}
-- macOS: Intel .dmg — ${DOWNLOADS.macos.others[0]!.href}
-- Linux x86_64: .deb — ${DOWNLOADS.linux.others[0]!.href}
-- Linux x86_64: .rpm — ${DOWNLOADS.linux.others[1]!.href}
-- Linux x86_64: AppImage — ${DOWNLOADS.linux.others[2]!.href}
-- Linux x86_64: .tar.gz — ${DOWNLOADS.linux.primary.href}
-- Windows x64 installer — ${DOWNLOADS.windows.primary.href}
-- Windows ARM64 installer — ${DOWNLOADS.windows.others[0]!.href}
+${Object.entries(ASSETS).map(([slug, file]) => `- ${file} — ${assetUrl(slug)}`).join('\n')}
 
 All builds, checksums and changelogs: ${SITE.releases}
 

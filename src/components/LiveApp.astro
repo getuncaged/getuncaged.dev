@@ -1,0 +1,924 @@
+---
+/**
+ * The hero window: a faithful, living depiction of Uncaged, checked element by
+ * element against window captures of the app (split-3-z, and shots-in/v2 for the
+ * title bar's plain gear and the prompt-chevron turn mark).
+ * - Tab bar: the tab title follows the focused pane (folder name for a
+ *   terminal, the conversation title plus its status icon for an agent).
+ * - Pane cards: sans titles; an agent pane's title carries the agent circle
+ *   with a status badge and an (i) at the right end.
+ * - Terminal blocks (0.3.5 one-line headers, terminal/model/block.rs inline_prompt_label): the
+ *   prompt `<path> git:(<branch>) ❯` in front of the command on one row, a duration only for
+ *   commands of a second or more, right-aligned and without brackets; a command that doesn't fit
+ *   keeps the prompt above it (the row wraps). Then the output.
+ * - Agent blocks: accent prompt chevron (in the avatar's old slot, common.rs
+ *   render_user_avatar) + bold monospace query, monospace reply, feedback row,
+ *   and the hint row above the input.
+ * - The model chip reads the engine's ACTIVE connection, which is global, so
+ *   every agent pane shows the same chip; the animation switches it from the
+ *   local LM Studio model to Claude Code.
+ * Commit lines are real v0.3.5 history. Animation is progressive: the final
+ * state is in the HTML, the script only replays it.
+ */
+
+import AppIcon from './AppIcon.astro';
+
+const local = { model: 'qwen3-coder-30b', effort: 'Medium effort' };
+const claude = { model: 'opus[1m]', effort: 'Medium effort' };
+
+const titleB = 'Why does the 0.3.0 Linux build fail?';
+const titleC = 'Is a cfg gate the right fix for a macOS-only call?';
+---
+
+<div
+  class="live glass"
+  role="img"
+  aria-label="The Uncaged window split into three panes: a terminal showing a release build and git log, and two agent conversations, one answered by a local Qwen model on LM Studio and one by Claude Code."
+  data-local-model={local.model}
+  data-claude-model={claude.model}
+>
+  <div class="lv-top">
+    <div class="glass-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <span class="lv-btn lv-side"><AppIcon name="layout-left" size={16} /></span>
+    <div class="lv-tabs">
+      <span class="lv-tab lv-tab-off">~</span>
+      <span class="lv-tab lv-tab-off">api</span>
+      <span class="lv-tab is-on" data-status="">
+        <span class="tab-st">
+          <span class="st-ok"><AppIcon name="check" size={10} /></span>
+          <span class="st-run"><AppIcon name="clock-loader" size={10} /></span>
+        </span>
+        <span class="tab-t" data-tab-title>uncaged</span>
+      </span>
+      <span class="lv-new">
+        <span class="lv-btn"><AppIcon name="plus" size={16} /></span>
+        <span class="lv-btn lv-btn-sm"><AppIcon name="chevron-down" size={12} /></span>
+      </span>
+    </div>
+    <div class="lv-right" aria-hidden="true">
+      <span class="lv-btn lv-launch"><AppIcon name="claude" size={16} /></span>
+      <span class="lv-btn"><AppIcon name="diff" size={16} /></span>
+      <span class="lv-btn lv-inbox"><AppIcon name="inbox-01" size={16} /></span>
+      <span class="lv-btn"><AppIcon name="gear" size={16} /></span>
+    </div>
+  </div>
+
+  <div class="lv-body">
+    <!-- ======================= PANE A · terminal (focused) ======================= -->
+    <section class="pane pane-a is-focused" data-pane="a" data-tab="uncaged">
+      <header class="pane-h">
+        <span class="pane-title">uncaged</span>
+        <span class="pane-tools"><span class="lv-btn"><AppIcon name="dots-vertical" size={13} /></span><span class="lv-btn"><AppIcon name="x-close" size={13} /></span></span>
+      </header>
+      <div class="pane-scroll term">
+        <div class="blk">
+          <div class="blk-h" data-blkh><span class="blk-meta" data-p>~/code/uncaged git:(main)<span class="bh-sep"> ❯</span><span class="bh-dur"> (41.873s)</span></span><span class="blk-cmd" data-c><span class="g">cargo</span> build --release</span><span class="blk-d" data-d>41.873s</span></div>
+          <div class="blk-out">
+            <span>{'   '}<b class="g">Compiling</b> uncaged_engine v0.1.0</span>
+            <span>{'   '}<b class="g">Compiling</b> uncaged_ui v0.0.0</span>
+            <span>{'   '}<b class="g">Compiling</b> uncaged v0.3.5</span>
+            <span>{'    '}<b class="g">Finished</b> `release` profile [optimized] target(s) in 41.87s</span>
+          </div>
+        </div>
+        <div class="blk">
+          <div class="blk-h" data-blkh><span class="blk-meta" data-p>~/code/uncaged git:(main)<span class="bh-sep"> ❯</span></span><span class="blk-cmd" data-c><span class="g">git</span> log --oneline -4</span></div>
+          <div class="blk-out">
+            <span><span class="y">334035f5 (<b class="t">HEAD</b><b> -&gt; </b><b class="g">main</b>, <b>tag: v0.3.5</b>)</span> uncaged: version 0.3.5 and its release notes</span>
+            <span><span class="y">a45f2215</span> uncaged: reuse wgpu instance buffers across frames</span>
+            <span><span class="y">ed50dafe</span> uncaged: crash-recovery watchdog blocks on a pidfd on Linux</span>
+            <span><span class="y">c7d20a46</span> uncaged: file-watcher debouncers sleep until an event arrives</span>
+          </div>
+        </div>
+      </div>
+      <div class="inp">
+        <div class="inp-chips">
+          <span class="ic"><AppIcon name="folder" size={12} />~/code/uncaged</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span>
+        </div>
+        <div class="inp-line"><span class="typed" data-type-a>cargo run --release</span><span class="caret"></span></div>
+        <div class="inp-foot">
+          <span class="mode" data-mode="terminal"><i class="seg seg-t"><AppIcon name="terminal" size={12} /></i><i class="seg seg-a"><AppIcon name="sparkle" size={13} /></i></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= PANE B · agent, answered by the local model ======================= -->
+    <section class="pane pane-b" data-pane="b" data-tab={titleB} data-agent>
+      <header class="pane-h pane-h-agent" data-status="done">
+        <span class="agent-ic">
+          <span class="agent-circle"><AppIcon name="uncaged-mark" size={13} /></span>
+          <span class="agent-badge"><span class="st-ok"><AppIcon name="check" size={7} /></span><span class="st-run"><AppIcon name="clock-loader" size={7} /></span></span>
+        </span>
+        <span class="pane-title">{titleB}</span>
+        <span class="pane-info"><AppIcon name="info" size={14} /></span>
+      </header>
+      <div class="pane-scroll convo">
+        <div class="q">
+          <span class="q-av"><AppIcon name="chevron-right" size={15} /></span>
+          <span class="q-t">{titleB}</span>
+          <span class="q-more"><AppIcon name="dots-vertical" size={13} /></span>
+        </div>
+        <p class="a" data-stream>The update checker calls a macOS-only function on every platform. Gate the call behind <code>cfg(target_os = "macos")</code> and the Linux and Windows builds compile again.</p>
+        <div class="fb"><AppIcon name="thumbs-up" size={13} /><AppIcon name="thumbs-down" size={13} /><AppIcon name="arrow-split" size={13} /></div>
+      </div>
+      <div class="hints"><kbd>?</kbd> for help <kbd>/</kbd> for commands <span class="keys"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>+</kbd></span> for code review</div>
+      <div class="inp">
+        <div class="inp-chips">
+          <span class="ic"><AppIcon name="folder" size={12} />~/code/uncaged</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span>
+        </div>
+        <div class="inp-line ph">Ask a follow up</div>
+        <div class="inp-foot">
+          <span class="mode" data-mode="agent"><i class="seg seg-t"><AppIcon name="terminal" size={12} /></i><i class="seg seg-a"><AppIcon name="sparkle" size={13} /></i></span>
+          <span class="foot-btn"><AppIcon name="nld" size={13} /></span>
+          <span class="foot-right">
+            <span class="foot-btn"><AppIcon name="conversation-context-0" size={13} /></span>
+            <span class="model-chip"><span class="mc-model" data-model>{local.model}</span><span class="mc-sep"></span><span class="mc-eff">{local.effort}</span><AppIcon name="chevron-down" size={11} /></span>
+            <span class="foot-btn"><AppIcon name="plus" size={13} /></span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= PANE C · agent, answered by Claude Code ======================= -->
+    <section class="pane pane-c" data-pane="c" data-tab={titleC} data-agent>
+      <header class="pane-h pane-h-agent" data-status="done">
+        <span class="agent-ic">
+          <span class="agent-circle"><AppIcon name="uncaged-mark" size={13} /></span>
+          <span class="agent-badge"><span class="st-ok"><AppIcon name="check" size={7} /></span><span class="st-run"><AppIcon name="clock-loader" size={7} /></span></span>
+        </span>
+        <span class="pane-title">{titleC}</span>
+        <span class="pane-info"><AppIcon name="info" size={14} /></span>
+      </header>
+      <div class="pane-scroll convo">
+        <div class="q">
+          <span class="q-av"><AppIcon name="chevron-right" size={15} /></span>
+          <span class="q-t">{titleC}</span>
+          <span class="q-more"><AppIcon name="dots-vertical" size={13} /></span>
+        </div>
+        <p class="a" data-stream>Yes, if nothing on Linux or Windows needs the value. Gate the <code>use</code> with it too, or those builds warn about an unused import.</p>
+        <div class="fb"><AppIcon name="thumbs-up" size={13} /><AppIcon name="thumbs-down" size={13} /><AppIcon name="arrow-split" size={13} /></div>
+      </div>
+      <div class="hints"><kbd>?</kbd> for help <kbd>/</kbd> for commands <span class="keys"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>+</kbd></span> for code review</div>
+      <div class="inp">
+        <div class="inp-chips">
+          <span class="ic"><AppIcon name="folder" size={12} />~/code/uncaged</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span>
+        </div>
+        <div class="inp-line ph">Ask a follow up</div>
+        <div class="inp-foot">
+          <span class="mode" data-mode="agent"><i class="seg seg-t"><AppIcon name="terminal" size={12} /></i><i class="seg seg-a"><AppIcon name="sparkle" size={13} /></i></span>
+          <span class="foot-btn"><AppIcon name="nld" size={13} /></span>
+          <span class="foot-right">
+            <span class="foot-btn"><AppIcon name="conversation-context-0" size={13} /></span>
+            <span class="model-chip"><span class="mc-model" data-model>{local.model}</span><span class="mc-sep"></span><span class="mc-eff">{local.effort}</span><AppIcon name="chevron-down" size={11} /></span>
+            <span class="foot-btn"><AppIcon name="plus" size={13} /></span>
+          </span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<style>
+  /* Colours sampled from the 0.3.3 captures (Uncaged Midnight theme). */
+  .live {
+    --win: #17191f;
+    --pane-bg: #111319;
+    --pane-line: #26282e;
+    --inp-bg: #0c0e14;
+    --inp-line: #24262c;
+    --ctl-bg: #191b21;
+    --ctl-line: #2f3136;
+    --txt: #d3d5db;
+    --txt-hi: #e8ebf1;
+    --sub: #93959b;
+    --dim: #66686e;
+    --chip: #acdedb;
+    --c-green: #76d198;
+    --c-yellow: #f4b554;
+    --c-teal: #79d3c4;
+    --c-blue: #6da4f8;
+    --c-magenta: #cdbcf4;
+    --accent: #ee8138;
+    border-radius: 16px;
+    background: var(--win);
+    font-family: var(--sans);
+    /* the app draws `->` and friends as plain characters, no ligatures */
+    font-variant-ligatures: none;
+    font-feature-settings: 'calt' 0, 'liga' 0;
+    user-select: none;
+  }
+
+  /* ---------------- title bar ---------------- */
+  .lv-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 42px;
+    padding: 0 12px 0 14px;
+    font-size: 12.5px;
+  }
+  .lv-btn {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    color: #6a6c72;
+  }
+  .lv-btn-sm {
+    width: 16px;
+  }
+  .lv-side {
+    margin-left: 4px;
+  }
+  /* tabs share the bar in equal slots, title centred */
+  .lv-tabs {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  .lv-tab {
+    flex: 0 1 190px;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: #5f6167;
+    white-space: nowrap;
+  }
+  .lv-tab.is-on {
+    flex-basis: 240px;
+    color: #9a9ca2;
+    background: #22242a;
+  }
+  .tab-t {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* agent status: green check when done, magenta clock-loader while running */
+  .tab-st {
+    display: none;
+    place-items: center;
+    flex: none;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #2a2e33;
+  }
+  .lv-tab[data-status='done'] .tab-st,
+  .lv-tab[data-status='run'] .tab-st {
+    display: inline-grid;
+  }
+  .st-ok,
+  .st-run {
+    display: none;
+    line-height: 0;
+  }
+  .st-ok {
+    color: var(--c-green);
+  }
+  .st-run {
+    color: var(--c-magenta);
+  }
+  [data-status='done'] .st-ok,
+  [data-status='run'] .st-run {
+    display: block;
+  }
+  .lv-new {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    color: #9a9ca2;
+  }
+  .lv-new .lv-btn {
+    color: inherit;
+  }
+  .lv-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+  }
+
+  /* ---------------- panes as cards ---------------- */
+  .lv-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    padding: 0 8px 8px;
+    height: clamp(500px, 48vw, 680px);
+  }
+  .pane {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 12px;
+    background: var(--pane-bg);
+    border: 1px solid var(--pane-line);
+    overflow: hidden;
+  }
+  .pane-a {
+    grid-row: 1 / span 2;
+  }
+  /* the focused pane's short accent bar at its top-left edge */
+  .pane::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 12px;
+    width: 26px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.25s var(--ease);
+  }
+  .pane.is-focused::before {
+    opacity: 1;
+  }
+  .pane-h {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    height: 36px;
+    flex: none;
+    padding: 0 40px;
+    font-size: 12px;
+    color: var(--sub);
+  }
+  .pane-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* ⋮ and × only while the header is hovered, as in the app */
+  .pane-tools {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .pane-tools .lv-btn {
+    width: 22px;
+    height: 22px;
+  }
+  .pane-h:hover .pane-tools {
+    opacity: 1;
+  }
+  .pane-info {
+    position: absolute;
+    right: 14px;
+    display: inline-flex;
+    color: var(--sub);
+  }
+  /* agent circle (the Uncaged mark) with the conversation status badge */
+  .agent-ic {
+    position: relative;
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+  .agent-circle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #181a20;
+    color: #c9cbd1;
+  }
+  .agent-badge {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: none;
+    place-items: center;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #15171c;
+  }
+  [data-status='done'] .agent-badge,
+  [data-status='run'] .agent-badge {
+    display: grid;
+  }
+
+  .pane-scroll {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--txt-hi);
+    mask-image: linear-gradient(180deg, transparent 0, #000 22px);
+  }
+
+  /* terminal blocks: a rule above each, then the one-line header (prompt ❯ command … duration),
+     then the output. Spacing is about two thirds of Warp's, as in 0.3.5. */
+  .blk {
+    flex: none;
+    padding: 8px 16px 10px;
+    border-top: 1px solid var(--inp-line);
+  }
+  /* the row wraps when the command doesn't fit beside the prompt: the prompt then sits above it */
+  .blk-h {
+    margin-bottom: 4px;
+  }
+  .blk-meta {
+    color: var(--sub);
+    word-break: break-all;
+  }
+  .blk-cmd {
+    color: var(--txt-hi);
+    font-weight: 700;
+  }
+  .blk-d {
+    margin-left: auto;
+    color: var(--sub);
+  }
+  .blk-out {
+    display: grid;
+  }
+  /* long lines soft-wrap at the pane edge, as a terminal does */
+  .blk-out > span {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .g {
+    color: var(--c-green);
+  }
+  b.g,
+  .blk-out b {
+    font-weight: 700;
+  }
+  .y {
+    color: var(--c-yellow);
+  }
+  .t {
+    color: var(--c-teal);
+  }
+
+  /* agent conversation */
+  .convo {
+    padding: 16px 18px 0;
+  }
+  .q {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) 16px;
+    column-gap: 10px;
+    align-items: start;
+  }
+  /* your turn: a prompt chevron in the accent, keeping the old avatar's slot */
+  .q-av {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: var(--accent);
+  }
+  .q-t {
+    font-weight: 700;
+    color: var(--txt);
+  }
+  .q-more {
+    display: grid;
+    place-items: center;
+    height: 19px;
+    color: var(--sub);
+  }
+  .a {
+    margin: 6px 26px 0 28px;
+    color: var(--txt);
+  }
+  .a code {
+    font: inherit;
+    color: var(--c-green);
+  }
+  .fb {
+    display: flex;
+    gap: 13px;
+    margin: 14px 0 4px 1px;
+    color: #82858b;
+  }
+  .hints {
+    flex: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 10px 18px 0;
+    font-size: 11px;
+    color: #92949a;
+    white-space: nowrap;
+  }
+  .hints kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    border-radius: 50%;
+    background: var(--ctl-line);
+    color: var(--txt-hi);
+    font: 600 9.5px/1 var(--sans);
+  }
+  .hints kbd:not(:first-child) {
+    margin-left: 6px;
+  }
+  .keys {
+    display: inline-flex;
+    gap: 2px;
+    margin-left: 6px;
+  }
+  .keys kbd {
+    margin: 0 !important;
+  }
+
+  /* input card */
+  .inp {
+    flex: none;
+    margin: 8px;
+    padding: 9px 10px 8px;
+    border-radius: 9px;
+    border: 1px solid var(--inp-line);
+    background: var(--inp-bg);
+  }
+  .inp-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .ic {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding: 0 6px;
+    border: 1px solid var(--ctl-line);
+    border-radius: 5px;
+    background: var(--ctl-bg);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--chip);
+  }
+  .ic .app-icon {
+    color: #9ecbc8;
+  }
+  .inp-line {
+    min-height: 19px;
+    margin: 9px 0 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--txt-hi);
+    white-space: nowrap;
+  }
+  .inp-line.ph {
+    color: var(--dim);
+  }
+  .caret {
+    display: inline-block;
+    width: 7px;
+    height: 14px;
+    margin-left: 1px;
+    vertical-align: -2px;
+    background: var(--grad-prompt);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  .pane:not(.is-focused) .caret {
+    visibility: hidden;
+  }
+  .inp-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+  }
+  .foot-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    min-width: 0;
+  }
+  /* outlined square buttons: autodetect (nld, grey when off), context usage, attach */
+  .foot-btn {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--ctl-line);
+    background: var(--ctl-bg);
+    color: #8a8c92;
+  }
+
+  /* the mode switch: one outlined group, two segments. The focused pane fills
+     the current mode's segment (terminal blue, agent yellow) and draws its icon
+     dark; an unfocused pane keeps only the current icon's colour. The script
+     only moves .is-focused between panes. */
+  .mode {
+    display: inline-flex;
+    gap: 2px;
+    flex: none;
+    padding: 1px;
+    border-radius: 6px;
+    border: 1px solid var(--ctl-line);
+    background: var(--ctl-bg);
+  }
+  .seg {
+    display: inline-grid;
+    place-items: center;
+    width: 19px;
+    height: 18px;
+    border-radius: 4px;
+    color: #6a6c72;
+    transition:
+      background-color 0.25s var(--ease),
+      color 0.25s var(--ease);
+  }
+  .mode[data-mode='terminal'] .seg-t {
+    color: var(--c-blue);
+  }
+  .mode[data-mode='agent'] .seg-a {
+    color: var(--c-yellow);
+  }
+  .is-focused .mode[data-mode='terminal'] .seg-t {
+    color: var(--inp-bg);
+    background: var(--c-blue);
+  }
+  .is-focused .mode[data-mode='agent'] .seg-a {
+    color: var(--inp-bg);
+    background: var(--c-yellow);
+  }
+  /* `model │ Level effort ⌄`: sans, one outlined box, chevron after the effort */
+  .model-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 6px 0 7px;
+    border-radius: 6px;
+    border: 1px solid var(--ctl-line);
+    background: var(--ctl-bg);
+    color: #96989e;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .mc-model {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.2s var(--ease);
+  }
+  .mc-model.is-swapping {
+    opacity: 0;
+  }
+  .mc-sep {
+    flex: none;
+    width: 1px;
+    height: 12px;
+    background: var(--ctl-line);
+  }
+  .mc-eff {
+    flex: none;
+  }
+  .model-chip .app-icon {
+    flex: none;
+    margin-left: 2px;
+  }
+
+  /* ---------------- live states driven by the script ---------------- */
+  .live .tk.is-hidden,
+  .live .fb.is-hidden {
+    visibility: hidden;
+  }
+
+  @media (max-width: 900px) {
+    .lv-body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto;
+      height: auto;
+    }
+    .pane-a {
+      grid-row: auto;
+      min-height: 340px;
+    }
+    .pane-c {
+      display: none;
+    }
+    .lv-tab-off,
+    .lv-launch,
+    .lv-inbox {
+      display: none;
+    }
+  }
+  @media (max-width: 480px) {
+    .lv-top {
+      gap: 8px;
+      padding: 0 10px;
+    }
+    .lv-tab {
+      padding: 0 10px;
+    }
+    .lv-right {
+      gap: 4px;
+    }
+    .pane-h {
+      padding: 0 34px;
+    }
+    .blk {
+      padding: 7px 12px 9px;
+    }
+    .convo {
+      padding: 16px 12px 0;
+    }
+    .hints {
+      margin: 10px 12px 0;
+      font-size: 10.5px;
+    }
+    .a {
+      margin-right: 0;
+    }
+    .inp-foot,
+    .foot-right {
+      gap: 4px;
+    }
+    .model-chip {
+      gap: 4px;
+      font-size: 10.5px;
+    }
+  }
+  @media (max-width: 400px) {
+    /* room for the model name: the context ring steps aside on the narrowest phones */
+    .foot-right > .foot-btn:first-child {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // Replays the scene: focus hops pane to pane and the tab title follows it, the
+  // terminal types, the local model streams its answer, then the active model is
+  // switched to Claude Code (every agent pane's chip changes, as the chip shows
+  // the engine's one active connection) and Claude Code streams its answer.
+  // Everything is already in the DOM (no-JS and reduced-motion see the finished frame).
+  const root = document.querySelector<HTMLElement>('.live');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (root) {
+    const panes = [...root.querySelectorAll<HTMLElement>('.pane')];
+    const tab = root.querySelector<HTMLElement>('.lv-tab.is-on');
+    const tabTitle = root.querySelector<HTMLElement>('[data-tab-title]');
+    const chips = [...root.querySelectorAll<HTMLElement>('[data-model]')];
+    const typed = root.querySelector<HTMLElement>('[data-type-a]');
+    const commands = ['cargo run --release', 'git push origin v0.3.5', 'uncaged --version'];
+    const models = { local: root.dataset.localModel ?? '', claude: root.dataset.claudeModel ?? '' };
+
+    // each agent pane's status: 'done' (green check) or 'run' (clock-loader)
+    const status = new Map<HTMLElement, string>();
+    panes.forEach((p) => p.hasAttribute('data-agent') && status.set(p, 'done'));
+    let focused = 0;
+
+    const paintTab = () => {
+      const p = panes[focused];
+      if (tabTitle) tabTitle.textContent = p.dataset.tab ?? '';
+      if (tab) tab.dataset.status = status.get(p) ?? '';
+    };
+    const setStatus = (p: HTMLElement, s: string) => {
+      status.set(p, s);
+      const h = p.querySelector<HTMLElement>('.pane-h-agent');
+      if (h) h.dataset.status = s;
+      if (panes[focused] === p) paintTab();
+    };
+    status.forEach((s, p) => setStatus(p, s));
+
+    const focus = (ix: number) => {
+      // the mode switches read focus from the pane's class (see the .mode rules)
+      focused = ix;
+      panes.forEach((p, i) => p.classList.toggle('is-focused', i === ix));
+      paintTab();
+    };
+    paintTab();
+
+    if (!reduce) {
+      let cmdIx = 0;
+      let visible = true;
+      const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+      // off-screen the loop parks on a promise the observer resolves: no timers while hidden
+      let wake: (() => void) | null = null;
+      const waitVisible = () => (visible ? Promise.resolve() : new Promise<void>((r) => (wake = r)));
+
+      new IntersectionObserver(
+        ([e]) => {
+          visible = e.isIntersecting;
+          if (visible && wake) {
+            wake();
+            wake = null;
+          }
+        },
+        { threshold: 0.1 }
+      ).observe(root);
+
+      // split each answer into word tokens once; streaming reveals them in place,
+      // so nothing reflows while the text arrives
+      const streams = new Map<HTMLElement, HTMLElement[]>();
+      panes.forEach((p) => {
+        const el = p.querySelector<HTMLElement>('[data-stream]');
+        if (!el) return;
+        const parts: string[] = [];
+        el.childNodes.forEach((n) => {
+          if (n.nodeType === 3) {
+            for (const w of (n.textContent ?? '').split(/(\s+)/)) {
+              if (!w) continue;
+              parts.push(/^\s+$/.test(w) ? w : `<span class="tk">${w.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</span>`);
+            }
+          } else parts.push(`<span class="tk">${(n as HTMLElement).outerHTML}</span>`);
+        });
+        el.innerHTML = parts.join('');
+        streams.set(p, [...el.querySelectorAll<HTMLElement>('.tk')]);
+      });
+
+      const setModel = async (name: string) => {
+        if (chips[0]?.textContent === name) return;
+        chips.forEach((c) => c.classList.add('is-swapping'));
+        await sleep(200);
+        chips.forEach((c) => {
+          c.textContent = name;
+          c.classList.remove('is-swapping');
+        });
+      };
+
+      const type = async (el: HTMLElement, text: string) => {
+        el.textContent = '';
+        for (const ch of text) {
+          el.textContent += ch;
+          await sleep(38 + Math.random() * 50);
+        }
+      };
+
+      const streamIn = async (p: HTMLElement) => {
+        const tokens = streams.get(p) ?? [];
+        const fb = p.querySelector<HTMLElement>('.fb');
+        setStatus(p, 'run');
+        fb?.classList.add('is-hidden');
+        tokens.forEach((t) => t.classList.add('is-hidden'));
+        await sleep(500);
+        for (const t of tokens) {
+          t.classList.remove('is-hidden');
+          await sleep(45 + Math.random() * 40);
+        }
+        fb?.classList.remove('is-hidden');
+        setStatus(p, 'done');
+      };
+
+      const loop = async () => {
+        await sleep(2200);
+        while (true) {
+          await waitVisible();
+          focus(0);
+          await setModel(models.local);
+          if (typed) await type(typed, commands[cmdIx++ % commands.length]);
+          await sleep(1600);
+          await waitVisible();
+          focus(1);
+          await streamIn(panes[1]);
+          await sleep(2400);
+          await waitVisible();
+          focus(2);
+          await sleep(500);
+          await setModel(models.claude);
+          await sleep(500);
+          await streamIn(panes[2]);
+          await sleep(3200);
+        }
+      };
+      loop();
+    }
+  }
+</script>

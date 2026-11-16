@@ -1,0 +1,1452 @@
+---
+import AppIcon from './AppIcon.astro';
+import SettingsWindow from './SettingsWindow.astro';
+
+/**
+ * 04 · themes. Hand-built recreations of Uncaged's Settings → Theme gallery
+ * and Settings → Theme creator, matched to the captures of the current app
+ * shots-in/v2/gallery-top.png, gallery.png and creator.png. The two picks swap
+ * which page is shown (a crossfade); without JS both are shown, stacked. On
+ * screen, it plays itself until the visitor touches it: a bar fills the active
+ * pick, the gallery picks a theme (the mini preview recolours), then the creator
+ * types a name. Reduced motion: no auto-play.
+ *
+ * Every theme value is from tag v0.3.3:
+ *   names                      app/src/themes/theme.rs:117-147 (Display)
+ *   background / text / accent app/src/themes/default_themes.rs (WarpTheme::new per theme)
+ *   ANSI blue / red            the same file's *_NORMAL_COLORS
+ *   background images          app/assets/async/jpg/thumbs/*  (copied to public/shots/themes/)
+ *   card preview               app/src/themes/theme.rs:665 render_preview (190x100 at 1.2x,
+ *                              "ls" / "dir   executable   file", outline rule, accent cursor,
+ *                              theme background at (100 - image opacity)% over the image)
+ *   card, filters, empty text  app/src/themes/theme_explorer_body.rs
+ *   creator fields + defaults  app/src/themes/theme_creator_body.rs:54-74, 1241-1490
+ * "Uncaged Midnight" is the custom theme in use on the captured install (a
+ * "Yours" theme, ~/.uncaged/themes/uncaged-midnight.yaml); it is the window
+ * colour of every recreation on this site. The community gallery is empty,
+ * so "Available" shows the app's own empty text.
+ */
+
+type Theme = {
+  name: string;
+  origin: 'System' | 'Yours';
+  /** theme background: a colour or the vertical gradient top → bottom */
+  bg: string;
+  fg: string;
+  /** accent (the preview cursor); a horizontal gradient for a few themes */
+  accent: string;
+  blue: string;
+  red: string;
+  /** bundled background image (thumbnail) and its opacity, 0-100 */
+  img?: string;
+  imgOpacity?: number;
+};
+
+const v = (top: string, bottom: string) => `linear-gradient(180deg, ${top}, ${bottom})`;
+const h = (left: string, right: string) => `linear-gradient(90deg, ${left}, ${right})`;
+// Normal blue / red of each ANSI set in default_themes.rs.
+const DARK_MODE = { blue: '#A5D5FE', red: '#FF8272' };
+const LIGHT_MODE = { blue: '#008EC4', red: '#C30771' };
+const DRACULA = { blue: '#BD93F9', red: '#FF5555' };
+const SOLARIZED = { blue: '#268BD2', red: '#DC322F' };
+const GRUVBOX = { blue: '#458588', red: '#CC241D' };
+
+// Sorted as the explorer sorts them: System before Yours, then by name.
+const THEMES: Theme[] = [
+  { name: 'Adeberry', origin: 'System', bg: '#1D2022', fg: '#E4EEF5', accent: '#6C96B4', blue: '#5785C7', red: '#C76156' },
+  // black blended with #00C2FF at 20%, down to black
+  { name: 'Cyber Wave', origin: 'System', bg: v('#002733', '#000000'), fg: '#FFFFFF', accent: h('#007972', '#7B008F'), ...DARK_MODE },
+  { name: 'Dark', origin: 'System', bg: '#000000', fg: '#FFFFFF', accent: '#19AAD8', ...DARK_MODE },
+  // #01181F blended with #1A363F / #1A4551 at 45%
+  { name: 'Dark City', origin: 'System', bg: v('#0C252D', '#0C2C36'), fg: '#FFFFFF', accent: '#E9072D', ...DARK_MODE, img: 'dark-city', imgOpacity: 20 },
+  { name: 'Dracula', origin: 'System', bg: '#282A36', fg: '#F8F8F2', accent: '#FF79C6', ...DRACULA },
+  { name: 'Fancy Dracula', origin: 'System', bg: v('#252630', '#3D3F4F'), fg: '#FFFFFF', accent: h('#BCA1F6', '#A3E7FC'), ...DRACULA },
+  { name: 'Gruvbox Dark', origin: 'System', bg: '#282828', fg: '#EBDBB2', accent: '#FC802D', ...GRUVBOX },
+  { name: 'Gruvbox Light', origin: 'System', bg: '#FBF1C7', fg: '#3C3836', accent: '#AD3B14', ...GRUVBOX },
+  { name: 'Jellyfish', origin: 'System', bg: '#1B1718', fg: '#FFFFFF', accent: '#538682', ...DARK_MODE, img: 'jellyfish', imgOpacity: 30 },
+  { name: 'Koi', origin: 'System', bg: '#211719', fg: '#FFFFFF', accent: '#FF3131', ...DARK_MODE, img: 'koi', imgOpacity: 30 },
+  { name: 'Leafy', origin: 'System', bg: '#000000', fg: '#FFFFFF', accent: '#55972D', ...DARK_MODE, img: 'leafy', imgOpacity: 30 },
+  { name: 'Light', origin: 'System', bg: '#FFFFFF', fg: '#111111', accent: '#00C2FF', ...LIGHT_MODE },
+  { name: 'Marble', origin: 'System', bg: '#E3E3E3', fg: '#000000', accent: '#585858', ...LIGHT_MODE, img: 'marble', imgOpacity: 50 },
+  { name: 'Midnight', origin: 'System', bg: v('#12151D', '#0B0D12'), fg: '#E8EBF2', accent: '#FF7A18', blue: '#6AA8FF', red: '#F06A78' },
+  { name: 'Phenomenon', origin: 'System', bg: '#121212', fg: '#FAF9F6', accent: '#2E5D9E', blue: '#3780E9', red: '#D22D1E', img: 'phenomenon', imgOpacity: 100 },
+  { name: 'Pink City', origin: 'System', bg: '#FBEFF6', fg: '#000000', accent: '#E10087', ...LIGHT_MODE, img: 'pink-city', imgOpacity: 40 },
+  // #211719 blended with #4C3435 / #0D3032 at 45%
+  { name: 'Red Rock', origin: 'System', bg: v('#342425', '#182224'), fg: '#FFFFFF', accent: '#9F4147', ...DARK_MODE, img: 'red-rock', imgOpacity: 30 },
+  { name: 'Snowy', origin: 'System', bg: v('#FFFFFF', '#DEE6EB'), fg: '#000000', accent: '#647E90', ...LIGHT_MODE, img: 'snowy', imgOpacity: 20 },
+  { name: 'Solar Flare', origin: 'System', bg: '#1B1C18', fg: '#DDE6EE', accent: '#34895C', blue: '#5C80B2', red: '#D66060', img: 'solarflare', imgOpacity: 20 },
+  { name: 'Solarized Dark', origin: 'System', bg: '#002B36', fg: '#F8F8F2', accent: '#CB4B16', ...SOLARIZED },
+  { name: 'Solarized Light', origin: 'System', bg: '#FDF6E3', fg: '#586E75', accent: '#66B5A9', ...SOLARIZED },
+  { name: 'Uncaged', origin: 'System', bg: v('#15110C', '#0C0A08'), fg: '#E9E1D4', accent: '#FF7A18', blue: '#74B4E0', red: '#FF6B5E' },
+  { name: 'Willow Dream', origin: 'System', bg: v('#206169', '#022F27'), fg: '#FFFFFF', accent: h('#F9AEA8', '#DD6258'), ...DARK_MODE },
+  { name: 'Uncaged Midnight', origin: 'Yours', bg: v('#12151d', '#0b0d12'), fg: '#e8ebf2', accent: '#ff7a18', blue: '#5aa6ff', red: '#ff5e10' },
+];
+const IN_USE = 'Uncaged Midnight';
+const FILTERS = ['All', 'System', 'Downloaded', 'Yours', 'Available'];
+
+const vars = (t: Theme) =>
+  [
+    `--t-bg:${t.bg}`,
+    `--t-fg:${t.fg}`,
+    `--t-ac:${t.accent}`,
+    `--t-bl:${t.blue}`,
+    `--t-rd:${t.red}`,
+    `--t-ov:${(100 - (t.img ? (t.imgOpacity ?? 0) : 0)) / 100}`,
+  ].join(';');
+const imgSrc = (t: Theme) => (t.img ? `/shots/themes/${t.img}.webp` : '');
+const inUse = THEMES.find((t) => t.name === IN_USE)!;
+
+// theme_creator_body.rs (uncaged-0.3) DEFAULTS — the editor opens on the Uncaged palette.
+const CARD_COLORS = [
+  { k: 'bg', l: 'Background', v: '#15110c' },
+  { k: 'fg', l: 'Text', v: '#e9e1d4' },
+  { k: 'ac', l: 'Accent', v: '#ff7a18' },
+  { k: 'cur', l: 'Cursor', v: '#ffb23a' },
+];
+type Pal = { bg: string; bg2: string; fg: string; dim: string; ac: string; cur: string; rule: string; n: string[]; b: string[] };
+const UNCAGED_PAL: Pal = {
+  bg: '#15110c', bg2: '#0c0a08', fg: '#e9e1d4', dim: '#88837b', ac: '#ff7a18', cur: '#ffb23a', rule: '#34312c',
+  n: ['#4a443b', '#ff6b5e', '#8fd46e', '#ffc24a', '#74b4e0', '#f090c0', '#5fc9be', '#e9e1d4'],
+  b: ['#6e655a', '#ff8a76', '#b2e38c', '#ffd46e', '#9bcbee', '#f7abd6', '#86ded0', '#fbf6ec'],
+};
+// "this is your current look": Uncaged Midnight, from ~/.uncaged/themes/uncaged-midnight.yaml
+// (dim text and the tab rule sampled from shots-in/v2/v3-fromimage.png)
+const MIDNIGHT_PAL: Pal = {
+  bg: '#12151d', bg2: '#0b0d12', fg: '#e8ebf2', dim: '#878a90', ac: '#ff7a18', cur: '#ff7a18', rule: '#34363d',
+  n: ['#171b24', '#ff5e10', '#4fd493', '#ffb23a', '#5aa6ff', '#b98cff', '#54d6c4', '#8b93a5'],
+  b: ['#5d6577', '#ff7a18', '#7fe9b4', '#ffd166', '#8cc2ff', '#d0b0ff', '#82e9db', '#e8ebf2'],
+};
+// render_preview(): tabs "~/uncaged" | "zsh", git status, ls, a warning, the normal and bright
+// colour chips, and the prompt with the cursor (theme_creator_body.rs:2660-2775)
+const preview = (p: Pal, live = false) => {
+  const pr = (cmd: string) => `<span style="color:var(--p4)">~/uncaged</span><span style="color:var(--p5)"> main</span><span style="color:var(--p2)"> ❯ </span>${cmd}`;
+  const chips = (cs: string[], first = false) => `<span class="pt-chips${first ? ' pt-c1' : ''}">${cs.map((c) => `<i style="background:${c}"></i>`).join('')}</span>`;
+  return `<span class="pt"${live ? ' data-tc-prev' : ''} style="--pbg:${p.bg};--pbg2:${p.bg2};--pfg:${p.fg};--pdim:${p.dim};--pac:${p.ac};--pcur:${p.cur};--prule:${p.rule};${p.n.map((c, i) => `--p${i}:${c}`).join(';')}">`
+    + `<span class="pt-tabs"><span class="pt-tab is-on">~/uncaged</span><span class="pt-tab">zsh</span></span>`
+    + `<span class="pt-l">${pr('git status')}</span>`
+    + `<span class="pt-l">On branch main</span>`
+    + `<span class="pt-l" style="color:var(--p1)">  modified:  src/theme.rs</span>`
+    + `<span class="pt-l" style="color:var(--p2)">  new file:  themes/ember.yaml</span>`
+    + `<span class="pt-l">${pr('ls')}</span>`
+    + `<span class="pt-l"><span style="color:var(--p4)">app  crates  </span><span style="color:var(--p2)">run.sh  </span>README.md</span>`
+    + `<span class="pt-l"><span style="color:var(--p3)">warning: </span>1 commit to push</span>`
+    + chips(p.n, true) + chips(p.b)
+    + `<span class="pt-l pt-cl">${pr('')}<i class="pt-cur"></i></span>`
+    + `</span>`;
+};
+const PREVIEW = preview(UNCAGED_PAL, true);
+const PREVIEW_CURRENT = preview(MIDNIGHT_PAL);
+
+const picks = [
+  {
+    id: 'explore',
+    label: 'Theme gallery',
+    body: 'Filter by All, System, Downloaded, Yours or Available. Every card is a live preview of the theme; <b class="kw">Use</b> applies it.',
+  },
+  {
+    id: 'create',
+    label: 'Theme creator',
+    body: 'Name it, set the background (a gradient or a picture), text, accent and cursor colours, and Dark or Light, with a live terminal preview beside it. All 16 terminal colours sit under Advanced. Or start <b>From image</b>: pick a picture and it pulls the palette out of it.',
+  },
+];
+---
+
+<section class="section themes" id="themes" aria-labelledby="themes-h">
+  <div class="container">
+    <span class="sec-tag"><b>04</b> themes</span>
+
+    <header class="t-head">
+      <h2 class="h2" id="themes-h">Make it<br /><span class="dim">yours</span><span class="ember">.</span></h2>
+      <p class="lede">
+        <strong>23 built-in themes</strong>, with Uncaged as the default. Pick one, or make your own and share it.
+      </p>
+    </header>
+
+    <div class="th" data-th>
+      <div class="th-picks">
+        {
+          picks.map((p) => (
+            <div class="th-pick" data-pick={p.id}>
+              <button type="button" class="th-btn" aria-controls={`th-shot-${p.id}`}>
+                {p.label}
+              </button>
+              <p class="th-body" set:html={p.body} />
+            </div>
+          ))
+        }
+        <p class="th-share">
+          <b class="kw">Share with the community</b> opens a pull request to the community gallery,
+          <a href="https://github.com/getuncaged/uncaged-themes" rel="noopener">getuncaged/uncaged-themes</a>. There
+          are no community themes in it yet, so <b>Available</b> is empty.
+        </p>
+
+        <!-- The theme in use, drawn the way the app draws its preview. -->
+        <figure class="mini" data-mini style={vars(inUse)} aria-label={`Preview of the theme in use: ${inUse.name}`}>
+          <div class="mini-win" aria-hidden="true">
+            <span class="mini-bar"><i></i><i></i><i></i></span>
+            <span class="tp mini-tp">
+              <img class="tp-img" data-mini-img src={imgSrc(inUse) || undefined} alt="" hidden={!inUse.img} />
+              <span class="tp-l1">ls</span>
+              <span class="tp-l2"><i class="b">{'dir\u00a0\u00a0\u00a0'}</i><i class="r">{'executable\u00a0\u00a0\u00a0'}</i><i>file</i></span>
+              <span class="tp-in"><i class="tp-cur"></i></span>
+            </span>
+          </div>
+          <figcaption class="mini-cap">In use: <b data-mini-name>{inUse.name}</b></figcaption>
+        </figure>
+      </div>
+
+      <div class="th-stage">
+        <!-- Settings → Theme gallery (shots-in/v2/gallery-top.png) -->
+        <div class="th-shot is-on" id="th-shot-explore" data-shot="explore">
+          <SettingsWindow page="Theme gallery" label="Theme gallery settings page, scrollable" class="tw">
+            <p class="sw-title tp-h">Theme gallery</p>
+            <p class="tp-sub">Explore themes</p>
+            <label class="tx-search">
+              <AppIcon name="find" size={12} />
+              <input type="text" data-q aria-label="Search themes" autocomplete="off" spellcheck="false" />
+            </label>
+            <div class="tx-filters" role="group" aria-label="Filter themes">
+              {
+                FILTERS.map((f, i) => (
+                  <button type="button" class="tbtn tbtn-s" data-filter={f} aria-pressed={i === 0 ? 'true' : 'false'}>
+                    {f}
+                  </button>
+                ))
+              }
+            </div>
+            <ul class="tx-grid" data-grid aria-label="Themes">
+              {
+                THEMES.map((t) => (
+                  <li data-origin={t.origin} data-name={t.name.toLowerCase()}>
+                    <button
+                      type="button"
+                      class={`tx-card${t.name === IN_USE ? ' is-on' : ''}`}
+                      data-theme={t.name}
+                      data-img={imgSrc(t)}
+                      style={vars(t)}
+                      aria-pressed={t.name === IN_USE ? 'true' : 'false'}
+                      aria-label={`${t.name}, ${t.origin}`}
+                    >
+                      <span class="tp" aria-hidden="true">
+                        {t.img && <img class="tp-img" src={imgSrc(t)} alt="" loading="lazy" decoding="async" width="380" height="200" />}
+                        <span class="tp-l1">ls</span>
+                        <span class="tp-l2"><i class="b">{'dir\u00a0\u00a0\u00a0'}</i><i class="r">{'executable\u00a0\u00a0\u00a0'}</i><i>file</i></span>
+                        <span class="tp-in">
+                          <i class="tp-cur" />
+                        </span>
+                      </span>
+                      <span class="tx-foot" aria-hidden="true">
+                        <span class="tx-name">{t.name}</span>
+                        <span class="tx-use">Use</span>
+                        <span class="tx-inuse">In use</span>
+                      </span>
+                      <span class="tx-origin" aria-hidden="true">{t.origin}</span>
+                    </button>
+                  </li>
+                ))
+              }
+            </ul>
+            <p class="tx-empty" data-empty hidden>No themes match that search.</p>
+          </SettingsWindow>
+        </div>
+
+        <!-- Settings → Theme creator, redesigned (shots-in/v2/v3-creator*.png, v3-fromimage.png;
+             app/src/themes/theme_creator_body.rs on uncaged-0.3): the Custom | From image switch, section
+             cards beside a live terminal preview, and Cancel · Save theme · Share with the community under
+             it. Below the app's two-column width it stacks: preview, controls, then the actions. -->
+        <div class="th-shot" id="th-shot-create" data-shot="create">
+          <SettingsWindow page="Theme creator" label="Theme creator settings page, scrollable" class="tw">
+            <p class="sw-title tp-h" aria-hidden="true">Theme creator</p>
+            <p class="tp-sub" aria-hidden="true">Create your own custom theme</p>
+            <div class="tc-seg" role="group" aria-label="Theme creator mode">
+              <button type="button" class="tc-sb" data-tcm-set="custom" aria-pressed="true">Custom</button>
+              <button type="button" class="tc-sb" data-tcm-set="image" aria-pressed="false">From image</button>
+            </div>
+
+            <div class="tc-wrap" data-tcm="custom">
+              <!-- ===== Custom ===== -->
+              <div class="tc tc-custom" aria-hidden="true">
+                <div class="tc-ctl">
+                  <div class="sw-card tc-card">
+                    <span class="tc-ct">Name</span>
+                    <span class="tc-field"><span class="tc-ph" data-tc-ph>Custom Theme</span><span data-tc-name></span><i class="tc-caret"></i></span>
+                  </div>
+                  <div class="sw-card tc-card">
+                    <span class="tc-ct">Colors</span>
+                    {
+                      CARD_COLORS.map((c) => (
+                        <span class="tc-row">
+                          <span class="tc-rl">{c.l}</span>
+                          <span class="tc-sw" style={`--c:${c.v}`} data-tc-sw={c.k} />
+                          <span class="tc-hex" data-tc-hex={c.k}>{c.v}</span>
+                        </span>
+                      ))
+                    }
+                  </div>
+                  <div class="sw-card tc-card">
+                    <span class="tc-ct">Background</span>
+                    <span class="tc-row">
+                      <span class="tc-rt"><span class="tc-rl">Gradient</span><span class="tc-rd">Fade the background from its color at the top to another at the bottom.</span></span>
+                      <span class="tc-tog"><i></i></span>
+                    </span>
+                    <span class="tc-row">
+                      <span class="tc-rl">Bottom color</span>
+                      <span class="tc-sw" style="--c:#0c0a08" />
+                      <span class="tc-hex">#0c0a08</span>
+                    </span>
+                    <span class="tc-row">
+                      <span class="tc-rl">Opacity</span>
+                      <span class="tc-slider" style="--v:1"><i></i></span>
+                      <span class="tc-val">100%</span>
+                    </span>
+                    <span class="tc-row">
+                      <span class="tc-rt"><span class="tc-rl">Image</span><span class="tc-rd">A picture behind the terminal, under the background color.</span></span>
+                      <span class="tbtn tbtn-s tc-btn">Add image…</span>
+                    </span>
+                  </div>
+                  <div class="sw-card tc-card">
+                    <span class="tc-ct">Window<span class="tc-cd">Applies to every window right away. Not saved with the theme.</span></span>
+                    <span class="tc-row">
+                      <span class="tc-rl">Opacity</span>
+                      <span class="tc-slider" style="--v:1"><i></i></span>
+                      <span class="tc-val">100%</span>
+                    </span>
+                    <span class="tc-row">
+                      <span class="tc-rl">Blur radius</span>
+                      <span class="tc-slider" style="--v:0.32"><i></i></span>
+                      <span class="tc-val">21</span>
+                    </span>
+                  </div>
+                  <div class="sw-card tc-card">
+                    <span class="tc-ct">Appearance</span>
+                    <span class="tc-row">
+                      <span class="tc-rt"><span class="tc-rl">Style</span><span class="tc-rd">Tunes the contrast of menus and panels for a dark or light background.</span></span>
+                      <span class="tc-mini-seg"><span class="is-on">Dark</span><span>Light</span></span>
+                    </span>
+                  </div>
+                  <div class="sw-card tc-card tc-adv">
+                    <span class="tc-rt"><span class="tc-ct">Advanced</span><span class="tc-rd">The 16 colors programs use in the terminal: errors, git status, ls, prompts.</span></span>
+                    <AppIcon name="chevron-right" size={14} />
+                  </div>
+                </div>
+                <div class="sw-card tc-prev">
+                  <span class="tc-ct">Preview<span class="tc-cd">Updates as you edit.</span></span>
+                  <Fragment set:html={PREVIEW} />
+                </div>
+                <div class="tc-actions">
+                  <span class="tbtn tbtn-s">Cancel</span>
+                  <span class="tbtn tbtn-s">Save theme</span>
+                  <span class="tbtn tbtn-a">Share with the community</span>
+                </div>
+              </div>
+
+              <!-- ===== From image: three numbered steps ===== -->
+              <div class="tc tc-image" aria-hidden="true">
+                <div class="tc-ctl">
+                  <div class="sw-card tc-card tc-step">
+                    <span class="tc-n">1</span>
+                    <span class="tc-rt">
+                      <span class="tc-ct">Choose an image</span>
+                      <span class="tc-rd">Uncaged pulls a background, text, accent and the 16 terminal colors out of the image. You can tweak every color afterwards.</span>
+                    </span>
+                    <span class="tc-row tc-step-row">
+                      <span class="tc-rl tc-dim">No image yet (.png or .jpg)</span>
+                      <span class="tbtn tbtn-s tc-btn"><AppIcon name="upload-01" size={12} />Choose image…</span>
+                    </span>
+                  </div>
+                  <div class="sw-card tc-card tc-step is-off">
+                    <span class="tc-n">2</span>
+                    <span class="tc-rt">
+                      <span class="tc-ct">Pick a background</span>
+                      <span class="tc-rd">Choose an image first. Its main colors show up here to pick from.</span>
+                    </span>
+                  </div>
+                  <div class="sw-card tc-card tc-step is-off">
+                    <span class="tc-n">3</span>
+                    <span class="tc-rt">
+                      <span class="tc-ct">Fine-tune</span>
+                      <span class="tc-rd">Once your image is read, name the theme or change any of its colors.</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="sw-card tc-prev">
+                  <span class="tc-ct">Preview<span class="tc-cd">Choose an image to see the theme it makes. Until then, this is your current look.</span></span>
+                  <Fragment set:html={PREVIEW_CURRENT} />
+                </div>
+                <div class="tc-actions">
+                  <span class="tbtn tbtn-s">Cancel</span>
+                  <span class="tbtn tbtn-s is-dis">Create theme</span>
+                </div>
+              </div>
+            </div>
+          </SettingsWindow>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .t-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 72px);
+    align-items: end;
+    margin-bottom: clamp(40px, 5vw, 72px);
+  }
+  .kw {
+    font: 700 0.86em/1 var(--mono);
+    color: var(--ink);
+    padding: 2px 6px;
+    border: 1px solid var(--bar);
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .th {
+    display: grid;
+    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+    gap: clamp(28px, 3vw, 48px);
+    align-items: start;
+  }
+  .th-picks {
+    display: grid;
+    gap: 8px;
+  }
+  .th-pick {
+    position: relative;
+    padding: 18px 0 18px 20px;
+    border-left: 2px solid var(--rule-strong);
+    transition: border-color 0.3s var(--ease);
+  }
+  /* auto-play: the active pick's rule fills while its page is on, like a timer */
+  .th-pick::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--ember);
+    transform: scaleY(0);
+    transform-origin: top;
+    pointer-events: none;
+  }
+  .th.is-auto .th-pick.is-on {
+    border-left-color: rgba(255, 122, 24, 0.28);
+  }
+  .th.is-auto .th-pick.is-timing::before {
+    animation: th-time var(--dur, 7s) linear forwards;
+  }
+  @keyframes th-time {
+    to {
+      transform: scaleY(1);
+    }
+  }
+  .th-btn {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    font: 800 clamp(15px, 1.15vw, 17px) / 1.2 var(--mono);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    cursor: default;
+  }
+  .th-body {
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ash);
+    text-wrap: pretty;
+  }
+  .th-body :global(b:not(.kw)),
+  .th-share b:not(.kw) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .th-share {
+    margin-top: 10px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule-strong);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .th-share a {
+    font: 600 0.92em var(--mono);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 3px;
+  }
+  .th-share a:hover {
+    text-decoration-color: var(--ember);
+  }
+
+  /* ---------------------------------------------- the theme preview
+     render_preview (theme.rs:665) at the card's 1.2 scale: 190x100 → 228x120,
+     8px mono → 9.6, margins 10 → 12, the theme background at
+     (100 - image opacity)% over the image, an outline rule (the theme's text
+     at ~10%) and a 2px accent cursor at the bottom left. */
+  .tp {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 190 / 100;
+    overflow: hidden;
+    border-radius: 6px;
+    padding: 12px 0;
+    font: 400 9.6px/1.25 var(--mono);
+    color: var(--t-fg);
+    isolation: isolate;
+    text-align: left;
+    container-type: inline-size;
+  }
+  .tp::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--t-bg);
+    opacity: var(--t-ov);
+  }
+  .tp-img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .tp-img[hidden] {
+    display: none;
+  }
+  .tp-l1,
+  .tp-l2 {
+    padding: 0 12px;
+    white-space: pre;
+  }
+  .tp-l2 {
+    padding-top: 6px;
+  }
+  /* narrow cards shrink the type so the line still fits, as the app's fixed
+     228px preview would */
+  .tx-card .tp-l1,
+  .tx-card .tp-l2 {
+    font-size: min(9.6px, 5cqw);
+  }
+  .tp i {
+    font-style: normal;
+  }
+  .tp .b {
+    color: var(--t-bl);
+  }
+  .tp .r {
+    color: var(--t-rd);
+  }
+  .tp-in {
+    margin-top: auto;
+    padding-top: 6px;
+    border-top: 1.2px solid color-mix(in srgb, var(--t-fg) 10%, transparent);
+  }
+  .tp-cur {
+    display: block;
+    width: 2.4px;
+    height: 14.4px;
+    margin-left: 12px;
+    background: var(--t-ac);
+  }
+
+  /* ---------------------------------------------- mini window */
+  .mini {
+    margin: 22px 0 0;
+  }
+  .mini-win {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--bar);
+    background: #17191f;
+    box-shadow: 0 30px 70px -36px rgba(0, 0, 0, 0.95);
+  }
+  .mini-bar {
+    display: flex;
+    gap: 5px;
+    padding: 8px 10px;
+  }
+  .mini-bar i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #55575d;
+  }
+  .mini-tp {
+    border-radius: 0;
+    font-size: 12px;
+    padding: 16px 0;
+    transition: color 0.4s var(--ease);
+  }
+  .mini-tp .tp-l1,
+  .mini-tp .tp-l2 {
+    padding: 0 16px;
+  }
+  .mini-tp .tp-l2 {
+    padding-top: 8px;
+  }
+  .mini-tp .tp-cur {
+    width: 2.5px;
+    height: 17px;
+    margin-left: 16px;
+  }
+  .mini-cap {
+    margin-top: 10px;
+    font: 500 13px/1.4 var(--mono);
+    color: var(--muted);
+  }
+  .mini-cap b {
+    color: var(--ink);
+  }
+
+  /* ---------------------------------------------- the settings pages
+     Sizes from theme_explorer_body.rs / theme_creator_body.rs; colours
+     measured from the captures. */
+  :global(.sw-win.tw) {
+    --sw-h: clamp(630px, 46vw, 680px);
+  }
+  .tp-h {
+    margin-bottom: 8px;
+  }
+  .tp-sub {
+    margin: -6px 0 12px;
+    font-size: 12.5px;
+    color: var(--sw-dim);
+  }
+  .tx-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    color: var(--sw-text);
+  }
+  .tx-search input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 0;
+    border: 0;
+    background: none;
+    font: 400 13px var(--sans);
+    color: var(--sw-text);
+  }
+  .tx-search input:focus-visible {
+    outline: none;
+    box-shadow: 0 1px 0 var(--ember);
+  }
+  .tx-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  /* ButtonVariant::Accent / ::Secondary */
+  .tbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 9px;
+    border-radius: 5px;
+    border: 1px solid #2a2c32;
+    background: transparent;
+    font: 400 12px/1.2 var(--sans);
+    color: var(--sw-text);
+    white-space: nowrap;
+  }
+  .tbtn-a {
+    border-color: var(--ember);
+    background: var(--ember);
+    color: var(--sw-on-accent);
+  }
+  button.tbtn {
+    cursor: pointer;
+  }
+  .tx-filters .tbtn[aria-pressed='true'] {
+    border-color: var(--ember);
+    background: var(--ember);
+    color: var(--sw-on-accent);
+  }
+  .tx-filters .tbtn[aria-pressed='false']:hover {
+    background: rgba(232, 235, 242, 0.05);
+  }
+  .tbtn:focus-visible,
+  .tx-card:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 2px;
+  }
+  .tx-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    /* never one lonely column: 2 up in a narrow page (961-1060px windows), 3 when there's room */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+    gap: 12px;
+  }
+  .tx-grid > li[hidden] {
+    display: none;
+  }
+  .tx-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    background: #24262c;
+    border: 1px solid #37393f;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease);
+  }
+  .tx-card:hover:not(.is-on) {
+    border-color: #4a4c52;
+  }
+  .tx-card.is-on {
+    border: 2px solid var(--ember);
+    padding: 9px;
+    cursor: default;
+  }
+  .tx-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    min-width: 0;
+  }
+  .tx-name {
+    min-width: 0;
+    font: 400 13px/1.3 var(--sans);
+    color: #d5d7dd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tx-use {
+    flex: none;
+    font: 400 11px/1 var(--sans);
+    color: var(--ember);
+  }
+  .tx-inuse {
+    flex: none;
+    display: none;
+    padding: 4px 10px;
+    border-radius: 10px;
+    background: #37393f;
+    font: 400 11px/1 var(--sans);
+    color: #e8ebf1;
+  }
+  .tx-card.is-on .tx-use {
+    display: none;
+  }
+  .tx-card.is-on .tx-inuse {
+    display: inline-block;
+  }
+  .tx-origin {
+    margin-top: 2px;
+    font: 400 10px/1.3 var(--sans);
+    color: #73757b;
+  }
+  .tx-empty {
+    margin: 20px 0 0;
+    font: 400 13px/1.4 var(--sans);
+    color: #686a71;
+  }
+  .tx-empty[hidden] {
+    display: none;
+  }
+
+  /* ---------------- creator (theme_creator_body.rs, uncaged-0.3) ---------------- */
+  /* the page is wider than other Settings pages: the app fills up to 1080px, so the gallery runs 4 up
+     and the creator has room for its two columns */
+  :global(.sw-win.tw .sw-main > .sw-page) {
+    max-width: 880px;
+  }
+  /* Custom | From image: one grey group, the chosen segment raised */
+  .tc-seg {
+    display: inline-flex;
+    gap: 2px;
+    margin-bottom: 12px;
+    padding: 2px;
+    border-radius: 6px;
+    background: #1f2127;
+    border: 1px solid #2a2c32;
+  }
+  .tc-sb {
+    padding: 5px 11px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    font: 400 12px/1.2 var(--sans);
+    color: #93959b;
+    cursor: pointer;
+  }
+  .tc-sb[aria-pressed='true'] {
+    background: #34363c;
+    color: #e2e4ea;
+    font-weight: 600;
+  }
+  .tc-sb:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 1px;
+  }
+  .tc-wrap {
+    container-type: inline-size;
+  }
+  .tc-wrap[data-tcm='custom'] .tc-image,
+  .tc-wrap[data-tcm='image'] .tc-custom {
+    display: none;
+  }
+  /* stacked (narrow): preview, controls, then the actions at the bottom */
+  .tc {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'prev' 'ctl' 'act';
+  }
+  /* wide: the section cards beside the preview, the actions right under the preview */
+  @container (min-width: 600px) {
+    .tc {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.86fr);
+      grid-template-rows: auto auto 1fr;
+      grid-template-areas: 'ctl prev' 'ctl act' 'ctl .';
+      align-items: start;
+    }
+  }
+  .tc-ctl {
+    grid-area: ctl;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+  }
+  .tc-prev {
+    grid-area: prev;
+    min-width: 0;
+  }
+  .tc-actions {
+    grid-area: act;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .tc .sw-card,
+  .tc-card {
+    margin: 0;
+  }
+  .tc-ct {
+    display: block;
+    font: 600 13px/1.3 var(--sans);
+    color: #e2e4ea;
+  }
+  .tc-cd,
+  .tc-rd {
+    display: block;
+    font: 400 11px/1.35 var(--sans);
+    color: var(--sw-dim);
+  }
+  .tc-cd {
+    margin-top: 2px;
+    font-weight: 400;
+  }
+  .tc-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    min-width: 0;
+  }
+  .tc-rl {
+    flex: 1 1 auto;
+    min-width: 0;
+    font: 400 12.5px/1.3 var(--sans);
+    color: var(--sw-text);
+  }
+  .tc-rt {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .tc-dim {
+    color: var(--sw-dim);
+  }
+  .tc-field {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    margin-top: 9px;
+    padding: 0 9px;
+    border: 1px solid #2a2c32;
+    border-radius: 5px;
+    font: 400 12px/1 var(--mono);
+    color: var(--sw-text);
+  }
+  .tc-ph {
+    color: #5d5f65;
+  }
+  .tc-ph[hidden] {
+    display: none;
+  }
+  /* shown only while the demo types a name */
+  .tc-caret {
+    display: none;
+    width: 1.5px;
+    height: 14px;
+    margin-left: 1px;
+    background: var(--sw-text);
+    animation: blink 1s steps(1) infinite;
+  }
+  .tc-field.is-typing {
+    border-color: var(--ember);
+  }
+  .tc-field.is-typing .tc-caret {
+    display: block;
+  }
+  .tc-sw {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: var(--c);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    transition: background 0.35s var(--ease);
+  }
+  .tc-hex {
+    flex: none;
+    width: 78px;
+    padding: 5px 7px;
+    border: 1px solid #2a2c32;
+    border-radius: 5px;
+    font: 400 11.5px/1.2 var(--mono);
+    color: var(--sw-text);
+  }
+  .tc-hex.is-edit {
+    border-color: var(--ember);
+  }
+  .tc-tog {
+    flex: none;
+    position: relative;
+    width: 30px;
+    height: 17px;
+    border-radius: 999px;
+    background: var(--ember);
+  }
+  .tc-tog i {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .tc-slider {
+    position: relative;
+    flex: none;
+    width: 96px;
+    height: 14px;
+  }
+  .tc-slider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 6px;
+    height: 2.5px;
+    border-radius: 2px;
+    background: #9a9ca2;
+  }
+  .tc-slider i {
+    position: absolute;
+    top: 0;
+    left: calc(var(--v) * (100% - 14px));
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .tc-val {
+    flex: none;
+    width: 32px;
+    text-align: right;
+    font: 400 11.5px/1 var(--sans);
+    color: var(--sw-dim);
+  }
+  .tc-btn {
+    flex: none;
+    gap: 5px;
+    font-weight: 600;
+  }
+  .tc-mini-seg {
+    flex: none;
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: 5px;
+    background: #1f2127;
+    border: 1px solid #2a2c32;
+    font: 400 11.5px/1 var(--sans);
+    color: #93959b;
+  }
+  .tc-mini-seg span {
+    padding: 4px 9px;
+    border-radius: 3px;
+  }
+  .tc-mini-seg .is-on {
+    background: #34363c;
+    color: #e2e4ea;
+    font-weight: 600;
+  }
+  .tc-adv {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--sw-dim);
+  }
+  .tc-actions .tbtn {
+    font-weight: 600;
+    font-size: 11px;
+    padding: 7px 8px;
+  }
+  .tbtn.is-dis {
+    border-color: #2a2c32;
+    background: #2a2c32;
+    color: #6a6c72;
+  }
+  /* From image: numbered steps; steps 2 and 3 wait for an image */
+  .tc-step {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: start;
+  }
+  .tc-step-row {
+    grid-column: 1 / -1;
+  }
+  .tc-n {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #2c2e34;
+    font: 600 10px/1 var(--sans);
+    color: #c9cbd0;
+  }
+  .tc-step.is-off {
+    opacity: 0.55;
+  }
+
+  /* the live preview: a small terminal painted in the theme being edited */
+  .tc-prev :global(.pt) {
+    display: block;
+    margin-top: 10px;
+    padding: 6px 10px 9px;
+    border: 1px solid #2a2c32;
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--pbg), var(--pbg2));
+    font: 400 10.5px/1.5 var(--mono);
+    color: var(--pfg);
+    overflow: hidden;
+  }
+  .tc-prev :global(.pt-tabs) {
+    display: flex;
+    margin-bottom: 7px;
+    border-bottom: 1px solid var(--prule);
+  }
+  .tc-prev :global(.pt-tab) {
+    padding: 0 8px 4px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: var(--pdim);
+  }
+  .tc-prev :global(.pt-tab.is-on) {
+    color: var(--pfg);
+    border-bottom-color: var(--pac);
+    transition: border-color 0.35s var(--ease);
+  }
+  .tc-prev :global(.pt-l) {
+    display: block;
+    white-space: pre;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+  .tc-prev :global(.pt-chips) {
+    display: flex;
+    gap: 3px;
+    margin-top: 3px;
+  }
+  .tc-prev :global(.pt-c1) {
+    margin-top: 6px;
+  }
+  .tc-prev :global(.pt-chips i) {
+    flex: 1;
+    height: 8px;
+    border-radius: 2px;
+  }
+  .tc-prev :global(.pt-cl) {
+    margin-top: 6px;
+  }
+  .tc-prev :global(.pt-cur) {
+    display: inline-block;
+    width: 6px;
+    height: 12px;
+    vertical-align: -2px;
+    background: var(--pcur);
+  }
+
+  /* No JS: both pages, one under the other. */
+  .th-stage {
+    display: grid;
+    gap: 32px;
+    min-width: 0;
+  }
+
+  /* With JS: the picks are buttons, the pages share one cell and crossfade. */
+  .th.is-js .th-btn {
+    cursor: pointer;
+  }
+  .th.is-js .th-btn:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 6px;
+    border-radius: 2px;
+  }
+  .th.is-js .th-pick:not(.is-on) .th-btn {
+    color: var(--ash);
+  }
+  .th.is-js .th-pick:not(.is-on) .th-btn:hover {
+    color: var(--ink);
+  }
+  .th.is-js .th-pick:not(.is-on) .th-body {
+    color: var(--muted);
+  }
+  .th.is-js .th-pick.is-on {
+    border-left-color: var(--ember);
+  }
+  .th.is-js .th-stage {
+    gap: 0;
+  }
+  .th.is-js .th-shot {
+    grid-area: 1 / 1;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(14px) scale(0.985);
+    transition:
+      opacity 0.45s var(--ease),
+      transform 0.6s var(--ease),
+      visibility 0s linear 0.6s;
+  }
+  .th.is-js .th-shot.is-on {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 0.55s var(--ease) 0.08s,
+      transform 0.7s var(--ease) 0.08s,
+      visibility 0s;
+  }
+  /* the card the demo "clicks" */
+  .tx-card.is-tap {
+    animation: tx-tap 0.5s var(--ease);
+  }
+  @keyframes tx-tap {
+    40% {
+      transform: scale(0.96);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .th-pick,
+    .th.is-js .th-shot,
+    .th.is-js .th-shot.is-on,
+    .tx-card.is-tap,
+    .mini-tp,
+    .tx-card {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .t-head,
+    .th {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .t-head {
+      align-items: start;
+    }
+    /* picks, then the page right under them, then the share note and the mini window */
+    .th {
+      gap: 8px;
+    }
+    .th-picks {
+      display: contents;
+    }
+    .th-stage {
+      order: 1;
+      margin-top: 16px;
+    }
+    .th-share {
+      order: 2;
+    }
+    .mini {
+      order: 3;
+      max-width: 360px;
+    }
+    .th-pick {
+      padding: 12px 0 12px 16px;
+    }
+    /* only the shown page's description, so the picks stay close to it */
+    .th.is-js .th-pick:not(.is-on) .th-body {
+      display: none;
+    }
+  }
+  @media (max-width: 760px) {
+    :global(.sw-win.tw) {
+      --sw-h-m: 600px;
+    }
+    .tx-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .tx-card {
+      padding: 8px;
+    }
+    .tx-card.is-on {
+      padding: 7px;
+    }
+  }
+</style>
+
+<script>
+  for (const root of document.querySelectorAll<HTMLElement>('[data-th]')) {
+    const picks = [...root.querySelectorAll<HTMLElement>('[data-pick]')];
+    const shots = [...root.querySelectorAll<HTMLElement>('[data-shot]')];
+    const show = (id: string) => {
+      for (const p of picks) {
+        const on = p.dataset.pick === id;
+        p.classList.toggle('is-on', on);
+        p.querySelector('button')?.setAttribute('aria-pressed', String(on));
+      }
+      for (const s of shots) s.classList.toggle('is-on', s.dataset.shot === id);
+    };
+    show(picks[0].dataset.pick!);
+    root.classList.add('is-js');
+
+    // Explore themes: search + filters (theme_explorer_body.rs), and Use.
+    const items = [...root.querySelectorAll<HTMLElement>('[data-grid] > li')];
+    const filters = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const q = root.querySelector<HTMLInputElement>('[data-q]');
+    const empty = root.querySelector<HTMLElement>('[data-empty]');
+    let filter = 'All';
+    const EMPTY: Record<string, string> = {
+      Available:
+        'You already have every theme in the community gallery. Make one in Theme creator and share it with the community.',
+      Downloaded: 'Nothing downloaded yet. Themes you get from the community gallery show up here.',
+      Yours: "You haven't made a theme yet. Theme creator is where to start.",
+    };
+    const accepts = (origin: string) =>
+      filter === 'All' || (filter === 'System' && origin === 'System') || (filter === 'Yours' && origin === 'Yours');
+    const apply = () => {
+      const query = (q?.value ?? '').trim().toLowerCase();
+      let shown = 0;
+      for (const li of items) {
+        const ok = accepts(li.dataset.origin!) && (!query || li.dataset.name!.includes(query));
+        li.hidden = !ok;
+        if (ok) shown++;
+      }
+      if (empty) {
+        empty.hidden = shown > 0;
+        // an empty tab with no search says what the tab is for (theme_explorer_body.rs, uncaged-0.3)
+        empty.textContent = query ? 'No themes match that search.' : EMPTY[filter] ?? 'No themes to show.';
+      }
+    };
+    for (const f of filters) {
+      f.addEventListener('click', () => {
+        filter = f.dataset.filter!;
+        for (const g of filters) g.setAttribute('aria-pressed', String(g === f));
+        apply();
+      });
+    }
+    q?.addEventListener('input', apply);
+
+    const mini = root.querySelector<HTMLElement>('[data-mini]');
+    const miniImg = root.querySelector<HTMLImageElement>('[data-mini-img]');
+    const miniName = root.querySelector<HTMLElement>('[data-mini-name]');
+    const cards = [...root.querySelectorAll<HTMLButtonElement>('[data-theme]')];
+    for (const card of cards) {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('is-on')) return;
+        for (const c of cards) {
+          const on = c === card;
+          c.classList.toggle('is-on', on);
+          c.setAttribute('aria-pressed', String(on));
+        }
+        if (mini) {
+          for (const k of ['--t-bg', '--t-fg', '--t-ac', '--t-bl', '--t-rd', '--t-ov']) {
+            mini.style.setProperty(k, card.style.getPropertyValue(k));
+          }
+          mini.setAttribute('aria-label', `Preview of the theme in use: ${card.dataset.theme}`);
+        }
+        if (miniImg) {
+          const src = card.dataset.img;
+          miniImg.hidden = !src;
+          if (src) miniImg.src = src;
+          else miniImg.removeAttribute('src');
+        }
+        if (miniName) miniName.textContent = card.dataset.theme!;
+      });
+    }
+
+    // ---- auto-play, until the visitor touches anything (same rules as the Modes section) ----
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const field = root.querySelector<HTMLElement>('.tc-field');
+    const nameEl = root.querySelector<HTMLElement>('[data-tc-name]');
+    const phEl = root.querySelector<HTMLElement>('[data-tc-ph]');
+    const setName = (t: string) => {
+      if (nameEl) nameEl.textContent = t;
+      if (phEl) phEl.hidden = !!t; // the field's placeholder: an empty name saves as "Custom Theme"
+    };
+    // Custom | From image
+    const wrap = root.querySelector<HTMLElement>('[data-tcm]');
+    const modeBtns = [...root.querySelectorAll<HTMLButtonElement>('[data-tcm-set]')];
+    const setCreatorMode = (m: string) => {
+      if (wrap) wrap.dataset.tcm = m;
+      for (const b of modeBtns) b.setAttribute('aria-pressed', String(b.dataset.tcmSet === m));
+    };
+    for (const b of modeBtns) b.addEventListener('click', () => setCreatorMode(b.dataset.tcmSet!));
+    // the accent the demo edits: its swatch, its hex field and the preview's tab underline
+    const acSw = root.querySelector<HTMLElement>('[data-tc-sw="ac"]');
+    const acHex = root.querySelector<HTMLElement>('[data-tc-hex="ac"]');
+    const prev = root.querySelector<HTMLElement>('[data-tc-prev]');
+    const setAccent = (hex: string) => {
+      acSw?.style.setProperty('--c', hex);
+      if (acHex) acHex.textContent = hex;
+      prev?.style.setProperty('--pac', hex);
+    };
+    const STOCK_ACCENT = '#ff7a18';
+    const DEMO_ACCENTS = ['#6aa8ff', '#7bd88f', '#ff6ac1'];
+    const DEMO_CARDS = ['Dark City', 'Dracula', 'Cyber Wave', 'Gruvbox Light'];
+    const DEMO_NAMES = ['Ember Night', 'Harbor Fog', 'Copper Moss'];
+    const T = { explore: 7600, create: 7200 };
+    let auto = !reduce;
+    let inView = false;
+    let started = false;
+    let wake: (() => void) | null = null;
+    let round = 0;
+    let typing = ''; // the name being typed, finished at once if the visitor stops the demo
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const waitView = () => (inView ? Promise.resolve() : new Promise<void>((r) => (wake = r)));
+
+    const time = (id: string, ms: number) => {
+      for (const p of picks) {
+        p.classList.remove('is-timing');
+        if (p.dataset.pick === id) {
+          p.style.setProperty('--dur', `${ms}ms`);
+          void p.offsetWidth;
+          p.classList.add('is-timing');
+        }
+      }
+    };
+    const stopAuto = () => {
+      if (!auto) return;
+      auto = false;
+      root.classList.remove('is-auto');
+      for (const p of picks) p.classList.remove('is-timing');
+      field?.classList.remove('is-typing');
+      acHex?.classList.remove('is-edit');
+      if (typing) setName(typing);
+    };
+
+    const loop = async () => {
+      root.classList.add('is-auto');
+      while (auto) {
+        // the gallery: wait, then pick a theme so the preview recolours
+        show('explore');
+        time('explore', T.explore);
+        await sleep(2600);
+        if (!auto) return;
+        const card = cards.find((c) => c.dataset.theme === DEMO_CARDS[round % DEMO_CARDS.length]);
+        if (card) {
+          card.classList.remove('is-tap');
+          void card.offsetWidth;
+          card.classList.add('is-tap');
+          card.click();
+        }
+        await sleep(T.explore - 2600);
+        if (!auto) return;
+        await waitView();
+        if (!auto) return;
+        // the creator: type a name, then change the accent and watch the preview follow
+        setCreatorMode('custom');
+        setName('');
+        setAccent(STOCK_ACCENT);
+        show('create');
+        time('create', T.create);
+        if (nameEl && field) {
+          typing = DEMO_NAMES[round % DEMO_NAMES.length];
+          await sleep(900);
+          if (!auto) return;
+          field.classList.add('is-typing');
+          let typed = '';
+          for (const ch of typing) {
+            if (!auto) return;
+            typed += ch;
+            setName(typed);
+            await sleep(70 + Math.random() * 60);
+          }
+          typing = '';
+          field.classList.remove('is-typing');
+          await sleep(700);
+          if (!auto) return;
+          acHex?.classList.add('is-edit');
+          setAccent(DEMO_ACCENTS[round % DEMO_ACCENTS.length]);
+          await sleep(900);
+          acHex?.classList.remove('is-edit');
+          await sleep(Math.max(0, T.create - 900 - 1300 - 700 - 900));
+        } else {
+          await sleep(T.create);
+        }
+        if (!auto) return;
+        await waitView();
+        round++;
+      }
+    };
+
+    for (const p of picks) {
+      p.querySelector('button')?.addEventListener('click', () => {
+        stopAuto();
+        show(p.dataset.pick!);
+      });
+    }
+    // any touch or keyboard focus anywhere in the section (picks, pages, preview) hands over control
+    const stage = root.querySelector<HTMLElement>('.th-stage');
+    root.addEventListener('pointerdown', stopAuto);
+    root.addEventListener('focusin', stopAuto);
+
+    if (auto && stage) {
+      new IntersectionObserver(
+        ([e]) => {
+          inView = e.isIntersecting;
+          if (inView && wake) {
+            wake();
+            wake = null;
+          }
+          if (inView && !started) {
+            started = true;
+            loop();
+          }
+        },
+        { threshold: 0.4 },
+      ).observe(stage);
+    }
+  }
+</script>

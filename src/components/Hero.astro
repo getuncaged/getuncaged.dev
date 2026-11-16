@@ -1,183 +1,377 @@
 ---
+import LiveApp from './LiveApp.astro';
 import { SITE } from '../data/site';
 ---
 
-<section class="hero" id="top">
-  <div class="sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <div class="container hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow">a fork of the open-source warp terminal</p>
-      <h1 class="hero-h">
-        Your terminal.<br />Your models.<br /><span class="h-flame">Uncaged.</span><span class="cursor-blink" aria-hidden="true"></span>
-      </h1>
-      <p class="hero-sub">
-        Uncaged is the open-source Warp terminal with the cloud cut out — the same agentic
-        terminal, running entirely on your machine. Bring any model: a local runtime, an API key,
-        or the CLI plan you already pay for. Your keys never leave your device.
-      </p>
-      <div class="hero-ctas">
-        <button class="install-cmd" type="button" data-install-copy aria-label="Copy the install command">
-          <code><span class="hi-prompt">$</span><span data-install-cmd>curl -fsSL https://getuncaged.dev/install.sh | bash</span></code>
-          <span class="hi-copy" data-copy-label>copy</span>
-        </button>
-        <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">View source</a>
-      </div>
-      <p class="hero-meta">
-        free forever · AGPL-3.0 · <a href="#download">macOS · Linux · Windows</a>
-      </p>
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <!-- the cage: bars that open once, on first paint -->
+  <div class="cage" aria-hidden="true">
+    {Array.from({ length: 13 }).map((_, i) => <i style={`--i:${i}`}></i>)}
+  </div>
+  <div class="hero-grid" aria-hidden="true"></div>
+
+  <div class="container hero-inner">
+    <div class="hero-meta" aria-hidden="true">
+      <span>[00] uncaged</span>
+      <span class="hm-mid">v{SITE.version} · AGPL-3.0 · macOS · Linux · Windows</span>
+      <span>free forever</span>
     </div>
 
-    <!--
-      A real screenshot, not a mockup. This used to be a CSS-drawn terminal
-      showing an invented failing test — the least credible thing to put on a
-      page whose whole pitch is "check this rather than trust it". This is the
-      actual app, running the Uncaged Midnight theme, showing Uncaged's own
-      release history.
-    -->
-    <div class="hero-visual">
-      <figure class="hero-shot">
-        <img
-          src="/shots/terminal.png"
-          alt="Uncaged running a git log graph of its own release history, in the Uncaged Midnight theme"
-          width="1600"
-          height="1040"
-          fetchpriority="high"
-          decoding="async"
-        />
-      </figure>
+    <h1 class="mega hero-h" id="hero-h">
+      <span class="hl hl-1">The <br class="m-br" />terminal</span>
+      <span class="hl hl-2">you <span class="flame-text">own.</span></span>
+    </h1>
+
+    <div class="hero-row">
+      <p class="hero-beats" aria-label="No account. No cloud. No cage.">
+        <span>No account.</span>
+        <span>No cloud.</span>
+        <span class="beat-hot">No cage.</span>
+      </p>
+
+      <div class="hero-act">
+        <p class="lede">
+          Warp's open-source agentic terminal with the cloud cut out. <strong>Split it, hand it to an agent, and
+          power that agent with any model</strong>: on your GPU, on the CLI plan you already pay for, or on any API key.
+        </p>
+        <div class="hero-ctas">
+          <button class="install-cmd" type="button" data-install-copy aria-label="Copy the install command">
+            <code><span class="hi-prompt">❯</span><span data-install-cmd>curl -fsSL https://getuncaged.dev/install.sh | bash</span></code>
+            <span class="hi-copy" data-copy-label>copy</span>
+          </button>
+          <a class="btn btn-primary" href="#install">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path></svg>
+            Download
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="container hero-stage">
+    <div class="stage-tilt">
+      <LiveApp />
+    </div>
+    <ul class="stage-notes" aria-label="What the window above is showing">
+      <li><b>01</b> Split panes, each its own card</li>
+      <li><b>02</b> A local model on LM Studio, no key</li>
+      <li><b>03</b> One switch to Claude Code, on your own login</li>
+    </ul>
   </div>
 </section>
 
 <style>
   .hero {
     position: relative;
-    padding-top: clamp(128px, 9vw + 40px, 168px);
-    padding-bottom: clamp(72px, 7vw, 96px);
-    overflow: clip;
+    padding-top: clamp(84px, 10vh, 112px);
+    padding-bottom: clamp(72px, 9vw, 140px);
+    overflow: hidden;
+    isolation: isolate;
   }
 
-  /* the one ember in the room, breathing slowly */
-  .hero::before {
-    content: '';
-    position: absolute;
-    inset: -12% -8% 0;
-    pointer-events: none;
-    background: radial-gradient(44% 38% at 64% 24%, rgba(255, 122, 24, 0.11), transparent 64%);
-    animation: breathe 13s ease-in-out infinite alternate;
-    z-index: 0;
-  }
-
-  /* fine workbench grid, fading in around the terminal */
-  .hero::after {
-    content: '';
+  /* exposed grid behind the headline — the scaffold */
+  .hero-grid {
     position: absolute;
     inset: 0;
-    pointer-events: none;
-    background-image: radial-gradient(rgba(230, 235, 245, 0.07) 1px, transparent 1.3px);
-    background-size: 27px 27px;
-    -webkit-mask-image: radial-gradient(56% 64% at 66% 40%, #000 20%, transparent 74%);
-    mask-image: radial-gradient(56% 64% at 66% 40%, #000 20%, transparent 74%);
-    z-index: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(var(--rule) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+    background-size: 96px 96px;
+    background-position: center -1px;
+    mask-image: radial-gradient(120% 70% at 50% 18%, #000 30%, transparent 75%);
+    opacity: 0.6;
   }
 
-  .hero-grid {
+  /* ---------------- the cage opening ---------------- */
+  .cage {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
     display: grid;
-    grid-template-columns: minmax(0, 30fr) minmax(0, 34fr);
-    gap: 64px;
-    align-items: center;
+    grid-template-columns: repeat(13, minmax(0, 1fr));
+    pointer-events: none;
   }
-
-  /* The hero screenshot: a hairline card with a deep shadow — the same frame
-     vocabulary used everywhere a real screenshot appears on this site. */
-  .hero-shot {
-    margin: 0;
-    border: 1px solid var(--bar);
-    border-radius: var(--radius-l);
-    overflow: hidden;
-    background: #10141c;
-    box-shadow: 0 32px 80px -28px rgba(0, 0, 0, 0.9);
-  }
-
-  .hero-shot img {
+  .cage i {
+    position: relative;
     display: block;
-    width: 100%;
-    height: auto;
+  }
+  .cage i::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: clamp(10px, 1.1vw, 18px);
+    transform: translateX(-50%);
+    border-radius: 2px;
+    /* forged steel, with a hot ember cap on the edge that leads the way out */
+    background:
+      linear-gradient(180deg, var(--ember) 0 3px, transparent 3px),
+      linear-gradient(90deg, #1a1f2a 0%, #3a4252 38%, #232937 62%, #10131a 100%);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.55),
+      0 0 60px rgba(0, 0, 0, 0.9);
+    animation: bar-open 1.4s var(--ease-snap) both;
+    animation-delay: calc(var(--i) * 38ms);
+  }
+  .cage i:nth-child(odd)::before {
+    animation-name: bar-open-down;
+    background:
+      linear-gradient(0deg, var(--ember) 0 3px, transparent 3px),
+      linear-gradient(90deg, #1a1f2a 0%, #3a4252 38%, #232937 62%, #10131a 100%);
+  }
+  /* hold the cage shut until the headline's font has landed behind it */
+  :global(html.js:not(.fonts-ready)) .cage i::before {
+    animation-play-state: paused;
+  }
+  @keyframes bar-open {
+    0%,
+    32% {
+      transform: translate(-50%, 0);
+    }
+    100% {
+      transform: translate(-50%, -104%);
+    }
+  }
+  @keyframes bar-open-down {
+    0%,
+    32% {
+      transform: translate(-50%, 0);
+    }
+    100% {
+      transform: translate(-50%, 104%);
+    }
   }
 
-  .hero-h {
-    /* sized so the longest beat ("Your terminal.", 14ch) holds one line
-       at every width — three tight lines, never four */
-    font-size: clamp(38px, 4.9vw, 56px);
-    font-weight: 800;
-    line-height: 1.06;
-    letter-spacing: -0.025em;
+  /* ---------------- headline ---------------- */
+  .hero-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 14px;
+    margin-bottom: clamp(16px, 1.8vw, 26px);
+    border-bottom: 1px solid var(--rule-strong);
+    font: 600 12px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
-
-  .h-flame {
-    background: linear-gradient(98deg, var(--gold) 8%, var(--ember) 55%, var(--flame) 96%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .hero-sub {
-    margin-top: 28px;
+  .hero-meta .hm-mid {
     color: var(--ash);
-    font-size: 18px;
-    max-width: 52ch;
+  }
+  .hero-h {
+    display: flex;
+    flex-direction: column;
+    margin-left: -0.04em;
+  }
+  .hl {
+    display: block;
+    white-space: nowrap;
+    animation: rise 1s var(--ease) both;
+  }
+  .hl-1 {
+    animation-delay: 0.05s;
+  }
+  .hl-2 {
+    animation-delay: 0.15s;
+  }
+  .m-br {
+    display: none;
+  }
+  @keyframes rise {
+    from {
+      transform: translateY(0.35em);
+      opacity: 0;
+      filter: blur(6px);
+    }
   }
 
+  .hero-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: clamp(28px, 5vw, 96px);
+    margin-top: clamp(22px, 2.6vw, 40px);
+    align-items: start;
+  }
+  .hero-beats {
+    display: flex;
+    flex-direction: column;
+    font: 700 clamp(19px, 2.1vw, 30px) / 1.12 var(--mono);
+    letter-spacing: -0.03em;
+    color: var(--ash);
+  }
+  .hero-beats span {
+    animation: rise 0.9s var(--ease) both;
+  }
+  .hero-beats span:nth-child(1) {
+    animation-delay: 0.9s;
+  }
+  .hero-beats span:nth-child(2) {
+    animation-delay: 1s;
+  }
+  .hero-beats .beat-hot {
+    color: var(--ink);
+    animation-delay: 1.1s;
+  }
+  .hero-beats .beat-hot::after {
+    content: '';
+    display: inline-block;
+    width: 0.5em;
+    height: 0.9em;
+    margin-left: 0.18em;
+    vertical-align: -0.08em;
+    background: var(--grad-prompt);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  .hero-act {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+    animation: rise 0.9s var(--ease) 1.05s both;
+  }
   .hero-ctas {
     display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    margin-top: 40px;
+    gap: 10px;
+    min-width: 0;
   }
-
-  /* the command owns its row — the whole column is its stage */
-  .hero-ctas :global(.install-cmd) {
-    width: 100%;
+  .hero-ctas .install-cmd {
+    flex: 1 1 auto;
+    height: 48px;
   }
-
-  .hero-meta {
-    margin-top: 26px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--ash);
-    white-space: nowrap;
+  /* a touch tighter, so the whole command fits beside Download at desktop widths */
+  .hero-ctas .install-cmd > :global(code) {
+    gap: 10px;
+    padding: 0 10px 0 12px;
+    font-size: 13px;
   }
-
-  @media (max-width: 560px) {
-    .hero-meta {
-      white-space: normal;
+  .hero-ctas .btn {
+    flex: none;
+  }
+  @media (max-width: 520px) {
+    .hero-ctas {
+      flex-direction: column;
     }
   }
 
-  .hero-meta a {
-    color: var(--ash);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: var(--bar);
+  /* ---------------- the live window ---------------- */
+  .hero-stage {
+    margin-top: clamp(24px, 2.4vw, 40px);
+    perspective: 2200px;
   }
-
-  .hero-meta a:hover {
-    color: var(--ink);
+  .stage-tilt {
+    position: relative;
+    transform-origin: 50% 0%;
+    animation: tilt-in 1.4s var(--ease) 0.9s both;
   }
-
-  @media (max-width: 1024px) {
-    .hero {
-      padding-top: 132px;
+  .stage-tilt::before {
+    /* the one warm light under the window */
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 18%;
+    height: 70%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgba(255, 122, 24, 0.22), transparent 70%);
+    animation: breathe 14s ease-in-out infinite alternate;
+  }
+  @keyframes tilt-in {
+    from {
+      transform: rotateX(18deg) translateY(60px) scale(0.96);
+      opacity: 0;
     }
+  }
+  @keyframes breathe {
+    to {
+      opacity: 0.55;
+      transform: scale(1.08);
+    }
+  }
+  /* progressive: the window settles flat as it scrolls into the reading zone */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) and (min-width: 900px) {
+      .hero-stage {
+        view-timeline-name: --stage;
+      }
+      .stage-tilt :global(.live) {
+        transform-origin: 50% 0;
+        animation: flatten linear both;
+        animation-timeline: --stage;
+        animation-range: entry 0% cover 45%;
+      }
+      @keyframes flatten {
+        from {
+          transform: rotateX(14deg) scale(0.94);
+        }
+        to {
+          transform: none;
+        }
+      }
+    }
+  }
 
-    .hero-grid {
+  .stage-notes {
+    list-style: none;
+    margin: 22px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    font: 500 13px/1.4 var(--mono);
+    color: var(--ash);
+  }
+  .stage-notes li {
+    padding-top: 12px;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .stage-notes b {
+    color: var(--ember);
+    margin-right: 8px;
+  }
+
+  @media (max-width: 980px) {
+    .hero-row {
       grid-template-columns: minmax(0, 1fr);
-      gap: 56px;
     }
-
-    .hero-sub {
-      max-width: 62ch;
+    .hero-beats {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0 0.5em;
+    }
+  }
+  @media (max-width: 900px) {
+    /* the Claude Code pane is dropped from the window at this width */
+    .stage-notes li:nth-child(3) {
+      display: none;
+    }
+  }
+  @media (max-width: 720px) {
+    .hero-meta .hm-mid {
+      display: none;
+    }
+    .m-br {
+      display: inline;
+    }
+    .hero-h {
+      font-size: clamp(40px, 13.2vw, 96px);
+    }
+    .stage-notes {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+    .cage {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    /* out of the grid but never display:none, which would restart (re-close) the bars on resize */
+    .cage i:nth-child(n + 8) {
+      position: absolute;
+      visibility: hidden;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cage {
+      display: none;
     }
   }
 </style>
-

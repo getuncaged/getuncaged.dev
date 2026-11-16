@@ -1,0 +1,1150 @@
+---
+/**
+ * 04 · the engine. How Agent Mode reaches your model, drawn honestly:
+ * the seam (crates/warp_multi_agent_client/src/lib.rs:61), the engine
+ * (crates/uncaged_engine, "inference + tool-call protocol" only, lib.rs:20),
+ * tools executed by the client (tools.rs), and exactly one wire that can leave
+ * the machine on the model path. CLI agents over ACP are shown as what they
+ * are in v0.3.5: text-only, running their own tool loop, plus Uncaged's code search MCP server
+ * (crates/uncaged_engine/src/providers/acp.rs:13-20).
+ * 05 · no cloud — the architecture: what runs on your machine, and the one wire that leaves it.
+ * The UNCAGED.md excerpt and the seam's source sit behind one closed
+ * disclosure ("Read the seam"): they back the diagram up, they don't repeat it.
+ */
+import { SITE } from '../data/site';
+
+type Box = [number, number, number, number];
+type Node = {
+  id: string;
+  title: string;
+  sub: string;
+  show?: string; // modes this node is drawn in (default: all)
+  dim?: string; // modes it is drawn faintly in
+  d?: Box;
+  m?: Box;
+  kind?: 'engine' | 'out' | 'warp';
+};
+
+const NODES: Node[] = [
+  { id: 'you', title: 'You', sub: 'a prompt in Agent Mode', d: [36, 80, 178, 56], m: [24, 56, 312, 40] },
+  { id: 'client', title: 'Uncaged client', sub: 'Agent Mode UI · approvals', d: [240, 70, 240, 76], m: [24, 120, 312, 52] },
+  { id: 'seam', title: 'generate_multi_agent_output', sub: 'run_if_active(request)', d: [540, 70, 250, 76], m: [24, 200, 312, 52] },
+  { id: 'engine', title: 'uncaged_engine', sub: 'inference + tool-call protocol', d: [540, 220, 250, 86], m: [24, 280, 312, 56], kind: 'engine' },
+  { id: 'local', title: 'Ollama (local)', sub: 'localhost:11434', show: 'local', d: [540, 400, 250, 76], m: [202, 372, 134, 52] },
+  { id: 'cli', title: 'Claude Code', sub: 'claude-code-acp', show: 'cli', d: [540, 400, 250, 76], m: [202, 372, 134, 52] },
+  { id: 'endpoint', title: 'the endpoint you chose', sub: 'api.anthropic.com', show: 'local api', dim: 'local', d: [880, 220, 290, 86], m: [24, 610, 312, 56], kind: 'out' },
+  { id: 'vendor', title: "the CLI's own service", sub: 'its login · its traffic', show: 'cli', d: [880, 400, 290, 76], m: [24, 610, 312, 56], kind: 'out' },
+  { id: 'warp', title: "Warp's servers", sub: 'no fallback · 192.0.2.0:9', d: [880, 70, 290, 76], kind: 'warp' },
+];
+
+type Wire = { id: string; d?: string; m?: string; on: string; out?: boolean; theirs?: boolean };
+const WIRES: Wire[] = [
+  { id: 'you', d: 'M214 108 H240', m: 'M180 96 V120', on: 'local api cli' },
+  { id: 'seam', d: 'M480 108 H540', m: 'M180 172 V200', on: 'local api cli' },
+  { id: 'engine', d: 'M665 146 V220', m: 'M180 252 V280', on: 'local api cli' },
+  { id: 'local', d: 'M665 306 V400', m: 'M266 336 V372', on: 'local cli' },
+  { id: 'api', d: 'M790 263 H880', m: 'M300 336 V610', on: 'api', out: true },
+  { id: 'vendor', d: 'M790 438 H880', m: 'M266 424 V610', on: 'cli', theirs: true },
+  { id: 'events', d: 'M540 263 H360 V146', m: 'M336 308 H346 V146 H336', on: 'local api cli' },
+  { id: 'tools', d: 'M300 146 V330', m: 'M24 146 H14 V447 H24', on: 'local api' },
+];
+
+const TOOLS = [
+  ['PTY', 'run_shell_command'],
+  ['files', 'read_files'],
+  ['', 'apply_file_diffs'],
+  ['find', 'grep · file_glob'],
+  ['MCP', 'your MCP servers'],
+];
+
+const LAYOUTS = [
+  { key: 'd', vb: '0 0 1190 560', box: [20, 34, 800, 500] as Box, toolsBox: [240, 330, 240, 170] as Box, fs: 15, fsub: 12 },
+  { key: 'm', vb: '0 0 360 690', box: [6, 34, 348, 512] as Box, toolsBox: [24, 372, 168, 150] as Box, fs: 13, fsub: 11 },
+] as const;
+
+const MODES = [
+  { key: 'local', label: 'Local model' },
+  { key: 'cli', label: 'CLI agent' },
+  { key: 'api', label: 'API key' },
+];
+
+const ARIA = {
+  local:
+    'Diagram, local model: inside your machine, you type into the Uncaged client, which calls generate_multi_agent_output; the seam hands the turn to uncaged_engine, which calls Ollama on localhost. The answer comes back as ResponseEvents and the client runs tools in your PTY, your files and your MCP servers. No wire leaves the machine on the model path. The path to Warp’s servers is cut.',
+  api:
+    'Diagram, API key: the same path, except uncaged_engine sends the turn over one wire that leaves your machine to the endpoint you chose. Tools still run locally in the client. The path to Warp’s servers is cut.',
+  cli:
+    'Diagram, CLI agent: uncaged_engine spawns your CLI agent over ACP on your machine; the CLI talks to its own service with its own login and runs its own tools. Uncaged shows its text only, so the client’s tools and approvals are bypassed. The path to Warp’s servers is cut.',
+};
+
+const ASCII = `You type ──▶ Uncaged client ──▶ generate_multi_agent_output
+                                   │
+                     local engine configured?
+                         │ yes            │ no
+                         ▼                ▼
+                 Uncaged engine        (Warp's servers — unused in Uncaged)
+                         │
+              your backend (API / local model / CLI)
+                         │
+        ResponseEvents ◀─┘  (text + native tool calls)
+                         │
+        Uncaged executes tools locally (PTY, files, MCP) ──▶ next turn`;
+---
+
+<section class="section band engine" id="engine" aria-labelledby="engine-h">
+  <div class="container">
+    <span class="sec-tag"><b>06</b> no cloud</span>
+
+    <header class="e-head">
+      <div>
+        <p class="eyebrow">crates/uncaged_engine</p>
+        <h2 class="h2" id="engine-h">Only the model call moved<span class="ember">.</span></h2>
+      </div>
+      <div class="e-right">
+        <p class="lede">
+          Warp’s Agent Mode funnels every turn through one function. Uncaged adds a few lines at its top that hand
+          the turn to a small local engine instead of Warp’s servers. <strong>The client already ran every agent
+          tool on your machine</strong>, so those never moved.
+        </p>
+        <ol class="e-does" aria-label="What the engine does, per turn">
+          <li><b>01</b><span>parses the request into a neutral conversation</span></li>
+          <li><b>02</b><span>writes the system prompt and tool schemas</span></li>
+          <li><b>03</b><span>calls the model you connected</span></li>
+          <li><b>04</b><span>streams the answer back as Warp’s <code>ResponseEvent</code>s</span></li>
+        </ol>
+      </div>
+    </header>
+
+    <!-- =================== the diagram =================== -->
+    <figure class="dia" data-mode="local" id="engine-dia">
+      <div class="dia-bar">
+        <div class="seg" role="group" aria-label="Where the model runs">
+          {
+            MODES.map((m, i) => (
+              <button type="button" class="seg-b" data-set-mode={m.key} aria-pressed={i === 0 ? 'true' : 'false'}>
+                <span class="seg-n" aria-hidden="true">{i + 1}</span>
+                {m.label}
+              </button>
+            ))
+          }
+        </div>
+        <span class="dia-meta" aria-hidden="true">fig. 06 · one turn of Agent Mode</span>
+      </div>
+
+      <div class="dia-stage">
+        {
+          LAYOUTS.map((L) => {
+            const [bx, by, bw, bh] = L.box;
+            const [tx, ty, tw, th] = L.toolsBox;
+            const isD = L.key === 'd';
+            return (
+              <svg
+                class={`dia-svg dia-${L.key}`}
+                viewBox={L.vb}
+                role="img"
+                aria-label={ARIA.local}
+                data-aria
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <defs>
+                  <pattern id={`e-dots-${L.key}`} width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="1" class="dot" />
+                  </pattern>
+                </defs>
+                <rect x="0" y="0" width="100%" height="100%" fill={`url(#e-dots-${L.key})`} />
+
+                {/* the boundary */}
+                <rect class="bound" x={bx} y={by} width={bw} height={bh} />
+                <rect class="bound-tagbg" x={bx + 12} y={by - 9} width={isD ? 128 : 116} height="18" />
+                <text class="bound-tag" x={bx + 20} y={by + 4}>YOUR MACHINE</text>
+                <text class="bound-meta" x={bx + bw - 10} y={by + bh - 10} text-anchor="end">
+                  {isD ? 'everything in here runs locally' : 'runs locally'}
+                </text>
+                <text class="net-tag" x={isD ? 880 : 24} y={isD ? 50 : 590}>THE NETWORK</text>
+
+                {/* wires: base line + travelling packet */}
+                {WIRES.filter((w) => w[L.key]).map((w) => (
+                  <g class={`wire${w.out ? ' is-out' : ''}${w.theirs ? ' is-theirs' : ''}`} data-w={w.id} data-on={w.on}>
+                    <path class="w" d={w[L.key]} />
+                    <path class="pk" d={w[L.key]} pathLength="100" />
+                  </g>
+                ))}
+
+                {/* the one port in the boundary the model path can use */}
+                {isD ? (
+                  <>
+                    <rect class="port" data-port x="814" y="257" width="12" height="12" />
+                    <rect class="port port-cli" data-port-cli x="814" y="432" width="12" height="12" />
+                  </>
+                ) : (
+                  <>
+                    <rect class="port" data-port x="294" y="540" width="12" height="12" />
+                    <rect class="port port-cli" data-port-cli x="260" y="540" width="12" height="12" />
+                  </>
+                )}
+
+                {/* the cut wire to Warp (desktop only) */}
+                {isD && (
+                  <g class="cut" aria-hidden="true">
+                    <path class="cut-w" d="M790 108 H812 M828 108 H880" />
+                    <path class="cut-x" d="M814 100 l12 16 M826 100 l-12 16" />
+                  </g>
+                )}
+
+                {/* wire labels */}
+                {isD ? (
+                  <>
+                    <text class="wl" x="372" y="254">ResponseEvents</text>
+                    <text class="wl" data-wl-events-sub x="372" y="282">text + tool calls</text>
+                    <text class="wl" x="310" y="312">tool calls ⇄ results</text>
+                    <text class="wl" data-wl-local x="676" y="358">HTTP · localhost</text>
+                  </>
+                ) : (
+                  <>
+                    <text class="wl" x="359" y="232" text-anchor="end" transform="rotate(-90 359 232)">ResponseEvents</text>
+                    <text class="wl" x="9" y="300" transform="rotate(-90 9 300)">tool calls ⇄ results</text>
+                  </>
+                )}
+
+                {/* nodes */}
+                {NODES.filter((n) => n[L.key]).map((n) => {
+                  const [x, y, w, h] = n[L.key]!;
+                  return (
+                    <g
+                      class={`node${n.kind ? ` is-${n.kind}` : ''}`}
+                      data-n={n.id}
+                      data-show={n.show ?? 'local api cli'}
+                      data-dim={n.dim ?? ''}
+                    >
+                      <rect x={x} y={y} width={w} height={h} rx="6" />
+                      <text class="nt" x={x + 12} y={y + h / 2 - (isD ? 3 : 2)} font-size={L.fs} data-nt>
+                        {n.title}
+                      </text>
+                      <text class="ns" x={x + 12} y={y + h / 2 + (isD ? 15 : 13)} font-size={L.fsub} data-ns>
+                        {n.sub}
+                      </text>
+                      {n.kind === 'warp' && <path class="strike" d={`M${x + 12} ${y + h / 2 - 8} H${x + 160}`} />}
+                    </g>
+                  );
+                })}
+
+                {/* tools, executed by the client */}
+                <g class="node tools" data-n="tools" data-show="local api cli">
+                  <rect x={tx} y={ty} width={tw} height={th} rx="6" />
+                  <text class="nt" x={tx + 12} y={ty + (isD ? 24 : 20)} font-size={L.fs}>tools</text>
+                  {TOOLS.map(([k, v], i) => (
+                    <>
+                      <text class="tk" x={tx + 12} y={ty + (isD ? 52 : 44) + i * (isD ? 23 : 21)} font-size={isD ? 11.5 : 10.5}>{k}</text>
+                      <text class="tv" x={tx + (isD ? 62 : 48)} y={ty + (isD ? 52 : 44) + i * (isD ? 23 : 21)} font-size={isD ? 12 : 10.5}>{v}</text>
+                    </>
+                  ))}
+                  <g class="stamp" aria-hidden="true">
+                    <rect x={tx + tw / 2 - (isD ? 64 : 50)} y={ty + th / 2 - 14} width={isD ? 128 : 100} height="28" />
+                    <text x={tx + tw / 2} y={ty + th / 2 + 5} text-anchor="middle" font-size={isD ? 13 : 11}>BYPASSED</text>
+                  </g>
+                </g>
+              </svg>
+            );
+          })
+        }
+      </div>
+
+      <figcaption class="dia-read">
+        <div class="count">
+          <span class="count-n" aria-hidden="true">
+            <i data-for="local">0</i><i data-for="api">1</i><i data-for="cli">0</i>
+          </span>
+          <div class="count-t">
+            <p data-for="local">
+              <b><span class="sr-only">0 </span>wires leave your machine on the model path.</b> The engine calls a server on localhost; the answer and
+              every tool run stay here.
+            </p>
+            <p data-for="api">
+              <b><span class="sr-only">1 </span>wire leaves, to <span data-api-host>api.anthropic.com</span>.</b> Your prompt and the context the
+              agent gathers go to that provider, and only that one. Tools still run here.
+            </p>
+            <p data-for="cli">
+              <b><span class="sr-only">0 wires </span>from Uncaged. The CLI makes its own.</b> It is your installed agent, signed in to its own service. In
+              v{SITE.version} this path is text-only: the CLI runs its own tools, so Uncaged’s approval cards are bypassed. The one tool Uncaged hands it is its local code search.
+            </p>
+          </div>
+        </div>
+        <p class="tick" aria-hidden="true"><span class="tick-k">›</span><span data-tick>POST localhost:11434/v1/chat/completions</span></p>
+        <p class="scope">
+          Model path only. No model connected means Agent Mode stops with a message; it never falls back to Warp.
+          No account, no telemetry, no crash reporter. Update checks stay off until you say yes, and API keys sit in plain text in <code>~/.uncaged/connections.json</code>.
+        </p>
+      </figcaption>
+    </figure>
+
+    <!-- =================== the receipts (closed by default) =================== -->
+    <details class="seam">
+      <summary class="seam-sum">
+        <span class="seam-k" aria-hidden="true">❯</span>
+        <span class="seam-t">Read the seam <span class="seam-chev" aria-hidden="true">›</span></span>
+        <span class="seam-meta" aria-hidden="true">UNCAGED.md · lib.rs:61</span>
+      </summary>
+      <div class="receipts">
+        <div class="art">
+          <div class="art-bar">
+            <span class="art-dot" aria-hidden="true"></span>
+            <span class="art-t">UNCAGED.md · How it works</span>
+          </div>
+          <pre class="art-pre" tabindex="0" aria-label="The flow diagram from UNCAGED.md"><span class="pr">❯ </span><span class="cmd">sed -n 53,64p UNCAGED.md</span>
+{ASCII}</pre>
+        </div>
+
+        <div class="art">
+          <div class="art-bar">
+            <span class="art-dot" aria-hidden="true"></span>
+            <span class="art-t">crates/warp_multi_agent_client/src/lib.rs:61</span>
+          </div>
+          <pre class="art-pre" tabindex="0" aria-label="The seam, in Rust"><span class="c">// Uncaged seam: if the user has configured a local bring-your-own-model
+// engine, drive Agent Mode from it instead of POSTing to Warp's servers.</span>
+<span class="k">if let</span> <span class="t">Some</span>(local_stream) = uncaged_engine::<span class="f">run_if_active</span>(request) {'{'}
+    tracing::info!(<span class="s">"Uncaged: routing Agent Mode turn to local engine"</span>);
+    <span class="k">let</span> mapped = local_stream.<span class="f">map</span>(|event| event.<span class="f">map_err</span>(Error::LocalEngine));
+    <span class="k">return</span> <span class="t">Ok</span>(mapped.<span class="f">boxed</span>());
+{'}'}
+<span class="c">// Uncaged: NEVER fall back to Warp's servers.</span></pre>
+          <dl class="wires-spec" aria-label="The three wire protocols">
+            <div>
+              <dt>anthropic</dt>
+              <dd><code>POST /v1/messages</code> · streamed · effort as <code>output_config.effort</code></dd>
+            </div>
+            <div>
+              <dt>openai_compatible</dt>
+              <dd><code>POST /chat/completions</code> · streamed · effort as <code>reasoning_effort</code></dd>
+            </div>
+            <div>
+              <dt>acp</dt>
+              <dd>spawns your CLI · <code>session/prompt</code> · text-only</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<script type="application/json" id="engine-aria" set:html={JSON.stringify(ARIA)} />
+
+<style>
+  /* ------------------------------------------------ head */
+  .e-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(28px, 4vw, 72px);
+    align-items: end;
+    margin-bottom: clamp(40px, 5vw, 72px);
+  }
+  .e-head .eyebrow {
+    margin-bottom: 22px;
+  }
+  .e-right {
+    display: grid;
+    gap: 26px;
+    min-width: 0;
+  }
+  .e-does {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .e-does li {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+    font: 500 14px/1.45 var(--mono);
+    color: var(--ash);
+  }
+  .e-does b {
+    color: var(--ember);
+    font-weight: 700;
+  }
+  .e-does code {
+    color: var(--ink);
+  }
+
+  /* ------------------------------------------------ diagram frame */
+  .dia {
+    margin: 0;
+    border: 1px solid var(--rule-strong);
+    background: rgba(7, 8, 11, 0.6);
+  }
+  .dia-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 12px;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .seg {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: 1px solid var(--bar);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .seg-b {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    font: 700 13px/1 var(--mono);
+    color: var(--ash);
+    border-left: 1px solid var(--bar);
+    transition:
+      background var(--fast),
+      color var(--fast);
+  }
+  .seg-b:first-child {
+    border-left: 0;
+  }
+  .seg-b:hover {
+    color: var(--ink);
+    background: rgba(232, 235, 242, 0.04);
+  }
+  .seg-b:focus-visible {
+    outline-offset: -2px;
+  }
+  .seg-n {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+  .seg-b[aria-pressed='true'] {
+    color: #16100a;
+    background: var(--ember);
+  }
+  .dia-meta {
+    font: 600 11px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .dia-stage {
+    padding: clamp(8px, 1.6vw, 20px);
+  }
+  .dia-svg {
+    width: 100%;
+    height: auto;
+    font-family: var(--mono);
+    overflow: visible;
+  }
+  .dia-m {
+    display: none;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  /* ------------------------------------------------ svg parts */
+  .dot {
+    fill: rgba(232, 235, 242, 0.07);
+  }
+  .bound {
+    fill: rgba(16, 19, 26, 0.55);
+    stroke: var(--ink);
+    stroke-opacity: 0.32;
+    stroke-width: 1.5;
+    stroke-dasharray: 2 0;
+  }
+  .bound-tagbg {
+    fill: var(--void);
+  }
+  .bound-tag,
+  .net-tag {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    fill: var(--ink);
+  }
+  .net-tag {
+    fill: var(--ash);
+  }
+  .bound-meta {
+    font-size: 11px;
+    fill: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .node rect {
+    fill: #0d1016;
+    stroke: rgba(60, 67, 82, 0.9);
+    stroke-width: 1.2;
+    transition:
+      stroke 0.3s var(--ease),
+      opacity 0.4s var(--ease);
+  }
+  .node .nt {
+    font-weight: 700;
+    fill: var(--ink);
+  }
+  .node .ns {
+    fill: var(--ash);
+  }
+  .node.is-engine rect {
+    stroke: var(--ember);
+    stroke-width: 1.6;
+    fill: #140f0b;
+  }
+  .node.is-engine .nt {
+    fill: var(--gold);
+  }
+  .node.is-warp rect {
+    fill: transparent;
+    stroke-dasharray: 4 4;
+  }
+  .node.is-warp .nt,
+  .node.is-warp .ns {
+    fill: var(--muted);
+  }
+  .strike {
+    stroke: var(--muted);
+    stroke-width: 1.5;
+  }
+  .node {
+    transition: opacity 0.4s var(--ease);
+  }
+  .tk {
+    fill: var(--muted);
+    font-weight: 700;
+  }
+  .tv {
+    fill: #c5ccda;
+  }
+  .stamp {
+    opacity: 0;
+    transition: opacity 0.3s var(--ease);
+  }
+  .stamp rect {
+    fill: #0d1016;
+    stroke: var(--gold);
+    stroke-width: 1.5;
+  }
+  .stamp text {
+    fill: var(--gold);
+    font-weight: 800;
+    letter-spacing: 0.18em;
+  }
+  .node.ping rect {
+    animation: ping 0.7s var(--ease);
+  }
+  @keyframes ping {
+    from {
+      stroke: var(--gold);
+      stroke-width: 2.5;
+    }
+  }
+
+  .wire .w {
+    fill: none;
+    stroke: rgba(60, 67, 82, 0.9);
+    stroke-width: 1.5;
+    transition:
+      stroke 0.4s var(--ease),
+      opacity 0.4s var(--ease);
+  }
+  .wire .pk {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 12 300;
+    stroke-dashoffset: 12;
+    opacity: 0;
+  }
+  .wire.is-live .w {
+    stroke: rgba(232, 235, 242, 0.5);
+    stroke-dasharray: 5 5;
+    animation: march 1.2s linear infinite;
+  }
+  .wire.is-out.is-live .w {
+    stroke: var(--ember);
+    stroke-width: 2;
+  }
+  .wire.is-theirs.is-live .w {
+    stroke: var(--ash);
+    stroke-dasharray: 2 6;
+  }
+  .wire:not(.is-live) .w {
+    opacity: 0;
+  }
+  .dia[data-mode='local'] .wire[data-w='api'] .w {
+    opacity: 0.22;
+  }
+  @keyframes march {
+    to {
+      stroke-dashoffset: -10;
+    }
+  }
+  .wire .pk.go-f {
+    animation: pk-f 0.62s cubic-bezier(0.45, 0, 0.3, 1) forwards;
+  }
+  .wire .pk.go-r {
+    animation: pk-r 0.62s cubic-bezier(0.45, 0, 0.3, 1) forwards;
+  }
+  @keyframes pk-f {
+    from {
+      opacity: 1;
+      stroke-dashoffset: 12;
+    }
+    to {
+      opacity: 1;
+      stroke-dashoffset: -100;
+    }
+  }
+  @keyframes pk-r {
+    from {
+      opacity: 1;
+      stroke-dashoffset: -100;
+    }
+    to {
+      opacity: 1;
+      stroke-dashoffset: 12;
+    }
+  }
+  .dia.is-paused .wire .w {
+    animation-play-state: paused;
+  }
+
+  .port {
+    fill: var(--void);
+    stroke: var(--ink);
+    stroke-opacity: 0.4;
+    stroke-width: 1.5;
+    transition:
+      fill 0.3s,
+      stroke 0.3s;
+  }
+  .port-cli {
+    opacity: 0;
+  }
+  .dia[data-mode='api'] .port[data-port] {
+    fill: var(--ember);
+    stroke: var(--ember);
+    stroke-opacity: 1;
+  }
+  .dia[data-mode='cli'] .port-cli {
+    opacity: 1;
+    stroke: var(--ash);
+  }
+  .dia[data-mode='cli'] .port[data-port] {
+    opacity: 0.35;
+  }
+  .cut-w {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 4;
+  }
+  .cut-x {
+    stroke: var(--flame);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  .wl {
+    font-size: 11px;
+    fill: var(--ash);
+    letter-spacing: 0.02em;
+  }
+
+  /* mode visibility (pure CSS, so no-JS shows the local frame) */
+  .dia[data-mode='local'] .node:not([data-show~='local']),
+  .dia[data-mode='api'] .node:not([data-show~='api']),
+  .dia[data-mode='cli'] .node:not([data-show~='cli']) {
+    opacity: 0;
+  }
+  .dia[data-mode='local'] .node[data-dim~='local'] {
+    opacity: 0.3;
+  }
+  .dia[data-mode='cli'] .tools rect,
+  .dia[data-mode='cli'] .tools .tk,
+  .dia[data-mode='cli'] .tools .tv,
+  .dia[data-mode='cli'] .tools .nt {
+    opacity: 0.35;
+  }
+  .dia[data-mode='cli'] .stamp {
+    opacity: 1;
+  }
+
+  /* ------------------------------------------------ readout */
+  .dia-read {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 14px clamp(20px, 3vw, 48px);
+    padding: clamp(16px, 2vw, 24px);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .count {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    min-width: 0;
+  }
+  .count-n {
+    flex: none;
+    font: 800 clamp(51px, 5.6vw, 83px) / 0.8 var(--mono);
+    letter-spacing: -0.06em;
+    /* solid, so it reads as the number that starts the sentence, not as an icon */
+    color: var(--ember);
+  }
+  .count-n i {
+    font-style: normal;
+  }
+  .count-t p {
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--ash);
+    text-wrap: pretty;
+  }
+  .count-t b {
+    display: block;
+    margin-bottom: 4px;
+    font: 700 15px/1.35 var(--mono);
+    color: var(--ink);
+  }
+  .dia [data-for] {
+    display: none;
+  }
+  .dia[data-mode='local'] [data-for='local'],
+  .dia[data-mode='api'] [data-for='api'],
+  .dia[data-mode='cli'] [data-for='cli'] {
+    display: block;
+  }
+  .count-n i[data-for] {
+    display: none;
+  }
+  .dia[data-mode='local'] .count-n i[data-for='local'],
+  .dia[data-mode='api'] .count-n i[data-for='api'],
+  .dia[data-mode='cli'] .count-n i[data-for='cli'] {
+    display: inline;
+  }
+  .tick {
+    align-self: start;
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--bar);
+    border-radius: 6px;
+    background: var(--glass-deep);
+    font: 600 13px/1.4 var(--mono);
+    color: var(--ink);
+  }
+  .tick > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tick-k {
+    color: var(--ember);
+  }
+  .scope {
+    grid-column: 1 / -1;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    font-size: 14px;
+    color: var(--ash);
+  }
+  .scope a {
+    font-family: var(--mono);
+    color: var(--ink);
+    border-bottom: 1px solid var(--ember);
+  }
+
+  /* ------------------------------------------------ the seam (disclosure) */
+  .seam {
+    margin-top: clamp(20px, 2.4vw, 32px);
+    border: 1px solid var(--rule-strong);
+  }
+  .seam-sum {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0 16px;
+    font: 700 14px/1 var(--mono);
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+    transition: background var(--fast);
+  }
+  .seam-sum::-webkit-details-marker {
+    display: none;
+  }
+  .seam-sum:hover {
+    background: rgba(232, 235, 242, 0.03);
+  }
+  .seam-sum:focus-visible {
+    outline-offset: -2px;
+  }
+  .seam-k {
+    color: var(--ember);
+  }
+  .seam-chev {
+    display: inline-block;
+    margin-left: 4px;
+    color: var(--ember);
+    transition: transform var(--fast);
+  }
+  .seam[open] .seam-chev {
+    transform: rotate(90deg);
+  }
+  .seam-meta {
+    margin-left: auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 600 11px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .seam[open] .seam-sum {
+    border-bottom: 1px solid var(--rule-strong);
+  }
+
+  /* ------------------------------------------------ receipts */
+  .receipts {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 20px;
+    padding: clamp(12px, 1.6vw, 20px);
+  }
+  .art {
+    min-width: 0;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius);
+    background: var(--glass-deep);
+    overflow: hidden;
+  }
+  .art-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line-soft);
+    font: 600 12px/1 var(--mono);
+    color: var(--ash);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .art-t {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .art-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    background: var(--ember);
+  }
+  .art-pre {
+    margin: 0;
+    padding: 16px;
+    font: 500 12.5px/1.6 var(--mono);
+    color: #c5ccda;
+    white-space: pre;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2a3140 transparent;
+  }
+  .art-pre .pr {
+    color: var(--ember);
+    font-weight: 700;
+  }
+  .art-pre .cmd {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .art-pre .c {
+    color: var(--muted);
+  }
+  .art-pre .k {
+    color: var(--t-violet);
+  }
+  .art-pre .t {
+    color: var(--t-cyan);
+  }
+  .art-pre .f {
+    color: var(--t-blue);
+  }
+  .art-pre .s {
+    color: var(--t-green);
+  }
+  .wires-spec {
+    margin: 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .wires-spec > div {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    font: 500 12.5px/1.5 var(--mono);
+  }
+  .wires-spec > div:last-child {
+    border-bottom: 0;
+  }
+  .wires-spec dt {
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .wires-spec dd {
+    margin: 0;
+    color: var(--ash);
+  }
+  .wires-spec code {
+    color: var(--ink);
+  }
+
+  /* ------------------------------------------------ responsive */
+  @media (max-width: 980px) {
+    .e-head,
+    .receipts,
+    .dia-read {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 860px) {
+    .dia-d {
+      display: none;
+    }
+    .dia-m {
+      display: block;
+    }
+    .dia-meta {
+      display: none;
+    }
+  }
+  @media (max-width: 520px) {
+    .seg {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      width: 100%;
+    }
+    .seg-b {
+      justify-content: center;
+      padding: 0 6px;
+      font-size: 12px;
+      gap: 6px;
+    }
+    .seg-n {
+      display: none;
+    }
+    .count {
+      gap: 12px;
+    }
+    .seam-meta {
+      display: none;
+    }
+    .wires-spec > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+    }
+  }
+</style>
+
+<script>
+  type Mode = 'local' | 'api' | 'cli';
+  type Step = [wire: string, dir: 1 | -1, text: string, ping: string];
+
+  const dia = document.getElementById('engine-dia');
+  const ariaEl = document.getElementById('engine-aria');
+  if (dia && ariaEl) {
+    const ARIA = JSON.parse(ariaEl.textContent || '{}') as Record<Mode, string>;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    const tick = dia.querySelector<HTMLElement>('[data-tick]')!;
+    let mode: Mode = 'local';
+    let visible = false;
+    let run = 0;
+
+    // Off-screen or reduced motion: the loop awaits this instead of polling.
+    let waiters: (() => void)[] = [];
+    const runnable = () => visible && !reduce.matches;
+    const whenRunnable = () => (runnable() ? Promise.resolve() : new Promise<void>((r) => waiters.push(r)));
+    const wake = () => {
+      if (!runnable()) return;
+      const w = waiters;
+      waiters = [];
+      w.forEach((r) => r());
+    };
+    reduce.addEventListener('change', wake);
+
+    // What the active connection looks like; the Models section can update it.
+    const ep = {
+      local: { title: 'Ollama (local)', host: 'localhost:11434', path: '/v1/chat/completions' },
+      api: { title: 'the endpoint you chose', host: 'api.anthropic.com', path: '/v1/messages' },
+      cli: { title: 'Claude Code', cmd: 'claude-code-acp' },
+    };
+
+    const all = (sel: string) => [...dia.querySelectorAll<SVGElement>(sel)];
+    const setText = (sel: string, txt: string) => all(sel).forEach((el) => (el.textContent = txt));
+    // squeeze a node's title/subtitle into its box when it would run past the border (mono: 0.6em a glyph)
+    const fitText = () =>
+      all('[data-nt], [data-ns]').forEach((el) => {
+        const t = el as unknown as SVGTextElement;
+        const rect = t.parentElement?.querySelector('rect');
+        if (!rect) return;
+        const room = Number(rect.getAttribute('width')) - 22;
+        const need = (t.textContent ?? '').trim().length * Number(t.getAttribute('font-size')) * 0.6;
+        if (need > room) {
+          t.setAttribute('textLength', String(room));
+          t.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+        } else {
+          t.removeAttribute('textLength');
+          t.removeAttribute('lengthAdjust');
+        }
+      });
+
+    const summary = (): string =>
+      mode === 'local'
+        ? `POST ${ep.local.host}${ep.local.path}`
+        : mode === 'api'
+          ? `POST ${ep.api.host}${ep.api.path}`
+          : `spawn ${ep.cli.cmd} · session/prompt`;
+
+    const steps = (): Step[] => {
+      const head: Step[] = [
+        ['you', 1, 'you type a prompt in Agent Mode', 'client'],
+        ['seam', 1, 'generate_multi_agent_output(request)', 'seam'],
+        ['engine', 1, 'run_if_active(request) → uncaged_engine', 'engine'],
+      ];
+      if (mode === 'cli')
+        return [
+          ...head,
+          ['local', 1, `spawn ${ep.cli.cmd} · session/prompt`, 'cli'],
+          ['vendor', 1, 'the CLI calls its own service, with its own login', 'vendor'],
+          ['vendor', -1, 'the CLI runs its own tool loop', 'cli'],
+          ['local', -1, 'agent_message_chunk → text', 'engine'],
+          ['events', 1, 'ResponseEvents: text only', 'client'],
+        ];
+      const w = mode === 'api' ? 'api' : 'local';
+      return [
+        ...head,
+        [w, 1, summary(), mode === 'api' ? 'endpoint' : 'local'],
+        [w, -1, 'streamed back: text + tool calls', 'engine'],
+        ['events', 1, 'ResponseEvents → the client renders them', 'client'],
+        ['tools', 1, 'run_shell_command → your PTY', 'tools'],
+        ['tools', -1, 'output goes back as the next turn', 'client'],
+      ];
+    };
+
+    const apply = () => {
+      dia.dataset.mode = mode;
+      dia.querySelectorAll<HTMLButtonElement>('[data-set-mode]').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b.dataset.setMode === mode))
+      );
+      all('.wire').forEach((g) => g.classList.toggle('is-live', (g.dataset.on || '').split(' ').includes(mode)));
+      all('[data-aria]').forEach((s) => s.setAttribute('aria-label', ARIA[mode]));
+      setText('[data-n="local"] [data-nt]', ep.local.title);
+      setText('[data-n="local"] [data-ns]', ep.local.host);
+      setText('[data-n="endpoint"] [data-ns]', ep.api.host);
+      setText('[data-n="cli"] [data-nt]', ep.cli.title);
+      setText('[data-n="cli"] [data-ns]', ep.cli.cmd);
+      setText('[data-wl-events-sub]', mode === 'cli' ? 'text only' : 'text + tool calls');
+      setText('[data-wl-local]', mode === 'cli' ? 'ACP · stdio' : mode === 'local' ? 'HTTP · localhost' : '');
+      dia.querySelectorAll<HTMLElement>('[data-api-host]').forEach((el) => (el.textContent = ep.api.host));
+      tick.textContent = summary();
+      fitText();
+    };
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const fire = (wire: string, dir: 1 | -1, ping: string) => {
+      all(`[data-w="${wire}"] .pk`).forEach((pk) => {
+        pk.classList.remove('go-f', 'go-r');
+        void (pk as unknown as HTMLElement).getBoundingClientRect();
+        pk.classList.add(dir === 1 ? 'go-f' : 'go-r');
+      });
+      setTimeout(() => {
+        all(`[data-n="${ping}"]`).forEach((n) => {
+          n.classList.remove('ping');
+          void (n as unknown as HTMLElement).getBoundingClientRect();
+          n.classList.add('ping');
+        });
+      }, 560);
+    };
+
+    const loop = async (id: number) => {
+      while (id === run) {
+        if (!runnable()) {
+          await whenRunnable();
+          continue;
+        }
+        for (const [w, dir, text, ping] of steps()) {
+          if (id !== run || !runnable()) break;
+          tick.textContent = text;
+          fire(w, dir, ping);
+          await sleep(1100);
+        }
+        if (id === run) {
+          tick.textContent = summary();
+          if (runnable()) await sleep(1600);
+        }
+      }
+    };
+    const restart = () => {
+      run++;
+      all('.pk').forEach((pk) => pk.classList.remove('go-f', 'go-r'));
+      loop(run);
+    };
+
+    const setMode = (m: Mode) => {
+      if (m === mode) return;
+      mode = m;
+      apply();
+      restart();
+    };
+
+    dia.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-set-mode]');
+      if (b) setMode(b.dataset.setMode as Mode);
+    });
+
+    // Follow the connection the visitor picked in 03 · any model.
+    document.addEventListener('uncaged:active', (e) => {
+      const d = (e as CustomEvent).detail as { group: string; wire: string; label: string; endpoint: string };
+      if (d.group === 'local') ep.local = { title: d.label, host: d.endpoint, path: '/v1/chat/completions' };
+      else if (d.group === 'api')
+        ep.api = {
+          title: 'the endpoint you chose',
+          host: d.endpoint,
+          path: d.wire === 'anthropic' ? '/v1/messages' : '/…/chat/completions',
+        };
+      else ep.cli = { title: d.label, cmd: d.endpoint };
+      const m: Mode = d.group === 'local' ? 'local' : d.group === 'api' ? 'api' : 'cli';
+      if (m === mode) apply();
+      else setMode(m);
+    });
+
+    new IntersectionObserver(
+      ([en]) => {
+        visible = en.isIntersecting;
+        dia.classList.toggle('is-paused', !visible);
+        wake();
+      },
+      { threshold: 0.25 }
+    ).observe(dia);
+
+    apply();
+    restart();
+  }
+</script>

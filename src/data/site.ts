@@ -11,15 +11,15 @@ export const SITE = {
   url: 'https://getuncaged.dev',
   // SERP title (57 chars): brand + the queries that matter — "warp terminal",
   // "open source terminal". The brand tagline lives on as `tagline` (OG/social).
-  title: 'Uncaged — Open-Source Warp Terminal, No Cloud, No Account',
+  title: 'Uncaged — Open-Source Warp Fork, No Cloud, No Account',
   tagline: 'No account. No cloud. No cage.',
   // Meta description, 152 chars — front-loaded keywords, truncation-safe.
   description:
     'Free, open-source Warp terminal fork with the cloud cut out — no account, no telemetry. The same agentic terminal, any AI model: local, API key, or CLI.',
   // The full pitch — JSON-LD, llms.txt, anywhere length isn't capped.
   descriptionLong:
-    'Uncaged is a fork of the open-source Warp terminal that removes the cloud. The full agentic experience — blocks, workflows, keymaps — running entirely on your machine. No account, no login, no relay. Bring any model: local, API key, or a CLI agent. Your keys never leave your device.',
-  version: '0.2.9',
+    'Uncaged is a fork of the open-source Warp terminal that removes the cloud. The full agentic terminal — blocks, split panes, one input with a Terminal / Agent Mode switch, workflows, keymaps, the GPU renderer — running on your machine. No account, no login, no relay, no telemetry. Power Agent Mode with any model: one running locally (Ollama, LM Studio), the CLI agent you already pay for (Claude Code, Codex CLI, Gemini CLI), or an API key. Keys and history are stored only on your machine.',
+  version: '0.3.5',
   license: 'AGPL-3.0',
   github: 'https://github.com/getuncaged/uncaged',
   githubOrg: 'https://github.com/getuncaged',
@@ -36,10 +36,10 @@ export const SITE = {
   linuxTar: 'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-linux-x86_64.tar.gz',
   windowsSetup:
     'https://github.com/getuncaged/uncaged/releases/latest/download/Uncaged-windows-x86_64-setup.exe',
-  migrateDoc: 'https://github.com/getuncaged/uncaged/blob/master/docs/migrate-from-warp.md',
-  forkingDoc: 'https://github.com/getuncaged/uncaged/blob/master/FORKING.md',
-  uncagedDoc: 'https://github.com/getuncaged/uncaged/blob/master/UNCAGED.md',
-  faqDoc: 'https://github.com/getuncaged/uncaged/blob/master/FAQ.md',
+  migrateDoc: 'https://github.com/getuncaged/uncaged/blob/main/docs/migrate-from-warp.md',
+  forkingDoc: 'https://github.com/getuncaged/uncaged/blob/main/FORKING.md',
+  uncagedDoc: 'https://github.com/getuncaged/uncaged/blob/main/UNCAGED.md',
+  faqDoc: 'https://github.com/getuncaged/uncaged/blob/main/FAQ.md',
   handle: '@getuncaged',
 };
 
@@ -112,21 +112,22 @@ export const DOWNLOADS = {
 };
 
 export const AUDIT = [
-  { surface: 'Account & login', state: 'none — the app has no concept of one' },
-  { surface: 'Telemetry & analytics', state: 'no destination and no write key — nothing to send to' },
-  { surface: 'Crash reporting', state: 'not compiled into the build — sentry never enters the dependency graph' },
-  { surface: 'Cloud sync & conversation storage', state: 'none — history stays in ~/.uncaged/' },
-  { surface: 'Update checks', state: 'none — updates are manual, from GitHub Releases' },
+  { surface: 'Account & login', state: 'removed from the code (0.3.5) — the app has no concept of one' },
+  { surface: 'Telemetry & analytics', state: 'the pipeline and every event type are deleted, not switched off' },
+  { surface: 'Crash reporting', state: 'Sentry and crash reporting to Warp are removed from the code' },
+  { surface: 'Cloud sync & conversation storage', state: 'none — Drive, history and conversations stay on this machine; gist backup only when you run it' },
+  { surface: 'Update checks', state: 'off until you say yes; then GitHub’s public releases API, verified against its SHA-256' },
+  { surface: 'Warp’s servers', state: 'the client code is deleted; the one leftover server address is an unroutable placeholder' },
 ];
 
 export const FAQ = [
   {
     q: 'Do I need an account?',
-    a: 'No. Uncaged has no accounts and no login. It runs entirely on your machine with its own local profile — connect a model and you’re working.',
+    a: 'No. Uncaged has no accounts and no login. The app runs on your machine with its own local profile — connect a model and you’re working.',
   },
   {
     q: 'Does my data go anywhere?',
-    a: 'Not to us — there is no "us" server-side. Uncaged never phones home: the only request it makes on its own initiative is to the model endpoint you configure. No telemetry, no analytics, no crash reporting, no cloud sync. Other traffic only happens when you ask for it — installing a language server pulls from nodejs.org and npm, and the theme gallery reads from GitHub. It’s enforced in code, and the code is public.',
+    a: 'Not to us — there is no "us" server-side. Your prompts go only to the model endpoint you choose (or nowhere, with a local model). There is no telemetry, no analytics and no crash reporter in the release build, and every Warp server address is hard-wired to an unroutable one. Update checks stay off until you accept a one-time banner; after that Uncaged reads GitHub’s public releases API with no identifier beyond its version. Anything else — installing a language server, browsing the theme gallery, gist backup — happens only when you ask for it. The code is public.',
   },
   {
     q: 'What does it cost?',
@@ -134,23 +135,27 @@ export const FAQ = [
   },
   {
     q: 'Which platforms are supported?',
-    a: 'macOS (Apple Silicon and Intel, .dmg), Linux x86_64 and arm64 (.deb, .rpm, AppImage and .tar.gz) and Windows (x64 and ARM64 installers) — all from GitHub Releases. You can also install with Homebrew (brew install --cask getuncaged/tap/uncaged) or winget (winget install Uncaged.Uncaged).',
+    a: 'macOS (Apple Silicon and Intel, .dmg), Linux x86_64 and arm64 (.deb, .rpm, AppImage and .tar.gz) and Windows (x64 and ARM64 installers) — all from GitHub Releases. You can also install with Homebrew (brew install --cask getuncaged/tap/uncaged), winget (winget install Uncaged.Uncaged — new versions land there after Microsoft’s review), or the one-line curl / PowerShell installer.',
   },
   {
     q: 'Which models can I connect?',
-    a: 'Local runtimes (Ollama, LM Studio, llama.cpp, vLLM), hosted APIs (Anthropic, OpenAI, Google, Mistral, DeepSeek, Groq, Together, xAI, OpenRouter, or any OpenAI-compatible endpoint), and CLI agents like Claude Code, Codex CLI and Gemini CLI over ACP. One connection is all Agent Mode needs.',
+    a: 'Local runtimes (Ollama, LM Studio, llama.cpp, vLLM), hosted APIs (Anthropic, OpenAI, Google, Mistral, DeepSeek, Groq, Together, xAI, OpenRouter, or any OpenAI-compatible endpoint), and the CLI agents you already pay for — Claude Code, Codex CLI and Gemini CLI — driven by your own login. One connection is all Agent Mode needs. CLI agents run their own tool loop, so in Agent Mode they answer in text for now; API and local models get Uncaged’s native tools.',
   },
   {
     q: 'How is this different from Warp?',
-    a: 'Warp open-sourced its terminal emulator, but the premium agent runs on Warp’s servers behind a login and subscription. Uncaged replaces that with a local agent engine, removes the account and paywall gates, and ships with telemetry off — a fully open-source Warp alternative: same terminal, same speed, none of the cloud.',
+    a: 'Warp open-sourced its terminal, but its agent runs on Warp’s servers behind a Warp login, metered by Warp’s plans. Uncaged replaces that with a local agent engine that calls the model you connect, removes the account and paywall gates, and builds without telemetry or a crash reporter. Same Rust, GPU-rendered terminal; none of the cloud.',
   },
   {
     q: 'Can I fork it and ship my own terminal?',
-    a: 'That’s the point. Every upstream service, account profile, and Warp/Oz mark has been carved out of the product — the whole identity lives in a thin brand layer: one Rust constants file, two SVGs, and the provider catalog. Swap those, rebuild, and it’s yours. FORKING.md walks it end to end, and AGPL-3.0 keeps every fork as open as this one.',
+    a: 'That’s the point. Upstream services are cut off, accounts are gone, and the Warp and Oz marks are replaced. What’s left of the identity is a thin brand layer: app/src/brand.rs holds the repo URL every in-app link reads, the updater’s release feed and the About text; three SVGs carry the marks; catalog.rs is the model gallery; four files give your build its own app id and config directory. The display name and the default theme’s accent are still set in a few dozen places, so a full rename ends with a find-and-replace. FORKING.md walks it end to end, and AGPL-3.0 keeps every fork as open as this one.',
   },
   {
     q: 'macOS says the app is from an unidentified developer.',
-    a: 'Expected — Uncaged is ad-hoc signed because an independent fork has no Apple Developer ID. Clear the quarantine flag once with `xattr -dr com.apple.quarantine /Applications/Uncaged.app` and it opens normally from then on.',
+    a: 'Expected for a browser download — Uncaged is ad-hoc signed because an independent fork has no Apple Developer ID. Clear the quarantine flag once with `xattr -dr com.apple.quarantine /Applications/Uncaged.app` and it opens normally from then on. The curl installer clears it for you; Homebrew prints the same command if macOS still blocks the app.',
+  },
+  {
+    q: 'Does it update itself?',
+    a: 'Only if you say so. On first run a banner asks whether to check GitHub for new releases; until you accept, there is no update traffic at all. Once on, downloads are verified against the SHA-256 checksum GitHub publishes and Uncaged asks before restarting. Homebrew installs update through brew upgrade instead.',
   },
   {
     q: 'Can I migrate from Warp?',

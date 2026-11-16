@@ -2,7 +2,26 @@
 
 > Cold canvas, one warm accent. The web counterpart to the logo's "Ember" system.
 
-**Version 1.0 · "Midnight"**
+**Version 2.0 · "Midnight / Brutal"**
+
+> **What changed in 2.0 (2026-11):** the site was re-cut around Uncaged 0.3 (splits, two modes,
+> any model). Midnight's palette and discipline stay; the composition got louder:
+> - **Exposed structure.** Every numbered section sits on a full-width hard rule with a stencilled
+>   index tag (`.sec-tag`, `01 · splits`) pinned to it. Grids, rules and meta labels are shown, not hidden.
+> - **Mega type.** Hero headline in JetBrains Mono 800, uppercase, `clamp(40px, 12vw, 200px)`,
+>   line-height 0.86, tracking −0.055em. Section H2s go to `clamp(36px, 5.6vw, 84px)`.
+> - **The cage opens.** The hero's one-shot load animation: thirteen vertical bars slide away from
+>   the headline. The closing CTA echoes it with bars pried apart. These are the brand's motion.
+> - **Living depictions.** Product mockups are interactive, faithful recreations of the current UI (0.3.5)
+>   (split panes as rounded cards with an 8px gap, the two-segment mode switch lit only in the
+>   focused pane, `model │ effort` chip). Each numbered section owns one interactive moment.
+> - **Scroll-linked motion is allowed as progressive enhancement** (CSS `animation-timeline: view()`),
+>   never as a gate: content is present at first paint and the reduced-motion frame is complete.
+> - Base deepened to `--void #07080B`; container widened to 1360px. `--muted` raised to `#7A8396` so it
+>   passes AA on every surface — it may now carry readable meta text.
+>
+> Sections 1–10 below remain the reference for palette, accessibility and voice; where they conflict
+> with this note (type scale, section rhythm, the scroll-reveal ban), this note wins.
 
 This is the design system of **getuncaged.dev** — extracted from the shipped site, not aspirational.
 Every value here exists in [`src/styles/global.css`](src/styles/global.css) or a component under
@@ -219,7 +238,7 @@ Professional and precise — engineering claims, not vibes.
 
 - Every claim must be verifiable in the repo ("not compiled into the build", "history stays in
   `~/.uncaged/`"). If the code can't back it, the site can't say it.
-- Feature names match the app verbatim: Code review, Tools panel, Agent Mode, Settings → AI Models.
+- Feature names match the app verbatim: Code review, Tools panel, Agent Mode, Settings → Models.
 - No cute idioms in headlines ("Asked, answered." died for this). No claiming freedoms the license
   already grants — the claim is engineering ("built to be forked"), not permission.
 - The possessive triad ("your models, your keys, your machine") appears **once** per page, in the

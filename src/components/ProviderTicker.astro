@@ -1,0 +1,106 @@
+---
+/** The marquee under the hero: every way to power Agent Mode, grouped the way
+ *  the app's "Connect a model" gallery groups them. */
+import AppIcon from './AppIcon.astro';
+
+/** Provider → the logo the app's own gallery shows (app/src/uncaged.rs at v0.3.3). */
+const LOGO: Record<string, string> = {
+  Ollama: 'ollama',
+  'LM Studio': 'lm-studio',
+  'Claude Code': 'claude',
+  'Codex CLI': 'openai',
+  'Gemini CLI': 'gemini_cli',
+  Anthropic: 'claude',
+  OpenAI: 'openai',
+  Google: 'gemini_cli',
+  Mistral: 'mistral',
+  DeepSeek: 'deepseek',
+  Groq: 'groq',
+  Together: 'together',
+  xAI: 'x-logo',
+  OpenRouter: 'openrouter',
+};
+const groups = [
+  { tag: 'on-device', items: ['Ollama', 'LM Studio', 'llama.cpp', 'vLLM'] },
+  { tag: 'your login', items: ['Claude Code', 'Codex CLI', 'Gemini CLI'] },
+  {
+    tag: 'api key',
+    items: ['Anthropic', 'OpenAI', 'Google', 'Mistral', 'DeepSeek', 'Groq', 'Together', 'xAI', 'OpenRouter', 'any OpenAI-compatible endpoint'],
+  },
+];
+const row = groups.flatMap((g) => [{ tag: g.tag }, ...g.items.map((name) => ({ name }))]);
+---
+
+<div class="ticker" aria-label="Model providers Uncaged connects to">
+  <ul class="sr-only">
+    {groups.map((g) => <li>{g.tag}: {g.items.join(', ')}</li>)}
+  </ul>
+  <div class="track" aria-hidden="true">
+    {
+      [0, 1].map(() => (
+        <div class="run">
+          {row.map((r) =>
+            'tag' in r ? <span class="t-tag">{r.tag}</span> : <span class="t-name">{LOGO[r.name] && <AppIcon name={LOGO[r.name]} size={20} class="t-logo" />}{r.name}</span>
+          )}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .ticker {
+    position: relative;
+    z-index: 1;
+    border-block: 1px solid var(--rule-strong);
+    background: rgba(11, 13, 18, 0.7);
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .track {
+    display: flex;
+    width: max-content;
+    animation: marquee 48s linear infinite;
+  }
+  .ticker:hover .track {
+    animation-play-state: paused;
+  }
+  .run {
+    display: flex;
+    align-items: center;
+    gap: clamp(28px, 3vw, 48px);
+    padding: 22px clamp(14px, 1.5vw, 24px);
+  }
+  .t-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font: 700 clamp(15px, 1.5vw, 21px) / 1 var(--mono);
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .t-name :global(.t-logo) {
+    flex: none;
+    color: var(--ash);
+  }
+  .t-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 122, 24, 0.45);
+    border-radius: 4px;
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ember);
+    white-space: nowrap;
+  }
+  .t-tag::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--ember);
+  }
+</style>

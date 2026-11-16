@@ -14,3 +14,6 @@ npm-debug.log*
 # vercel
 .vercel/
 .vercel
+
+# raw Retina window captures, used as the reference for the hand-built UI
+shots-in/
