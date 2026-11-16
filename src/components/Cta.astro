@@ -3,94 +3,117 @@ import Logo from './Logo.astro';
 import { SITE } from '../data/site';
 ---
 
-<section class="cta">
-  <div class="sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<section class="cta" id="get" aria-labelledby="cta-h">
+  <div class="cta-glow" aria-hidden="true"></div>
+  <div class="cta-bars" aria-hidden="true">
+    {Array.from({ length: 9 }).map((_, i) => <i style={`--i:${i}`}></i>)}
+  </div>
   <div class="container cta-inner">
-    <Logo idp="cta" size={76} class="cta-mark" />
-    <h2 class="cta-h">
-      <span class="beat">No account.</span> <span class="beat">No cloud.</span>
-      <span class="beat">No cage.</span>
+    <Logo idp="cta" size={72} class="cta-mark" />
+    <h2 class="cta-h" id="cta-h">
+      <span>Open the</span>
+      <span>cage.</span>
     </h2>
-    <p class="cta-sub">Thirty seconds from download to a working agent — none of them spent on a sign-up form.</p>
-    <div class="cta-btns">
+    <p class="cta-triad">Your models. Your keys. Your machine.</p>
+    <div class="cta-act">
       <button class="install-cmd" type="button" data-install-copy aria-label="Copy the install command">
-        <code><span class="hi-prompt">$</span><span data-install-cmd>curl -fsSL https://getuncaged.dev/install.sh | bash</span></code>
+        <code><span class="hi-prompt">❯</span><span data-install-cmd>curl -fsSL https://getuncaged.dev/install.sh | bash</span></code>
         <span class="hi-copy" data-copy-label>copy</span>
       </button>
-      <a class="btn btn-ghost" href={SITE.github} target="_blank" rel="noopener">Star on GitHub</a>
+      <div class="cta-btns">
+        <a class="btn btn-primary" href="#install">All downloads</a>
+        <a class="btn btn-ghost" href={SITE.github} rel="noopener">Star on GitHub</a>
+      </div>
     </div>
+    <p class="cta-fine">Free forever · AGPL-3.0 · v{SITE.version} · macOS, Linux, Windows</p>
   </div>
 </section>
 
 <style>
   .cta {
     position: relative;
-    padding-block: clamp(88px, 6vw + 46px, 130px);
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(120px, 14vw, 220px);
+    border-top: 1px solid var(--rule-strong);
     text-align: center;
-    overflow: clip;
   }
-
-  .cta::before {
-    content: '';
+  .cta-glow {
+    position: absolute;
+    inset: auto -20% -60% -20%;
+    height: 120%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgba(255, 122, 24, 0.26), rgba(255, 77, 28, 0.06) 55%, transparent 75%);
+    animation: breathe 16s ease-in-out infinite alternate;
+  }
+  @keyframes breathe {
+    to {
+      opacity: 0.6;
+      transform: scale(1.06);
+    }
+  }
+  /* the bars, pried apart around the headline */
+  .cta-bars {
     position: absolute;
     inset: 0;
-    pointer-events: none;
-    background: radial-gradient(46% 52% at 50% 96%, rgba(255, 122, 24, 0.09), transparent 66%);
-    animation: breathe 16s ease-in-out -8s infinite alternate;
-    z-index: 0;
-  }
-
-  .cta-inner {
+    z-index: -1;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
+    gap: clamp(36px, 7vw, 120px);
+    pointer-events: none;
   }
-
+  .cta-bars i {
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, var(--rule-strong) 30%, var(--rule-strong) 70%, transparent);
+    transform: translateX(calc((var(--i) - 4) * clamp(10px, 2.6vw, 44px)));
+  }
+  .cta-bars i:nth-child(5) {
+    opacity: 0;
+  }
+  .cta-inner {
+    display: grid;
+    justify-items: center;
+    gap: 28px;
+  }
   .cta-mark {
     color: var(--ink);
-    margin-bottom: 34px;
+    filter: drop-shadow(0 0 40px rgba(255, 122, 24, 0.35));
   }
-
   .cta-h {
-    font-size: clamp(30px, 4.4vw, 46px);
-    font-weight: 800;
-    line-height: 1.15;
+    display: flex;
+    flex-direction: column;
+    font: 800 var(--fs-giga) / 0.88 var(--mono);
+    letter-spacing: -0.055em;
+    text-transform: uppercase;
+  }
+  .cta-h span:last-child {
+    color: var(--ember);
+    text-shadow: 0 0 80px rgba(255, 122, 24, 0.45);
+  }
+  .cta-triad {
+    font: 700 clamp(16px, 1.6vw, 21px) / 1.3 var(--mono);
     letter-spacing: -0.02em;
-  }
-
-  /* each beat is unbreakable — wraps happen only between sentences, so the
-     line reads as one strap on desktop and three staccato lines on phones */
-  .cta-h .beat {
-    white-space: nowrap;
-  }
-
-  .cta-btns :global(.install-cmd) {
-    /* flex items must be allowed to shrink — otherwise the command box
-       refuses to compress and gets clipped by the section's overflow */
-    min-width: 0;
-  }
-
-  .cta-sub {
-    margin-top: 18px;
     color: var(--ash);
-    max-width: 46ch;
   }
-
+  .cta-act {
+    display: grid;
+    gap: 16px;
+    justify-items: center;
+    width: min(620px, 100%);
+  }
+  .cta-act .install-cmd {
+    width: 100%;
+  }
   .cta-btns {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 14px;
-    margin-top: 36px;
-    /* centered flex-column items size to max-content — cap them, or the
-       command row overflows the container on phones */
-    max-width: 100%;
+    gap: 12px;
   }
-
-  @media (max-width: 480px) {
-    /* three staccato lines — the old hero composition, closing the page */
-    .cta-h .beat {
-      display: block;
-    }
+  .cta-fine {
+    font: 500 12.5px/1.4 var(--mono);
+    color: var(--ash);
+    letter-spacing: 0.04em;
   }
 </style>

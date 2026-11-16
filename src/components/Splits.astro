@@ -1,0 +1,2055 @@
+---
+/**
+ * 01 · splits — the 0.3.3 headline feature, as a working model of the window (blocks use the
+ * 0.3.5 one-line command headers).
+ *
+ * Labels are the app's own (uncaged v0.3.3):
+ *   tab menu headers + icon tooltips   app/src/workspace/view.rs:13985-14085
+ *   layouts (Columns / MainAndStack / Grid) and how they fill  app/src/pane_group/tree.rs:200-210, 474-505
+ *   icons                              app/assets/bundled/svg/tab_layout_*.svg (paths copied verbatim)
+ *   "Split pane right/down" shortcuts  app/src/pane_group/mod.rs:462-470, app/src/util/bindings.rs:293-302
+ *   "Open in split pane"               app/src/workspace/view/conversation_list/view.rs:1150
+ *   placeholders                       app/src/terminal/input.rs:402-411
+ *   mode switch                        app/src/terminal/universal_developer_input.rs:400-541
+ *   agent footer                       app/src/ai/blocklist/agent_view/agent_input_footer/mod.rs
+ *   pane header (agent glyph, info)    app/src/terminal/view/pane_impl.rs:287-470
+ *   reply actions / hint row           app/src/ai/blocklist/block/view_impl/output.rs, agent_view/agent_message_bar.rs
+ *   tab bar, panes, blocks, chips      captures of 0.3.3 (shots-in/split-3-z*.png)
+ * The finished frame is plain HTML/CSS; the script only makes it move.
+ */
+import AppIcon from './AppIcon.astro';
+
+// The app's 24×24 tab-layout icons: one shared frame + filled cells.
+const FRAME =
+  'M5.0 4.5H19.0A3.5 3.5 0 0 1 22.5 8.0V16.0A3.5 3.5 0 0 1 19.0 19.5H5.0A3.5 3.5 0 0 1 1.5 16.0V8.0A3.5 3.5 0 0 1 5.0 4.5ZM5 6H19A2 2 0 0 1 21 8V16A2 2 0 0 1 19 18H5A2 2 0 0 1 3 16V8A2 2 0 0 1 5 6Z';
+const CELL = {
+  L: 'M5.5 7.5H10.25A1 1 0 0 1 11.25 8.5V15.5A1 1 0 0 1 10.25 16.5H5.5A1 1 0 0 1 4.5 15.5V8.5A1 1 0 0 1 5.5 7.5Z',
+  R: 'M13.75 7.5H18.5A1 1 0 0 1 19.5 8.5V15.5A1 1 0 0 1 18.5 16.5H13.75A1 1 0 0 1 12.75 15.5V8.5A1 1 0 0 1 13.75 7.5Z',
+  T: 'M5.5 7.5H18.5A1 1 0 0 1 19.5 8.5V10.25A1 1 0 0 1 18.5 11.25H5.5A1 1 0 0 1 4.5 10.25V8.5A1 1 0 0 1 5.5 7.5Z',
+  B: 'M5.5 12.75H18.5A1 1 0 0 1 19.5 13.75V15.5A1 1 0 0 1 18.5 16.5H5.5A1 1 0 0 1 4.5 15.5V13.75A1 1 0 0 1 5.5 12.75Z',
+  F: 'M5.5 7.5H18.5A1 1 0 0 1 19.5 8.5V15.5A1 1 0 0 1 18.5 16.5H5.5A1 1 0 0 1 4.5 15.5V8.5A1 1 0 0 1 5.5 7.5Z',
+  RT: 'M13.75 7.5H18.5A1 1 0 0 1 19.5 8.5V10.25A1 1 0 0 1 18.5 11.25H13.75A1 1 0 0 1 12.75 10.25V8.5A1 1 0 0 1 13.75 7.5Z',
+  RB: 'M13.75 12.75H18.5A1 1 0 0 1 19.5 13.75V15.5A1 1 0 0 1 18.5 16.5H13.75A1 1 0 0 1 12.75 15.5V13.75A1 1 0 0 1 13.75 12.75Z',
+  LT: 'M5.5 7.5H10.25A1 1 0 0 1 11.25 8.5V10.25A1 1 0 0 1 10.25 11.25H5.5A1 1 0 0 1 4.5 10.25V8.5A1 1 0 0 1 5.5 7.5Z',
+  LB: 'M5.5 12.75H10.25A1 1 0 0 1 11.25 13.75V15.5A1 1 0 0 1 10.25 16.5H5.5A1 1 0 0 1 4.5 15.5V13.75A1 1 0 0 1 5.5 12.75Z',
+};
+const ICON: Record<string, string[]> = {
+  left: [CELL.L],
+  right: [CELL.R],
+  up: [CELL.T],
+  down: [CELL.B],
+  fill: [CELL.F],
+  columns: [CELL.L, CELL.R],
+  main: [CELL.L, CELL.RT, CELL.RB],
+  grid: [CELL.LT, CELL.RT, CELL.LB, CELL.RB],
+};
+const SIDES = [
+  { side: 'left', word: 'left' },
+  { side: 'right', word: 'right' },
+  { side: 'up', word: 'above' },
+  { side: 'down', word: 'below' },
+];
+const LAYOUTS = [
+  { layout: 'columns', label: 'Side by side' },
+  { layout: 'main', label: 'One large, rest stacked' },
+  { layout: 'grid', label: 'Grid' },
+];
+---
+
+<section class="section sp" id="splits" aria-labelledby="splits-h" data-splits>
+  <div class="container">
+    <span class="sec-tag"><b>01</b> splits</span>
+
+    <div class="sp-head">
+      <div class="sp-meta" aria-hidden="true">
+        <span>since 0.3.3</span><span>tab menu › split · arrange</span><span>drag · drop</span>
+      </div>
+      <h2 class="sp-h" id="splits-h">
+        <span class="sp-l1">Split it.</span>
+        <span class="sp-l2"><span class="outline-text">Every way</span><span class="sp-dot">.</span></span>
+      </h2>
+      <p class="lede sp-lede">
+        Every pane in a split is its own rounded card. <strong>Split and arrange from the tab's menu</strong>, drag a
+        tab onto the panes to split it there, or open an agent conversation in a split pane. Try the menu: it is the
+        app's own.
+      </p>
+    </div>
+
+    <div class="sp-stage">
+      <!-- ================= the tab menu (rows of icon buttons, labels are tooltips) ================= -->
+      <div class="sp-side">
+        <div class="sp-menu-w">
+          <p class="mn-cap" id="sp-menu-cap">
+            <span>Tab menu</span><b data-menu-tab>uncaged</b>
+          </p>
+          <div class="sp-menu" data-menu-wrap>
+            <div class="mn" data-menu="self" role="group" aria-labelledby="sp-menu-cap">
+              <p class="mn-h" id="mn-split">Split</p>
+              <div class="mn-row" role="group" aria-labelledby="mn-split">
+                {
+                  SIDES.map((s) => (
+                    <button type="button" class="mn-b" data-act="split" data-side={s.side} data-tip={`New pane ${s.word}`} aria-label={`New pane ${s.word}`}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d={FRAME} />{ICON[s.side].map((d) => <path d={d} />)}</svg>
+                    </button>
+                  ))
+                }
+              </div>
+              <div data-arrange>
+                <p class="mn-h" id="mn-arrange">Arrange</p>
+                <div class="mn-row" role="group" aria-labelledby="mn-arrange">
+                  <button type="button" class="mn-b" data-act="unsplit" data-tip="Unsplit into tabs" aria-label="Unsplit into tabs">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d={FRAME} /><path d={CELL.F} /></svg>
+                  </button>
+                  {
+                    LAYOUTS.map((l) => (
+                      <button type="button" class="mn-b" data-act="arrange" data-layout={l.layout} data-tip={l.label} aria-label={l.label}>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d={FRAME} />{ICON[l.layout].map((d) => <path d={d} />)}</svg>
+                      </button>
+                    ))
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="mn" data-menu="other" role="group" aria-labelledby="sp-menu-cap" hidden>
+              <p class="mn-h" id="mn-put">Split into current tab</p>
+              <div class="mn-row" role="group" aria-labelledby="mn-put">
+                {
+                  SIDES.map((s) => (
+                    <button type="button" class="mn-b" data-act="put" data-side={s.side} data-tip={`Put ${s.word}`} aria-label={`Put ${s.word}`}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d={FRAME} />{ICON[s.side].map((d) => <path d={d} />)}</svg>
+                    </button>
+                  ))
+                }
+              </div>
+              <p class="mn-h" id="mn-join">Join and arrange</p>
+              <div class="mn-row" role="group" aria-labelledby="mn-join">
+                {
+                  LAYOUTS.map((l) => (
+                    <button type="button" class="mn-b" data-act="join" data-layout={l.layout} data-tip={l.label} aria-label={l.label}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d={FRAME} />{ICON[l.layout].map((d) => <path d={d} />)}</svg>
+                    </button>
+                  ))
+                }
+              </div>
+            </div>
+            <span class="mn-tip" data-tip-el aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <div class="sp-ro-row">
+          <p class="sp-readout" data-readout aria-live="polite">
+            <span class="ro-k">Arrange</span><span class="ro-v">One large, rest stacked</span>
+          </p>
+          <button type="button" class="sw-reset" data-reset hidden>reset</button>
+        </div>
+
+        <ul class="sp-notes">
+          <li><b>drag</b><span>Drop a tab onto any pane to split it there.</span></li>
+          <li><b>agents</b><span>Open any agent conversation in a split, next to your shell.</span></li>
+        </ul>
+
+        <dl class="sp-keys">
+          <div><dt><kbd data-k-mac="⌘D" data-k-pc="Ctrl-Shift-D">⌘D</kbd></dt><dd>Split pane right</dd></div>
+          <div><dt><kbd data-k-mac="⌘⇧D" data-k-pc="Ctrl-Shift-E">⌘⇧D</kbd></dt><dd>Split pane down</dd></div>
+        </dl>
+      </div>
+
+      <!-- ================= the window ================= -->
+      <div class="sp-win" data-win role="group" aria-label="Interactive Uncaged window. Choose a pane to focus it; the tab menu beside it splits and arranges the panes; drag the api tab onto a pane to split it there.">
+        <div class="sw-top">
+          <div class="glass-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="sw-ib sw-side" aria-hidden="true"><AppIcon name="layout-left" size={15} /></span>
+          <div class="sw-tabs" data-tabs role="group" aria-label="Tabs. Choose one to show its tab menu.">
+            <button type="button" class="sw-tab is-on" data-tab="cur" aria-pressed="true"><span class="tb-st" aria-hidden="true"><AppIcon name="check" size={10} /></span><span class="tb-t">uncaged</span></button>
+            <button type="button" class="sw-tab" data-tab="t-D" aria-pressed="false"><span class="tb-st" aria-hidden="true"><AppIcon name="check" size={10} /></span><span class="tb-t">api</span></button>
+          </div>
+          <span class="sw-new" aria-hidden="true"><span class="sw-nb"><AppIcon name="plus" size={14} /></span><span class="sw-nb sw-nb-c"><AppIcon name="chevron-down" size={12} /></span></span>
+          <span class="sw-right" aria-hidden="true">
+            <span class="sw-ib"><AppIcon name="claude" size={15} /></span>
+            <span class="sw-ib"><AppIcon name="diff" size={15} /></span>
+            <span class="sw-ib"><AppIcon name="inbox-01" size={15} /></span>
+            <span class="sw-ib sw-gear"><AppIcon name="gear" size={15} /></span>
+          </span>
+        </div>
+
+        <div class="sw-body is-main" data-body>
+          <!-- A · terminal -->
+          <div class="pn is-focused" data-pane="A" tabindex="0" role="group" aria-label="Terminal pane in uncaged">
+            <div class="pn-h"><span class="pn-t"><span class="pn-tt">uncaged</span></span><span class="pn-tools"><span class="pn-dots" aria-hidden="true"><AppIcon name="dots-vertical" size={14} /></span><button type="button" class="pn-x" data-close aria-label="Close this pane"><AppIcon name="x-close" size={14} /></button></span></div>
+            <div class="pn-scroll">
+              <div class="pn-feed">
+                <div class="blk">
+                  <div class="blk-h" data-blkh><span class="blk-meta" data-p>/tmp/uncaged git:(main)<span class="bh-sep"> ❯</span></span><span class="blk-cmd" data-c><span class="c-cmd">git</span> log --oneline -8 v0.3.3</span></div>
+                  <div class="blk-out">
+                    <span><span class="y">83b25b9 (</span><b class="y">tag: v0.3.3</b><span class="y">)</span> uncaged: 0.3.3 -- splits as cards, tab split and arrange menus</span>
+                    <span><span class="y">bfb1c17</span> uncaged: round the code pane footer to the card's radius</span>
+                    <span><span class="y">16db1f6</span> uncaged: mode switch follows pane focus live; tidy the Previous session band</span>
+                    <span><span class="y">fd79471</span> uncaged: light the mode switch only in the focused pane</span>
+                    <span><span class="y">f50e5e1</span> <b class="o">(origin/port-0.3)</b> uncaged: format arrange tests, drop an unused import</span>
+                    <span><span class="y">e0a328c</span> uncaged: one-line conversation list with a clearer layout</span>
+                    <span><span class="y">4e719fd</span> uncaged: tab menu split and arrange icons, like macOS window tiling</span>
+                    <span><span class="y">3caf0f0</span> uncaged: shorter "Unsplit into tabs" label so it fits the tab menu</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="inp">
+              <div class="inp-chips"><span class="ic"><AppIcon name="folder" size={12} />/tmp/uncaged</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span></div>
+              <div class="inp-line ph">Run a command</div>
+              <div class="inp-foot"><span class="mode" data-mode="terminal" role="img" aria-label="Mode: Terminal"><i class="m-t" title="Terminal (⌘I)"><AppIcon name="terminal" size={12} /></i><i class="m-a" title="Agent Mode (⌘I)"><AppIcon name="sparkle" size={13} /></i></span></div>
+            </div>
+          </div>
+
+          <!-- B · agent conversation -->
+          <div class="pn" data-pane="B" data-agent tabindex="0" role="group" aria-label="Agent conversation pane: What does Grid do with three panes?">
+            <div class="pn-h"><span class="pn-t"><span class="pn-ag" aria-hidden="true"><AppIcon name="uncaged-mark" size={15} /><i class="pn-st"><AppIcon name="check" size={7} /></i></span><span class="pn-tt">What does Grid do with three panes?</span></span><span class="pn-info" aria-hidden="true"><AppIcon name="info" size={13} /></span><span class="pn-tools"><span class="pn-dots" aria-hidden="true"><AppIcon name="dots-vertical" size={14} /></span><button type="button" class="pn-x" data-close aria-label="Close this pane"><AppIcon name="x-close" size={14} /></button></span></div>
+            <div class="pn-scroll">
+              <div class="pn-feed">
+                <div class="q"><span class="q-av" aria-hidden="true"><AppIcon name="chevron-right" size={14} /></span><b class="q-t">What does Grid do with three panes?</b><span class="q-m" aria-hidden="true"><AppIcon name="dots-vertical" size={13} /></span></div>
+                <p class="a"><code>PaneLayout::Grid</code> takes ⌈√3⌉ = 2 columns and fills rows in reading order: two panes on top, the third full width below.</p>
+                <div class="a-acts" aria-hidden="true"><AppIcon name="thumbs-up" size={11} /><AppIcon name="thumbs-down" size={11} /><AppIcon name="arrow-split" size={12} /></div>
+                <div class="hints" aria-hidden="true"><span><kbd>?</kbd>for help</span><span><kbd>/</kbd>for commands</span><span><kbd>⇧</kbd><kbd>⌘</kbd><kbd>+</kbd>for code review</span></div>
+              </div>
+            </div>
+            <div class="inp">
+              <div class="inp-chips"><span class="ic"><AppIcon name="folder" size={12} />/tmp/uncaged</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span></div>
+              <div class="inp-line ph">Ask a follow up</div>
+              <div class="inp-foot">
+                <span class="mode" data-mode="agent" role="img" aria-label="Mode: Agent"><i class="m-t" title="Terminal (⌘I)"><AppIcon name="terminal" size={12} /></i><i class="m-a" title="Agent Mode (⌘I)"><AppIcon name="sparkle" size={13} /></i></span>
+                <span class="ib nld" title="Enable terminal command autodetection"><AppIcon name="nld" size={13} /></span>
+                <span class="foot-r">
+                  <span class="ib ib-ctx" title="Context window usage"><AppIcon name="conversation-context-0" size={12} /></span>
+                  <span class="model-chip"><span class="mc-m">opus[1m]</span><span class="sep" aria-hidden="true"></span><span class="mc-e">Medium effort<AppIcon name="chevron-down" size={11} /></span></span>
+                  <span class="ib" title="Attach file"><AppIcon name="plus" size={12} /></span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- C · agent conversation opened in a split -->
+          <div class="pn" data-pane="C" data-agent tabindex="0" role="group" aria-label="Agent conversation pane: Draft the Splits notes.">
+            <div class="pn-h"><span class="pn-t"><span class="pn-ag" aria-hidden="true"><AppIcon name="uncaged-mark" size={15} /><i class="pn-st"><AppIcon name="check" size={7} /></i></span><span class="pn-tt">Draft the Splits notes.</span></span><span class="pn-info" aria-hidden="true"><AppIcon name="info" size={13} /></span><span class="pn-tools"><span class="pn-dots" aria-hidden="true"><AppIcon name="dots-vertical" size={14} /></span><button type="button" class="pn-x" data-close aria-label="Close this pane"><AppIcon name="x-close" size={14} /></button></span></div>
+            <div class="pn-scroll">
+              <div class="pn-feed">
+                <div class="q"><span class="q-av" aria-hidden="true"><AppIcon name="chevron-right" size={14} /></span><b class="q-t">Draft the Splits notes.</b><span class="q-m" aria-hidden="true"><AppIcon name="dots-vertical" size={13} /></span></div>
+                <p class="a">Each pane in a split is its own rounded card, with a gap between panes. The resize handle lives in the gap.</p>
+                <div class="a-acts" aria-hidden="true"><AppIcon name="thumbs-up" size={11} /><AppIcon name="thumbs-down" size={11} /><AppIcon name="arrow-split" size={12} /></div>
+                <div class="hints" aria-hidden="true"><span><kbd>?</kbd>for help</span><span><kbd>/</kbd>for commands</span><span><kbd>⇧</kbd><kbd>⌘</kbd><kbd>+</kbd>for code review</span></div>
+              </div>
+            </div>
+            <div class="inp">
+              <div class="inp-chips"><span class="ic"><AppIcon name="folder" size={12} />/tmp/uncaged</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span></div>
+              <div class="inp-line ph">Ask a follow up</div>
+              <div class="inp-foot">
+                <span class="mode" data-mode="agent" role="img" aria-label="Mode: Agent"><i class="m-t" title="Terminal (⌘I)"><AppIcon name="terminal" size={12} /></i><i class="m-a" title="Agent Mode (⌘I)"><AppIcon name="sparkle" size={13} /></i></span>
+                <span class="ib nld" title="Enable terminal command autodetection"><AppIcon name="nld" size={13} /></span>
+                <span class="foot-r">
+                  <span class="ib ib-ctx" title="Context window usage"><AppIcon name="conversation-context-0" size={12} /></span>
+                  <span class="model-chip"><span class="mc-m">opus[1m]</span><span class="sep" aria-hidden="true"></span><span class="mc-e">Medium effort<AppIcon name="chevron-down" size={11} /></span></span>
+                  <span class="ib" title="Attach file"><AppIcon name="plus" size={12} /></span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- D · terminal, lives in the "api" tab until it is dropped in -->
+          <div class="pn is-away" data-pane="D" tabindex="0" role="group" aria-label="Terminal pane in api" hidden>
+            <div class="pn-h"><span class="pn-t"><span class="pn-tt">api</span></span><span class="pn-tools"><span class="pn-dots" aria-hidden="true"><AppIcon name="dots-vertical" size={14} /></span><button type="button" class="pn-x" data-close aria-label="Close this pane"><AppIcon name="x-close" size={14} /></button></span></div>
+            <div class="pn-scroll">
+              <div class="pn-feed">
+                <div class="blk">
+                  <div class="blk-h" data-blkh><span class="blk-meta" data-p>/tmp/api git:(main)<span class="bh-sep"> ❯</span><span class="bh-dur"> (3.180s)</span></span><span class="blk-cmd" data-c><span class="c-cmd">go</span> test ./...</span><span class="blk-d" data-d>3.180s</span></div>
+                  <div class="blk-out"><span>ok   api/handlers  0.412s</span><span>ok   api/store     0.274s</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="inp">
+              <div class="inp-chips"><span class="ic"><AppIcon name="folder" size={12} />/tmp/api</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span></div>
+              <div class="inp-line ph">Run a command</div>
+              <div class="inp-foot"><span class="mode" data-mode="terminal" role="img" aria-label="Mode: Terminal"><i class="m-t" title="Terminal (⌘I)"><AppIcon name="terminal" size={12} /></i><i class="m-a" title="Agent Mode (⌘I)"><AppIcon name="sparkle" size={13} /></i></span></div>
+            </div>
+          </div>
+
+          <div class="sw-drop" data-drop aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- clone sources for panes and tabs the script creates (keeps scoped styles) -->
+  <template data-tpl-pane>
+    <div class="pn" tabindex="0" role="group" aria-label="New terminal pane in uncaged">
+      <div class="pn-h"><span class="pn-t"><span class="pn-tt">uncaged</span></span><span class="pn-tools"><span class="pn-dots" aria-hidden="true"><AppIcon name="dots-vertical" size={14} /></span><button type="button" class="pn-x" data-close aria-label="Close this pane"><AppIcon name="x-close" size={14} /></button></span></div>
+      <div class="pn-scroll"><div class="pn-feed"></div></div>
+      <div class="inp">
+        <div class="inp-chips"><span class="ic"><AppIcon name="folder" size={12} />/tmp/uncaged</span><span class="ic"><AppIcon name="git-branch-02" size={12} />main</span></div>
+        <div class="inp-line ph">Run a command</div>
+        <div class="inp-foot"><span class="mode" data-mode="terminal" role="img" aria-label="Mode: Terminal"><i class="m-t" title="Terminal (⌘I)"><AppIcon name="terminal" size={12} /></i><i class="m-a" title="Agent Mode (⌘I)"><AppIcon name="sparkle" size={13} /></i></span></div>
+      </div>
+    </div>
+  </template>
+  <template data-tpl-tab>
+    <button type="button" class="sw-tab" aria-pressed="false"><span class="tb-st" aria-hidden="true"><AppIcon name="check" size={10} /></span><span class="tb-t"></span></button>
+  </template>
+</section>
+
+<style>
+  /* ================= head: the brutal staccato ================= */
+  .sp-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.62fr);
+    grid-template-areas:
+      'meta meta'
+      'h    h'
+      '.    lede';
+    gap: 0 clamp(24px, 4vw, 72px);
+    margin-bottom: clamp(40px, 5vw, 80px);
+  }
+  .sp-meta {
+    grid-area: meta;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 0 14px;
+    margin-bottom: clamp(14px, 2vw, 26px);
+    border-bottom: 1px solid var(--rule-strong);
+    font: 600 12px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .sp-meta span:first-child {
+    color: var(--ember);
+  }
+  .sp-h {
+    grid-area: h;
+    display: flex;
+    flex-direction: column;
+    margin-left: -0.05em;
+    font: 800 clamp(38px, 9.1vw, 154px) / 0.84 var(--mono);
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+  }
+  .sp-h > span {
+    display: block;
+    white-space: nowrap;
+  }
+  .sp-l2 {
+    padding-left: 0.62em;
+  }
+  .sp-l2 .outline-text {
+    -webkit-text-stroke-color: rgba(232, 235, 242, 0.5);
+  }
+  .sp-dot {
+    color: var(--ember);
+  }
+  .sp-lede {
+    grid-area: lede;
+    margin-top: clamp(22px, 2.6vw, 40px);
+  }
+
+  /* ================= stage ================= */
+  .sp-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    gap: clamp(20px, 2.6vw, 40px);
+    align-items: start;
+  }
+  .sp-side {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+  }
+
+  /* the tab menu, drawn as the app draws it: headers + rows of icon buttons (app menus use
+     the UI font: sub-text headers, main-text icons, tooltips above; view.rs with_split_tab_items) */
+  .sp-menu-w {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+  .sp-menu {
+    position: relative;
+    min-height: 186px;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--bar);
+    background: #12151d;
+    box-shadow:
+      inset 0 1px 0 rgba(232, 235, 242, 0.05),
+      0 24px 60px -24px rgba(0, 0, 0, 0.9);
+  }
+  .mn-cap {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 2px;
+    margin: 0;
+    font: 600 11px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mn-cap b {
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mn[hidden],
+  [data-arrange][hidden] {
+    display: none;
+  }
+  .mn-h {
+    padding: 8px 10px 4px;
+    font: 500 12.5px/1.2 var(--sans);
+    color: var(--ash);
+  }
+  .mn-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2px;
+    padding: 2px 4px 4px;
+  }
+  .mn-b {
+    display: grid;
+    place-items: center;
+    height: 40px;
+    border-radius: 8px;
+    color: var(--ink);
+    transition:
+      background var(--fast),
+      color var(--fast),
+      transform 0.18s var(--ease);
+  }
+  .mn-b svg {
+    width: 26px;
+    height: 26px;
+    fill: currentColor;
+  }
+  .mn-b:hover,
+  .mn-b:focus-visible {
+    background: rgba(232, 235, 242, 0.07);
+  }
+  .mn-b:focus-visible {
+    outline-offset: 0;
+  }
+  .mn-b:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .mn-b.is-press {
+    transform: scale(0.9);
+    background: rgba(255, 122, 24, 0.18);
+    color: var(--gold);
+  }
+  .mn-tip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    padding: 6px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--bar);
+    background: #1b2029;
+    font: 500 12px/1 var(--sans);
+    color: var(--ink);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -100%) translateY(2px);
+    transition:
+      opacity 0.15s,
+      transform 0.15s var(--ease);
+  }
+  .mn-tip.is-on {
+    opacity: 1;
+    transform: translate(-50%, -100%) translateY(-6px);
+  }
+
+  .sp-ro-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+  .sp-readout {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+    min-height: 22px;
+    margin: 0;
+    padding: 0 2px;
+    font: 600 13.5px/1.4 var(--mono);
+    color: var(--ink);
+  }
+  .ro-k {
+    color: var(--ember);
+    flex: none;
+  }
+  .ro-k::after {
+    content: ' ›';
+    color: var(--muted);
+  }
+  .ro-v {
+    min-width: 0;
+  }
+  .sw-reset {
+    flex: none;
+    padding: 5px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--bar);
+    font: 600 11px/1 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .sw-reset[hidden] {
+    display: none;
+  }
+  .sw-reset:hover {
+    color: var(--ink);
+    border-color: var(--rule-strong);
+  }
+
+  .sp-notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+  }
+  .sp-notes li {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--rule);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ash);
+  }
+  .sp-notes b {
+    font: 700 11px/1.9 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .sp-keys {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+  }
+  .sp-keys div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sp-keys dt {
+    flex: none;
+  }
+  .sp-keys dd {
+    margin: 0;
+    font: 500 13.5px/1.3 var(--mono);
+    color: var(--ash);
+  }
+
+  /* ================= the window ================= */
+  /* App chrome (tab titles, pane titles, hints, model chip) is the UI sans; terminal output,
+     commands, conversation text, chip paths and placeholders are mono (captures of 0.3.3). */
+  .sp-win {
+    --pane-bg: #0d1016;
+    --pane-line: rgba(60, 67, 82, 0.55);
+    --ctl-line: #2b2f38;
+    --chip-ink: #acdedb;
+    position: relative;
+    min-width: 0;
+    border-radius: 16px;
+    border: 1px solid var(--bar);
+    background: #090b10;
+    box-shadow:
+      inset 0 1px 0 rgba(232, 235, 242, 0.06),
+      0 40px 120px -40px rgba(0, 0, 0, 0.95),
+      0 0 0 1px rgba(0, 0, 0, 0.6);
+    font-family: var(--sans);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .sw-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 12px 0 14px;
+    font-size: 12.5px;
+    color: var(--ash);
+  }
+  .sw-ib {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    color: var(--muted);
+  }
+  .sw-ib :global(svg) {
+    display: block;
+  }
+  .sw-tabs {
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  /* tabs are equal-width cells, title centred; the active one is a filled rounded box */
+  .sw-tab {
+    position: relative;
+    flex: 0 1 168px;
+    width: 168px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 28px;
+    min-width: 0;
+    padding: 0 12px;
+    border-radius: 8px;
+    font: 500 12.5px/1 var(--sans);
+    color: var(--muted);
+    white-space: nowrap;
+    touch-action: none;
+    transition:
+      background var(--fast),
+      color var(--fast),
+      box-shadow var(--fast);
+  }
+  .tb-t {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* agent status in a small tinted square (green check when done) */
+  .tb-st {
+    flex: none;
+    display: none;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: rgba(123, 216, 143, 0.12);
+    color: var(--t-green);
+  }
+  .sw-tab.has-st .tb-st {
+    display: grid;
+  }
+  .tb-st :global(svg) {
+    display: block;
+  }
+  .sw-tab:not(.is-on) {
+    cursor: grab;
+  }
+  .sw-tab:hover {
+    color: var(--ink);
+    background: rgba(232, 235, 242, 0.04);
+  }
+  .sw-tab.is-on {
+    color: var(--ash);
+    background: rgba(232, 235, 242, 0.07);
+  }
+  .sw-tab[aria-pressed='true']:not(.is-on) {
+    box-shadow: inset 0 0 0 1px rgba(255, 122, 24, 0.45);
+    color: var(--ink);
+  }
+  .sw-tab.is-new {
+    animation: tab-in 0.5s var(--ease) both;
+  }
+  .sw-tab.is-lifted {
+    opacity: 0.35;
+  }
+  @keyframes tab-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.9);
+    }
+  }
+  .sw-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    pointer-events: none;
+    color: var(--ink);
+    background: #1b2029;
+    box-shadow:
+      0 0 0 1px rgba(255, 122, 24, 0.5),
+      0 14px 34px -10px rgba(0, 0, 0, 0.9);
+    cursor: grabbing;
+  }
+  /* new tab: a plus, then its own chevron for the new-tab menu */
+  .sw-new {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    margin-left: -6px;
+    color: var(--muted);
+  }
+  .sw-nb {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+  .sw-nb-c {
+    width: 16px;
+  }
+  .sw-nb :global(svg) {
+    display: block;
+  }
+  /* right end: CLI agent launcher (Claude), code review, notifications, settings */
+  .sw-right {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  /* body — no-JS / first paint: a CSS grid in "One large, rest stacked" */
+  .sw-body {
+    position: relative;
+    height: clamp(460px, 44vw, 620px);
+    padding: 0 8px 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+  .sw-body > [data-pane='A'] {
+    grid-row: 1 / span 2;
+  }
+  .pn[hidden] {
+    display: none;
+  }
+  /* live: the script owns geometry and animates it */
+  .sw-body.is-live {
+    display: block;
+  }
+  .sw-body.is-live .pn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+    transition:
+      transform 0.62s var(--ease-snap),
+      width 0.62s var(--ease-snap),
+      height 0.62s var(--ease-snap),
+      opacity 0.4s var(--ease);
+    transition-delay: var(--d, 0ms);
+  }
+  .sw-body.no-anim .pn,
+  .sw-body .pn.no-anim {
+    transition: none !important;
+  }
+  .pn.is-away {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ================= panes as cards ================= */
+  /* Panes resize (width/height) while the demo arranges them. Anything pinned to the
+     right, centre or bottom of a pane is placed with a transform from a fixed top-left
+     origin (container units), so the re-layout moves no box: no layout shift. */
+  .pn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 12px;
+    background: var(--pane-bg);
+    border: 1px solid var(--pane-line);
+    box-shadow: inset 0 1px 0 rgba(232, 235, 242, 0.04);
+    overflow: hidden;
+    cursor: default;
+    container: pane / size;
+  }
+  .pn:focus {
+    outline: none;
+  }
+  .pn:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+  /* the focused pane: a short accent bar inside its top-left edge (borders stay the same) */
+  .pn.is-focused::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 12px;
+    z-index: 1;
+    width: 22px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--ember);
+  }
+  .pn-h {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    height: 32px;
+    font-size: 12px;
+    color: var(--ash);
+  }
+  .pn-t {
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: calc(100cqw - 84px);
+    transform: translateX(calc(50cqw - 50%));
+    white-space: nowrap;
+  }
+  .pn-tt {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* agent pane: the agent glyph with its status badge before the title */
+  .pn-ag {
+    position: relative;
+    flex: none;
+    display: grid;
+    width: 16px;
+    height: 16px;
+    color: var(--ink);
+  }
+  .pn-ag :global(svg) {
+    display: block;
+  }
+  .pn-st {
+    position: absolute;
+    right: -4px;
+    bottom: -3px;
+    display: grid;
+    place-items: center;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--pane-bg);
+    color: var(--t-green);
+  }
+  .pn-info,
+  .pn-tools {
+    position: absolute;
+    top: 6px;
+    left: 0;
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+  }
+  .pn-info {
+    width: 20px;
+    height: 20px;
+    justify-content: center;
+    transform: translateX(calc(100cqw - 100% - 8px));
+    transition: transform 0.2s var(--ease);
+  }
+  .pn-info :global(svg),
+  .pn-tools :global(svg) {
+    display: block;
+  }
+  /* overflow + close show on hover only; the info button steps aside for them */
+  .pn-tools {
+    gap: 2px;
+    transform: translateX(calc(100cqw - 100% - 8px));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .pn-h:hover .pn-tools,
+  .pn-tools:focus-within {
+    opacity: 1;
+  }
+  .pn-h:hover .pn-info,
+  .pn-h:focus-within .pn-info {
+    transform: translateX(calc(100cqw - 100% - 52px));
+  }
+  .pn-dots {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+  }
+  .pn-x {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    color: var(--ash);
+  }
+  .pn-x:hover {
+    background: rgba(232, 235, 242, 0.08);
+    color: var(--ink);
+  }
+
+  /* the pane's content sits on the input card, like the app's block list: newest at the
+     bottom, older lines clipped at the top. Placed by a transform from the top (no shift). */
+  .pn-scroll {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    container: feed / size;
+    mask-image: linear-gradient(180deg, transparent 0, #000 14px);
+  }
+  .pn-feed {
+    --pad: 14px;
+    --inp-h: 114px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0 var(--pad);
+    transform: translateY(calc(100cqh - 100% - var(--inp-h)));
+    font: 12px/1.55 var(--mono);
+    font-variant-ligatures: none;
+  }
+  .blk {
+    padding: 7px 0 2px;
+    border-top: 1px solid rgba(60, 67, 82, 0.4);
+  }
+  /* 0.3.5 one-line header: prompt ❯ command, the duration (a second or more) at the far end.
+     When the command doesn't fit beside the prompt the row wraps, prompt above, as in the app. */
+  .blk-h {
+    margin-bottom: 4px;
+  }
+  .blk-meta {
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .blk-cmd {
+    color: var(--ink);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .blk-d {
+    margin-left: auto;
+    color: var(--muted);
+  }
+  .c-cmd {
+    color: var(--t-green);
+  }
+  .blk-out {
+    display: grid;
+    color: var(--ink);
+  }
+  .blk-out > span {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .y {
+    color: var(--gold);
+  }
+  .c {
+    color: #79d3c4;
+    font-weight: 700;
+  }
+  .g {
+    color: var(--t-green);
+    font-weight: 700;
+  }
+  b.y {
+    font-weight: 700;
+  }
+  .o {
+    color: #ec6930;
+    font-weight: 700;
+  }
+
+  /* agent conversation: your turn's accent prompt chevron (in the old avatar slot) + bold query +
+     overflow; reply indented to the query text */
+  .q {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) 14px;
+    align-items: start;
+    gap: 10px;
+    padding-top: 6px;
+  }
+  .q-av {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    color: #ee8138;
+  }
+  .q-av :global(svg),
+  .q-m :global(svg),
+  .a-acts :global(svg) {
+    display: block;
+  }
+  .q-t {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .q-m {
+    margin-top: 2px;
+    color: var(--muted);
+  }
+  .a {
+    margin: 8px 0 0;
+    padding-left: 26px;
+    color: #d3d5da;
+  }
+  .a code {
+    font: inherit;
+    color: var(--t-green);
+  }
+  .a-acts {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    color: var(--muted);
+  }
+  .hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: 18px;
+    font: 11px/16px var(--sans);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .hints > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .hints kbd {
+    display: grid;
+    place-items: center;
+    min-width: 14px;
+    height: 14px;
+    margin-right: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #2a2d34;
+    box-shadow: none;
+    font: 600 9px/1 var(--sans);
+    color: #c9ccd3;
+  }
+  .hints kbd + kbd {
+    margin-left: -1px;
+  }
+
+  /* input card: sits on the pane's floor via a transform; the pane-coloured ring
+     clips the content above it. The focused pane's card is lifted a shade. */
+  .inp {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    right: 8px;
+    z-index: 1;
+    transform: translateY(calc(100cqh - 100% - 8px));
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--pane-line);
+    background: #0a0c11;
+    box-shadow: 0 0 0 8px var(--pane-bg);
+    transition: background 0.25s var(--ease);
+  }
+  .is-focused .inp {
+    background: #141720;
+  }
+  .inp-chips {
+    display: flex;
+    gap: 6px;
+    height: 22px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .ic {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 7px 0 6px;
+    border: 1px solid var(--ctl-line);
+    border-radius: 6px;
+    background: rgba(232, 235, 242, 0.025);
+    font: 700 11.5px/1 var(--mono);
+    color: var(--chip-ink);
+    white-space: nowrap;
+  }
+  .ic :global(svg) {
+    display: block;
+    flex: none;
+  }
+  .inp-line {
+    height: 20px;
+    font: 12.5px/20px var(--mono);
+    font-variant-ligatures: none;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .inp-line.ph {
+    color: var(--muted);
+  }
+  .inp-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    margin-top: 8px;
+    min-width: 0;
+    font: 11.5px/1 var(--sans);
+  }
+
+  /* the mode switch: one outlined group, two segments. The focused pane fills the current
+     mode with its accent (terminal blue, agent yellow) and draws the icon in the background
+     colour; an unfocused pane drops the fill, keeps the current mode's icon in its accent
+     and greys the other (universal_developer_input.rs:400-541) */
+  .mode {
+    flex: none;
+    display: inline-flex;
+    gap: 1px;
+    padding: 1px;
+    border-radius: 6px;
+    border: 1px solid var(--ctl-line);
+  }
+  .mode i {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    font-style: normal;
+    color: var(--muted);
+    transition:
+      background 0.25s var(--ease),
+      color 0.25s var(--ease);
+  }
+  .mode :global(svg) {
+    display: block;
+    max-width: 100%;
+  }
+  .mode[data-mode='terminal'] .m-t {
+    color: var(--t-blue);
+  }
+  .mode[data-mode='agent'] .m-a {
+    color: var(--gold);
+  }
+  .is-focused .mode[data-mode='terminal'] .m-t {
+    color: var(--pane-bg);
+    background: var(--t-blue);
+  }
+  .is-focused .mode[data-mode='agent'] .m-a {
+    color: var(--pane-bg);
+    background: var(--gold);
+  }
+
+  /* agent footer: switch + autodetect left; context usage, model, attach right — each an
+     outlined control */
+  .ib {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 1px solid var(--ctl-line);
+    color: var(--muted);
+  }
+  .ib :global(svg) {
+    display: block;
+  }
+  .foot-r {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    margin-left: auto;
+  }
+  .model-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 6px;
+    border: 1px solid var(--ctl-line);
+    color: var(--ash);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .mc-m {
+    flex: none;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .model-chip .sep {
+    flex: none;
+    width: 1px;
+    height: 12px;
+    background: var(--ctl-line);
+  }
+  .mc-e {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mc-e :global(svg) {
+    display: block;
+    color: var(--muted);
+  }
+
+  /* narrow / short panes shed detail instead of breaking */
+  @container pane (max-width: 380px) {
+    .ib-ctx {
+      display: none;
+    }
+  }
+  @container pane (max-width: 260px) {
+    .inp-chips .ic:not(:first-child),
+    .pn-info {
+      display: none;
+    }
+    .pn-feed {
+      --pad: 10px;
+    }
+  }
+  @container pane (max-width: 300px) {
+    .model-chip {
+      display: none;
+    }
+  }
+  @container pane (max-width: 160px) {
+    .foot-r {
+      display: none;
+    }
+  }
+  /* short panes keep the exchange itself and drop the hint row, then the rating row */
+  @container pane (max-height: 280px) {
+    .hints {
+      display: none;
+    }
+  }
+  @container pane (max-height: 240px) {
+    .a-acts {
+      display: none;
+    }
+  }
+  @container pane (max-height: 200px) {
+    .inp-chips {
+      display: none;
+    }
+    .pn-feed {
+      --inp-h: 84px;
+    }
+  }
+  @container pane (max-height: 150px) {
+    .pn-scroll {
+      opacity: 0;
+    }
+  }
+
+  /* the drop preview: the half of the hovered pane the dragged tab will take */
+  .sw-drop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 4;
+    width: 0;
+    height: 0;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255, 122, 24, 0.85);
+    background: rgba(255, 122, 24, 0.13);
+    box-shadow: inset 0 0 40px rgba(255, 122, 24, 0.12);
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      opacity 0.18s,
+      transform 0.22s var(--ease),
+      width 0.22s var(--ease),
+      height 0.22s var(--ease);
+  }
+  .sw-drop.is-on {
+    opacity: 1;
+  }
+  .sw-drop.is-fresh {
+    transition: opacity 0.18s;
+  }
+
+  /* ================= responsive ================= */
+  @media (max-width: 1080px) {
+    .sp-stage {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .sp-side {
+      grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+      grid-template-areas:
+        'menu notes'
+        'read notes'
+        'keys notes';
+      align-items: start;
+      column-gap: clamp(20px, 3vw, 40px);
+    }
+    .sp-menu-w {
+      grid-area: menu;
+    }
+    .sp-ro-row {
+      grid-area: read;
+    }
+    .sp-keys {
+      grid-area: keys;
+    }
+    .sp-notes {
+      grid-area: notes;
+    }
+    .sp-win {
+      grid-row: 1;
+    }
+  }
+  @media (max-width: 860px) {
+    .sp-head {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'meta' 'h' 'lede';
+    }
+    .sp-meta span:nth-child(3) {
+      display: none;
+    }
+  }
+  @media (max-width: 640px) {
+    .sp-side {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'menu' 'read' 'notes' 'keys';
+    }
+    .sw-body {
+      height: 480px;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .sw-body > [data-pane='A'] {
+      grid-row: auto;
+    }
+    .sw-body:not(.is-live) > [data-pane='C'] {
+      display: none;
+    }
+    .sp-l2 {
+      padding-left: 0;
+    }
+    .sw-top {
+      gap: 6px;
+      padding: 0 8px 0 12px;
+    }
+    .sw-tabs {
+      gap: 2px;
+    }
+    .sw-tab {
+      min-width: 46px;
+      padding: 0 8px;
+    }
+    .sw-side,
+    .sw-right .sw-ib:not(.sw-gear) {
+      display: none;
+    }
+    .sw-new {
+      gap: 0;
+      margin-left: -4px;
+    }
+    .sw-nb {
+      width: 20px;
+    }
+    .sw-nb-c {
+      width: 14px;
+    }
+    .sp-meta span:nth-child(2) {
+      display: none;
+    }
+  }
+
+  /* the close button keeps the app's size, but gets a finger-sized hit area */
+  .pn-x {
+    position: relative;
+  }
+  .pn-x::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+  }
+</style>
+
+<script>
+  type Side = 'left' | 'right' | 'up' | 'down';
+  type Layout = 'columns' | 'main' | 'grid';
+  type Leaf = { t: 'leaf'; id: string };
+  type Branch = { t: 'h' | 'v'; kids: PNode[] };
+  type PNode = Leaf | Branch;
+  type Rect = { x: number; y: number; w: number; h: number };
+  type Tab = { id: string; name: string; panes: string[] };
+
+  const root = document.querySelector<HTMLElement>('[data-splits]');
+  if (root) init(root);
+
+  function init(root: HTMLElement) {
+    const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector(s) as T;
+    const body = $('[data-body]');
+    const win = $('[data-win]');
+    const tabsEl = $('[data-tabs]');
+    const drop = $('[data-drop]');
+    const tip = $('[data-tip-el]');
+    const readout = $('[data-readout]');
+    const menuWrap = $('[data-menu-wrap]');
+    const menuSelf = $('[data-menu="self"]');
+    const menuOther = $('[data-menu="other"]');
+    const arrangeBlock = $('[data-arrange]');
+    const menuTabName = $('[data-menu-tab]');
+    const resetBtn = $<HTMLButtonElement>('[data-reset]');
+    const tplPane = $<HTMLTemplateElement>('[data-tpl-pane]');
+    const tplTab = $<HTMLTemplateElement>('[data-tpl-tab]');
+
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const narrow = matchMedia('(max-width: 640px)').matches;
+    const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    if (!isMac) root.querySelectorAll<HTMLElement>('[data-k-pc]').forEach((k) => (k.textContent = k.dataset.kPc!));
+
+    const GAP = 8;
+    const CAP = narrow ? 4 : 6;
+    const els = new Map<string, HTMLElement>();
+    root.querySelectorAll<HTMLElement>('.pn[data-pane]').forEach((el) => els.set(el.dataset.pane!, el));
+    // a tab is titled by its pane: the folder for a terminal, the conversation for an agent
+    const title = (id: string) => els.get(id)?.querySelector('.pn-tt')?.textContent ?? 'uncaged';
+    const isAgent = (id: string) => els.get(id)?.dataset.agent !== undefined;
+
+    // ---------------------------------------------------------------- tree
+    const leaf = (id: string): Leaf => ({ t: 'leaf', id });
+    const branch = (t: 'h' | 'v', kids: PNode[]): PNode => {
+      const flat = kids.flatMap((k) => (k.t === t ? (k as Branch).kids : [k]));
+      return flat.length === 1 ? flat[0] : { t, kids: flat };
+    };
+    const order = (n: PNode): string[] => (n.t === 'leaf' ? [n.id] : n.kids.flatMap(order));
+    const dirOf = (s: Side) => (s === 'left' || s === 'right' ? 'h' : 'v');
+    const before = (s: Side) => s === 'left' || s === 'up';
+    const around = (base: PNode, add: PNode, s: Side) => branch(dirOf(s), before(s) ? [add, base] : [base, add]);
+    const splitAt = (n: PNode, id: string, add: PNode, s: Side): PNode => {
+      if (n.t === 'leaf') return n.id === id ? around(n, add, s) : n;
+      return branch(n.t, n.kids.map((k) => splitAt(k, id, add, s)));
+    };
+    const without = (n: PNode, id: string): PNode | null => {
+      if (n.t === 'leaf') return n.id === id ? null : n;
+      const kids = n.kids.map((k) => without(k, id)).filter(Boolean) as PNode[];
+      return kids.length ? branch(n.t, kids) : null;
+    };
+    // tree.rs `arrange`: rebuild in reading order, sizes even
+    const arranged = (l: Layout, ids: string[]): PNode => {
+      const leaves = ids.map(leaf);
+      if (l === 'columns') return branch('h', leaves);
+      if (l === 'main') return branch('h', [leaves[0], branch('v', leaves.slice(1))]);
+      const cols = Math.ceil(Math.sqrt(leaves.length));
+      const rows: PNode[] = [];
+      for (let i = 0; i < leaves.length; i += cols) rows.push(branch('h', leaves.slice(i, i + cols)));
+      return branch('v', rows);
+    };
+    const rectsOf = (n: PNode, r: Rect, out: Record<string, Rect> = {}) => {
+      if (n.t === 'leaf') {
+        out[n.id] = r;
+        return out;
+      }
+      const k = n.kids.length;
+      const span = ((n.t === 'h' ? r.w : r.h) - GAP * (k - 1)) / k;
+      n.kids.forEach((kid, i) => {
+        const off = i * (span + GAP);
+        rectsOf(kid, n.t === 'h' ? { x: r.x + off, y: r.y, w: span, h: r.h } : { x: r.x, y: r.y + off, w: r.w, h: span }, out);
+      });
+      return out;
+    };
+
+    // ---------------------------------------------------------------- state
+    let tree: PNode;
+    let tabs: Tab[];
+    let focused: string;
+    let menuTarget: string | null = null;
+    let rects: Record<string, Rect> = {};
+    let fresh = 0;
+
+    const initialState = () => {
+      if (narrow) {
+        tree = branch('v', [leaf('A'), leaf('B')]);
+        tabs = [
+          { id: 't-C', name: title('C'), panes: ['C'] },
+          { id: 't-D', name: title('D'), panes: ['D'] },
+        ];
+      } else {
+        tree = arranged('main', ['A', 'B', 'C']);
+        tabs = [{ id: 't-D', name: title('D'), panes: ['D'] }];
+      }
+      focused = 'A';
+      menuTarget = null;
+    };
+    initialState();
+
+    // ---------------------------------------------------------------- geometry
+    const area = (): Rect => ({ x: GAP, y: 0, w: body.clientWidth - GAP * 2, h: body.clientHeight - GAP });
+    const relRect = (el: Element): Rect => {
+      const a = el.getBoundingClientRect();
+      const b = body.getBoundingClientRect();
+      return { x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height };
+    };
+    const setGeom = (el: HTMLElement, r: Rect) => {
+      el.style.transform = `translate3d(${r.x}px, ${r.y}px, 0)`;
+      el.style.width = `${r.w}px`;
+      el.style.height = `${r.h}px`;
+    };
+    const jump = (el: HTMLElement, r: Rect) => {
+      el.classList.add('no-anim');
+      setGeom(el, r);
+      void el.offsetWidth;
+      el.classList.remove('no-anim');
+    };
+    const tabEl = (id: string) => tabsEl.querySelector<HTMLElement>(`[data-tab="${id}"]`);
+
+    const place = (stagger = true) => {
+      const ids = order(tree);
+      rects = rectsOf(tree, area());
+      ids.forEach((id, i) => {
+        const el = els.get(id)!;
+        el.hidden = false;
+        el.classList.remove('is-away');
+        el.style.setProperty('--d', stagger && !reduce ? `${i * 34}ms` : '0ms');
+        el.style.opacity = '';
+        setGeom(el, rects[id]);
+      });
+      els.forEach((el, id) => el.classList.toggle('is-focused', id === focused));
+      renderTabs();
+      renderMenu();
+    };
+
+    // panes that left for a tab shrink into it, then hide
+    const sendAway = (id: string, to: HTMLElement | null) => {
+      const el = els.get(id)!;
+      el.classList.add('is-away');
+      el.classList.remove('is-focused');
+      el.style.setProperty('--d', '0ms');
+      if (to) setGeom(el, relRect(to));
+      setTimeout(() => {
+        if (el.classList.contains('is-away')) el.hidden = true;
+      }, reduce ? 0 : 640);
+    };
+    // panes arriving from a tab start at that tab's rect
+    const bringFrom = (id: string, from: Rect | null) => {
+      const el = els.get(id)!;
+      el.hidden = false;
+      if (from) jump(el, from);
+    };
+
+    // ---------------------------------------------------------------- render
+    const currentName = () => title(focused);
+    const renderTabs = () => {
+      const want = ['cur', ...tabs.map((t) => t.id)];
+      // drop stale
+      tabsEl.querySelectorAll<HTMLElement>('[data-tab]').forEach((b) => {
+        if (!want.includes(b.dataset.tab!)) b.remove();
+      });
+      want.forEach((id, i) => {
+        let b = tabEl(id);
+        if (!b) {
+          b = (tplTab.content.firstElementChild as HTMLElement).cloneNode(true) as HTMLElement;
+          b.dataset.tab = id;
+          if (!reduce) b.classList.add('is-new');
+          setTimeout(() => b!.classList.remove('is-new'), 600);
+        }
+        const lead = id === 'cur' ? focused : tabs.find((t) => t.id === id)!.panes[0];
+        const name = id === 'cur' ? currentName() : tabs.find((t) => t.id === id)!.name;
+        b.querySelector('.tb-t')!.textContent = name;
+        b.classList.toggle('has-st', isAgent(lead));
+        b.classList.toggle('is-on', id === 'cur');
+        b.setAttribute('aria-pressed', String((menuTarget ?? 'cur') === id));
+        b.setAttribute('aria-label', id === 'cur' ? `${name}, current tab: show its tab menu` : `${name} tab: show its tab menu, or drag it onto a pane`);
+        if (tabsEl.children[i] !== b) tabsEl.insertBefore(b, tabsEl.children[i] ?? null);
+      });
+    };
+    const renderMenu = () => {
+      const other = menuTarget ? tabs.find((t) => t.id === menuTarget) : null;
+      if (menuTarget && !other) menuTarget = null;
+      menuSelf.hidden = !!other;
+      menuOther.hidden = !other;
+      const n = order(tree).length;
+      arrangeBlock.hidden = n < 2;
+      menuTabName.textContent = other ? other.name : currentName();
+      menuSelf.querySelectorAll<HTMLButtonElement>('[data-act="split"]').forEach((b) => (b.disabled = n >= CAP));
+      // another tab's menu: moving its panes in is disabled too when they wouldn't fit under the cap
+      const full = !!other && n + other.panes.length > CAP;
+      menuOther.querySelectorAll<HTMLButtonElement>('[data-act="put"], [data-act="join"]').forEach((b) => (b.disabled = full));
+    };
+    const roK = readout.querySelector('.ro-k')!;
+    const roV = readout.querySelector('.ro-v')!;
+    const say = (k: string, v: string) => {
+      roK.textContent = k;
+      roV.textContent = v;
+    };
+
+    // ---------------------------------------------------------------- actions
+    const count = () => order(tree).length;
+
+    const focusPane = (id: string) => {
+      if (!order(tree).includes(id)) return;
+      focused = id;
+      els.forEach((el, k) => el.classList.toggle('is-focused', k === id));
+      renderTabs();
+      renderMenu();
+    };
+
+    const doArrange = (l: Layout, label: string) => {
+      if (count() < 2) return;
+      tree = arranged(l, order(tree));
+      place();
+      say('Arrange', label);
+    };
+
+    const doSplit = (side: Side, label: string) => {
+      if (count() >= CAP) return say('Split', `${label}: this demo stops at ${CAP} panes`);
+      const id = `N${++fresh}`;
+      const el = (tplPane.content.firstElementChild as HTMLElement).cloneNode(true) as HTMLElement;
+      el.dataset.pane = id;
+      el.dataset.fresh = '';
+      body.insertBefore(el, drop);
+      els.set(id, el);
+      wirePane(el);
+      const from = rects[focused];
+      if (from) jump(el, from);
+      el.style.opacity = '0';
+      void el.offsetWidth;
+      tree = splitAt(tree, focused, leaf(id), side);
+      focused = id;
+      place();
+      say('Split', label);
+    };
+
+    const doUnsplit = () => {
+      const ids = order(tree);
+      if (ids.length < 2) return;
+      const [keep, ...rest] = ids;
+      tree = leaf(keep);
+      tabs = [...rest.map((id) => ({ id: `t-${id}`, name: title(id), panes: [id] })), ...tabs];
+      focused = keep;
+      menuTarget = null;
+      place();
+      rest.forEach((id) => sendAway(id, tabEl(`t-${id}`)));
+      say('Arrange', 'Unsplit into tabs');
+    };
+
+    // "Put …" / drag-drop / "Join and arrange": move another tab's panes in
+    const takeTab = (tabId: string, side: Side, base: string | null, then?: Layout) => {
+      const t = tabs.find((x) => x.id === tabId);
+      if (!t) return false;
+      if (count() + t.panes.length > CAP) {
+        say('Split', `this demo stops at ${CAP} panes`);
+        return false;
+      }
+      const from = tabEl(tabId) ? relRect(tabEl(tabId)!) : null;
+      const add = branch('h', t.panes.map(leaf));
+      tree = base ? splitAt(tree, base, add, side) : around(tree, add, side);
+      if (then) tree = arranged(then, order(tree));
+      tabs = tabs.filter((x) => x.id !== tabId);
+      t.panes.forEach((id) => bringFrom(id, from));
+      focused = t.panes[0];
+      menuTarget = null;
+      place();
+      return true;
+    };
+
+    const doClose = (id: string) => {
+      if (count() < 2) return say('Close', 'the last pane stays');
+      const el = els.get(id)!;
+      tree = without(tree, id)!;
+      if (focused === id) focused = order(tree)[0];
+      el.classList.add('is-away');
+      setTimeout(() => {
+        if (!el.classList.contains('is-away')) return;
+        if (el.dataset.fresh !== undefined) {
+          el.remove();
+          els.delete(id);
+        } else el.hidden = true;
+      }, reduce ? 0 : 420);
+      place();
+      say('Close', `pane ${title(id)}`);
+    };
+
+    const doReset = () => {
+      const before = new Map([...els].map(([id, el]) => [id, !el.hidden && !el.classList.contains('is-away') ? rects[id] : null]));
+      els.forEach((el, id) => {
+        if (el.dataset.fresh !== undefined) {
+          el.remove();
+          els.delete(id);
+        }
+      });
+      initialState();
+      const inTree = order(tree);
+      els.forEach((el, id) => {
+        if (!inTree.includes(id)) {
+          el.classList.add('is-away');
+          el.hidden = true;
+        } else if (!before.get(id)) {
+          el.hidden = false;
+          jump(el, { x: 40, y: -40, w: 120, h: 30 });
+        }
+      });
+      place();
+      say('Arrange', narrow ? 'two panes, stacked' : 'One large, rest stacked');
+    };
+
+    // ---------------------------------------------------------------- menu tooltips
+    let tipFor: HTMLElement | null = null;
+    const showTip = (b: HTMLElement | null) => {
+      tipFor = b;
+      if (!b) return tip.classList.remove('is-on');
+      const m = menuWrap.getBoundingClientRect();
+      const r = b.getBoundingClientRect();
+      tip.textContent = b.dataset.tip ?? '';
+      tip.style.left = `${Math.min(Math.max(r.left - m.left + r.width / 2, 60), m.width - 60)}px`;
+      tip.style.top = `${r.top - m.top}px`;
+      tip.classList.add('is-on');
+    };
+    menuWrap.addEventListener('pointerover', (e) => {
+      const b = (e.target as Element).closest<HTMLElement>('.mn-b');
+      if (b !== tipFor) showTip(b);
+    });
+    menuWrap.addEventListener('pointerleave', () => showTip(null));
+    menuWrap.addEventListener('focusin', (e) => showTip((e.target as Element).closest<HTMLElement>('.mn-b')));
+    menuWrap.addEventListener('focusout', () => showTip(null));
+
+    const runMenu = (b: HTMLElement) => {
+      const act = b.dataset.act;
+      const tipText = b.dataset.tip ?? '';
+      if (act === 'arrange') doArrange(b.dataset.layout as Layout, tipText);
+      else if (act === 'split') doSplit(b.dataset.side as Side, tipText);
+      else if (act === 'unsplit') doUnsplit();
+      else if (act === 'put' && menuTarget) {
+        if (takeTab(menuTarget, b.dataset.side as Side, null)) say('Split into current tab', tipText);
+      } else if (act === 'join' && menuTarget) {
+        if (takeTab(menuTarget, 'right', null, b.dataset.layout as Layout)) say('Join and arrange', tipText);
+      }
+    };
+    menuWrap.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLElement>('.mn-b');
+      if (b && !(b as HTMLButtonElement).disabled) runMenu(b);
+    });
+
+    // ---------------------------------------------------------------- panes
+    const wirePane = (el: HTMLElement) => {
+      el.addEventListener('focusin', () => focusPane(el.dataset.pane!));
+      el.addEventListener('pointerdown', () => focusPane(el.dataset.pane!));
+      el.querySelector('[data-close]')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        doClose(el.dataset.pane!);
+      });
+    };
+    els.forEach(wirePane);
+    resetBtn.addEventListener('click', doReset);
+
+    // ---------------------------------------------------------------- tabs: click = its menu, drag = split there
+    let suppressClick = false;
+    tabsEl.addEventListener('click', (e) => {
+      const b = (e.target as Element).closest<HTMLElement>('[data-tab]');
+      if (!b || suppressClick) return;
+      menuTarget = b.dataset.tab === 'cur' ? null : b.dataset.tab!;
+      renderTabs();
+      renderMenu();
+      if (menuTarget) say('Tab menu', `${tabs.find((t) => t.id === menuTarget)?.name}: Split into current tab, Join and arrange`);
+    });
+
+    let ghost: HTMLElement | null = null;
+    let dragging: { id: string; src: HTMLElement; dx: number; dy: number } | null = null;
+    let hover: { id: string; side: Side } | null = null;
+
+    const hit = (cx: number, cy: number) => {
+      const b = body.getBoundingClientRect();
+      const px = cx - b.left;
+      const py = cy - b.top;
+      for (const id of order(tree)) {
+        const r = rects[id];
+        if (px < r.x || px > r.x + r.w || py < r.y || py > r.y + r.h) continue;
+        const fx = (px - r.x) / r.w;
+        const fy = (py - r.y) / r.h;
+        const d: [Side, number][] = [
+          ['left', fx],
+          ['right', 1 - fx],
+          ['up', fy],
+          ['down', 1 - fy],
+        ];
+        d.sort((a, z) => a[1] - z[1]);
+        return { id, side: d[0][0] };
+      }
+      return null;
+    };
+    const showDrop = (h: typeof hover) => {
+      if (!h) return drop.classList.remove('is-on');
+      const r = rects[h.id];
+      const half: Rect =
+        h.side === 'left'
+          ? { ...r, w: r.w / 2 }
+          : h.side === 'right'
+            ? { ...r, x: r.x + r.w / 2, w: r.w / 2 }
+            : h.side === 'up'
+              ? { ...r, h: r.h / 2 }
+              : { ...r, y: r.y + r.h / 2, h: r.h / 2 };
+      if (!drop.classList.contains('is-on')) {
+        drop.classList.add('is-fresh');
+        setGeom(drop, half);
+        void drop.offsetWidth;
+        drop.classList.remove('is-fresh');
+      } else setGeom(drop, half);
+      drop.classList.add('is-on');
+    };
+
+    const dragStart = (src: HTMLElement, cx: number, cy: number) => {
+      const r = src.getBoundingClientRect();
+      ghost = src.cloneNode(true) as HTMLElement;
+      ghost.removeAttribute('data-tab');
+      ghost.removeAttribute('aria-pressed');
+      ghost.removeAttribute('aria-label');
+      ghost.setAttribute('aria-hidden', 'true');
+      ghost.classList.add('sw-ghost');
+      ghost.classList.remove('is-new', 'is-on');
+      ghost.style.width = `${r.width}px`;
+      root.append(ghost);
+      src.classList.add('is-lifted');
+      dragging = { id: src.dataset.tab!, src, dx: cx - r.left, dy: cy - r.top };
+      dragMove(cx, cy);
+    };
+    const dragMove = (cx: number, cy: number) => {
+      if (!dragging || !ghost) return;
+      ghost.style.transform = `translate3d(${cx - dragging.dx}px, ${cy - dragging.dy}px, 0) rotate(-2deg)`;
+      hover = hit(cx, cy);
+      showDrop(hover);
+    };
+    const dragEnd = () => {
+      if (!dragging) return;
+      const d = dragging;
+      const h = hover;
+      dragging = null;
+      hover = null;
+      showDrop(null);
+      ghost?.remove();
+      ghost = null;
+      d.src.classList.remove('is-lifted');
+      if (h) {
+        const name = tabs.find((t) => t.id === d.id)?.name ?? '';
+        const half = { left: 'left', right: 'right', up: 'top', down: 'bottom' }[h.side];
+        const target = title(h.id);
+        if (takeTab(d.id, h.side, h.id)) say('Dropped', `${name} onto the ${half} half of “${target}”`);
+      }
+    };
+
+    let press: { src: HTMLElement; x: number; y: number; pid: number } | null = null;
+    tabsEl.addEventListener('pointerdown', (e) => {
+      const b = (e.target as Element).closest<HTMLElement>('[data-tab]');
+      if (!b || b.dataset.tab === 'cur' || e.button !== 0) return;
+      press = { src: b, x: e.clientX, y: e.clientY, pid: e.pointerId };
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (press && !dragging && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 6) {
+        stopDemo();
+        dragStart(press.src, e.clientX, e.clientY);
+      }
+      if (dragging && !demoDragging) dragMove(e.clientX, e.clientY);
+    });
+    const release = () => {
+      if (dragging && !demoDragging) {
+        suppressClick = true;
+        setTimeout(() => (suppressClick = false), 0);
+        dragEnd();
+      }
+      press = null;
+    };
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+
+    // ---------------------------------------------------------------- live
+    body.classList.add('is-live', 'no-anim');
+    els.forEach((el, id) => {
+      if (!order(tree).includes(id)) {
+        el.hidden = true;
+        el.classList.add('is-away');
+      }
+    });
+    place(false);
+    void body.offsetWidth;
+    body.classList.remove('no-anim');
+    resetBtn.hidden = false;
+
+    new ResizeObserver(() => {
+      body.classList.add('no-anim');
+      rects = rectsOf(tree, area());
+      order(tree).forEach((id) => setGeom(els.get(id)!, rects[id]));
+      void body.offsetWidth;
+      body.classList.remove('no-anim');
+    }).observe(body);
+
+    // ---------------------------------------------------------------- auto-demo
+    // Cycles while on screen, ends for good on the first real interaction.
+    let visible = false;
+    let demoOn = !reduce;
+    let demoDragging = false;
+    // resolved by the observer when the window is back on screen (or by stopDemo): no timers while hidden
+    let wake: (() => void) | null = null;
+    const rouse = () => {
+      wake?.();
+      wake = null;
+    };
+    new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting;
+        if (visible) rouse();
+      },
+      { threshold: 0.35 },
+    ).observe(win);
+    function stopDemo() {
+      if (!demoOn) return;
+      demoOn = false;
+      rouse();
+      if (demoDragging) {
+        demoDragging = false;
+        dragging = null;
+        hover = null;
+        ghost?.remove();
+        ghost = null;
+        showDrop(null);
+        tabsEl.querySelectorAll('.is-lifted').forEach((t) => t.classList.remove('is-lifted'));
+      }
+      menuWrap.querySelectorAll('.is-press').forEach((b) => b.classList.remove('is-press'));
+      showTip(null);
+    }
+    root.addEventListener('pointerdown', (e) => {
+      if ((e.target as Element).closest('[data-win], .sp-side')) stopDemo();
+    });
+    root.addEventListener('keydown', stopDemo);
+    root.addEventListener('focusin', stopDemo);
+
+    class Stop extends Error {}
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const wait = async (ms: number) => {
+      await sleep(ms);
+      if (demoOn && !visible) await new Promise<void>((r) => (wake = r));
+      if (!demoOn) throw new Stop();
+    };
+    const pressBtn = async (sel: string) => {
+      const b = menuWrap.querySelector<HTMLElement>(sel);
+      if (!b) return;
+      showTip(b);
+      await wait(520);
+      b.classList.add('is-press');
+      runMenu(b);
+      await wait(200);
+      b.classList.remove('is-press');
+      await wait(520);
+      showTip(null);
+    };
+    const openTabMenu = async (tabId: string) => {
+      menuTarget = tabId;
+      renderTabs();
+      renderMenu();
+      await wait(700);
+    };
+    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const demoDrag = async (tabId: string, onto: string, side: Side) => {
+      const src = tabEl(tabId);
+      if (!src || !rects[onto]) return;
+      const s = src.getBoundingClientRect();
+      const r = rects[onto];
+      const fx = side === 'left' ? 0.16 : side === 'right' ? 0.84 : 0.5;
+      const fy = side === 'up' ? 0.16 : side === 'down' ? 0.84 : 0.5;
+      const x0 = s.left + s.width / 2;
+      const y0 = s.top + s.height / 2;
+      demoDragging = true;
+      dragStart(src, x0, y0);
+      const t0 = performance.now();
+      const dur = 1300;
+      while (true) {
+        if (!demoOn) throw new Stop();
+        const t = Math.min(1, (performance.now() - t0) / dur);
+        const bb = body.getBoundingClientRect(); // page may scroll mid-drag
+        const x1 = bb.left + r.x + r.w * fx;
+        const y1 = bb.top + r.y + r.h * fy;
+        const k = ease(t);
+        dragMove(x0 + (x1 - x0) * k, y0 + (y1 - y0) * k - Math.sin(k * Math.PI) * 40);
+        if (t >= 1) break;
+        await new Promise(requestAnimationFrame);
+      }
+      await wait(650);
+      demoDragging = false;
+      dragEnd();
+    };
+
+    const wide = async () => {
+      await pressBtn('[data-act="arrange"][data-layout="columns"]');
+      await wait(1500);
+      focusPane('C');
+      await wait(1100);
+      await pressBtn('[data-act="arrange"][data-layout="grid"]');
+      await wait(1400);
+      await demoDrag('t-D', 'C', 'right');
+      await wait(1500);
+      await pressBtn('[data-act="arrange"][data-layout="main"]');
+      await wait(1600);
+      focusPane('B');
+      await wait(900);
+      await pressBtn('[data-act="unsplit"]');
+      await wait(1700);
+      await demoDrag('t-B', 'A', 'right');
+      await wait(1300);
+      await openTabMenu('t-C');
+      await pressBtn('[data-act="join"][data-layout="main"]');
+      await wait(1200);
+      focusPane('A');
+      await wait(1800);
+    };
+    const small = async () => {
+      await pressBtn('[data-act="arrange"][data-layout="columns"]');
+      await wait(1500);
+      await demoDrag('t-C', 'B', 'down');
+      await wait(1400);
+      await pressBtn('[data-act="arrange"][data-layout="grid"]');
+      await wait(1500);
+      await pressBtn('[data-act="unsplit"]');
+      await wait(1600);
+      await demoDrag('t-B', 'A', 'down');
+      await wait(1800);
+    };
+    const demo = async () => {
+      try {
+        await wait(1400);
+        while (demoOn) await (narrow ? small() : wide());
+      } catch (e) {
+        if (!(e instanceof Stop)) throw e;
+      }
+    };
+    if (demoOn) demo();
+  }
+</script>

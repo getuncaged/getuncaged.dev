@@ -2,12 +2,15 @@
 import Base from '../layouts/Base.astro';
 import Nav from '../components/Nav.astro';
 import Hero from '../components/Hero.astro';
-import KeptStrip from '../components/KeptStrip.astro';
-import DiffBand from '../components/DiffBand.astro';
-import Privacy from '../components/Privacy.astro';
+import ProviderTicker from '../components/ProviderTicker.astro';
+import Splits from '../components/Splits.astro';
+import Modes from '../components/Modes.astro';
 import Models from '../components/Models.astro';
-import OpenSource from '../components/OpenSource.astro';
-import Downloads from '../components/Downloads.astro';
+import Themes from '../components/Themes.astro';
+import Everything from '../components/Everything.astro';
+import Engine from '../components/Engine.astro';
+import Fork from '../components/Fork.astro';
+import Install from '../components/Install.astro';
 import Faq from '../components/Faq.astro';
 import Cta from '../components/Cta.astro';
 import Footer from '../components/Footer.astro';
@@ -56,10 +59,17 @@ const jsonLd = JSON.stringify({
       featureList: [
         'Agent Mode on any model — local runtime, API key, or CLI agent over ACP',
         'No account, no login, no cloud relay',
-        'Zero telemetry, enforced in code',
+        'No telemetry, analytics or crash reporter: the code is removed, not switched off',
+        'Local code search, shared with Claude Code, Gemini CLI and Codex over MCP',
+        'About 0.01% CPU and 150 MB for an idle window',
+        'Grouped and pinned tabs',
+        'Split panes as cards: split and arrange from the tab menu, drag a tab onto a pane',
+        'One input with a Terminal / Agent Mode switch (⌘I)',
         'Blocks, workflows, keymaps, IDE-grade editing kept from Warp',
         'GPU-fast rendering',
-        'Built to fork — the whole brand layer lives in three files',
+        '23 built-in themes, a community theme library, and a custom theme editor',
+        'Opt-in updates verified against the GitHub release checksum',
+        'Built to fork — links, marks and the model gallery live in a thin brand layer',
       ],
       keywords:
         'terminal, terminal app, terminal emulator, open source terminal, warp terminal, warp alternative, agentic terminal, AI terminal',
@@ -80,17 +90,17 @@ const jsonLd = JSON.stringify({
 <Base>
   <script type="application/ld+json" slot="head" set:html={jsonLd} />
   <Nav />
-  <main>
+  <main id="main">
     <Hero />
-    <KeptStrip />
-    <DiffBand />
-    <Privacy />
+    <ProviderTicker />
+    <Splits />
+    <Modes />
     <Models />
-    <div class="container"><hr class="hairline" /></div>
-    <OpenSource />
-    <div class="container"><hr class="hairline" /></div>
-    <Downloads />
-    <div class="container"><hr class="hairline" /></div>
+    <Themes />
+    <Everything />
+    <Engine />
+    <Fork />
+    <Install />
     <Faq />
     <Cta />
   </main>

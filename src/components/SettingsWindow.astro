@@ -1,0 +1,336 @@
+---
+import AppIcon from './AppIcon.astro';
+
+/**
+ * The Uncaged Settings window, hand-built to match the captures of the current
+ * app (shots-in/v2/models.png, gallery.png, creator.png, about.png):
+ * tab bar (grey traffic lights, sidebar toggle, the tabs "~", "Settings",
+ * "uncaged", + and ⌄, then Claude, diff, inbox and the plain gear), then two
+ * outlined, rounded panels side by side like split panes: the sidebar (search,
+ * four always-open labelled groups, a quiet raised fill on the selected page,
+ * the settings-file buttons) and the page itself in <slot />.
+ *
+ * Pages use the shared .sw-title (one title style) and .sw-card (sections as
+ * rounded cards, no rules) defined at the bottom.
+ *
+ *   sidebar   app/src/settings_view/mod.rs base_nav_items(), nav.rs nav_item_styles()
+ *   footer    app/src/settings_view/settings_file_footer.rs:315-350 (code-02, download-02, import)
+ *   search    settings_view/mod.rs:2392 (search-small)
+ *   tab bar   workspace header (layout-left = Icon::Menu)
+ * The window chrome is decorative; only the page in the slot is interactive.
+ */
+interface Props {
+  /** the sidebar item shown selected */
+  page: string;
+  /** accessible name for the scrollable page area */
+  label: string;
+  class?: string;
+}
+const { page, label, class: cls } = Astro.props;
+
+const NAV: { h: string; items: string[] }[] = [
+  { h: 'Agents', items: ['Models', 'Profiles', 'MCP servers', 'Knowledge', 'CLI agents'] },
+  { h: 'Code', items: ['Indexing and projects', 'Editor and code review'] },
+  { h: 'Look & feel', items: ['Appearance', 'Theme gallery', 'Theme creator', 'Interface'] },
+  { h: 'App', items: ['Features', 'Keyboard shortcuts', 'About'] },
+];
+---
+
+<div class:list={['sw-win', 'glass', cls]}>
+  <div class="sw-bar" aria-hidden="true">
+    <span class="sw-lights"><i></i><i></i><i></i></span>
+    <span class="sw-ic sw-toggle"><AppIcon name="layout-left" size={15} /></span>
+    <span class="sw-tabs">
+      <span class="sw-tab sw-tab-x">~</span>
+      <span class="sw-tab is-on">Settings</span>
+      <span class="sw-tab sw-tab-x">uncaged</span>
+    </span>
+    <span class="sw-ic sw-plus"><AppIcon name="plus" size={14} /></span>
+    <span class="sw-ic sw-chev"><AppIcon name="chevron-down" size={11} /></span>
+    <span class="sw-right">
+      <span class="sw-ic"><AppIcon name="claude" size={14} /></span>
+      <span class="sw-ic"><AppIcon name="diff" size={14} /></span>
+      <span class="sw-ic"><AppIcon name="inbox-01" size={14} /></span>
+      <span class="sw-ic sw-gear"><AppIcon name="gear" size={14} /></span>
+    </span>
+  </div>
+
+  <div class="sw-body">
+    <nav class="sw-side" aria-hidden="true">
+      <span class="sw-search"><AppIcon name="search-small" size={13} />Search</span>
+      <div class="sw-nav">
+        {
+          NAV.map((g) => (
+            <div class="sw-group">
+              <span class="sw-h">{g.h}</span>
+              {g.items.map((it) => (
+                <span class:list={['sw-i', it === page && 'is-on']}>{it}</span>
+              ))}
+            </div>
+          ))
+        }
+      </div>
+      <div class="sw-foot">
+        <span class="sw-fb"><AppIcon name="code-02" size={13} />Open settings file</span>
+        <span class="sw-fb"><AppIcon name="download-02" size={13} />Back up settings…</span>
+        <span class="sw-fb"><AppIcon name="import" size={13} />Restore settings…</span>
+      </div>
+    </nav>
+
+    <div class="sw-main" tabindex="0" role="region" aria-label={label}>
+      <div class="sw-page">
+        <slot />
+      </div>
+    </div>
+  </div>
+  <slot name="after" />
+</div>
+
+<style>
+  /* Colours measured from the captures (theme "Uncaged Midnight"). */
+  .sw-win {
+    --sw-bg: #0f1117;
+    --sw-panel: linear-gradient(180deg, #12141b, #0b0d12);
+    --sw-panel-line: #24262c;
+    --sw-bar: #17191f;
+    --sw-side: #0e1015;
+    --sw-text: #d3d5db;
+    --sw-dim: #93959b;
+    --sw-faint: #686a71;
+    --sw-card: #191b21;
+    --sw-row: #212329;
+    --sw-line: #313339;
+    --sw-btn-line: #3a3c41;
+    --sw-on-accent: #251c18;
+    display: flex;
+    flex-direction: column;
+    background: var(--sw-bg);
+    font-family: var(--sans);
+    color: var(--sw-text);
+    border-radius: 12px;
+    min-width: 0;
+  }
+
+  /* ---- tab bar ---- */
+  .sw-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 10px 0 12px;
+    background: var(--sw-bar);
+    flex: none;
+  }
+  .sw-lights {
+    display: flex;
+    gap: 6px;
+    margin-right: 10px;
+  }
+  .sw-lights i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #55575d;
+  }
+  .sw-ic {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    color: #7d7f85;
+  }
+  .sw-tabs {
+    flex: 1 1 auto;
+    display: flex;
+    min-width: 0;
+    gap: 4px;
+    margin-left: 8px;
+  }
+  .sw-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 200px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    font-size: 12.5px;
+    color: #5a5c62;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sw-tab.is-on {
+    background: #22242a;
+    color: #9a9ca2;
+    font-weight: 500;
+  }
+  .sw-plus {
+    color: #9a9ca2;
+  }
+  .sw-right {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    padding-left: 12px;
+  }
+
+  /* ---- body ---- */
+  .sw-body {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    flex: 1 1 auto;
+    min-height: 0;
+    height: var(--sw-h, clamp(630px, 44vw, 660px));
+    gap: 5px;
+    padding: 4px 5px 5px;
+  }
+  /* the sidebar and the page: two outlined bubbles side by side, like split panes */
+  .sw-side,
+  .sw-main {
+    min-height: 0;
+    border-radius: 9px;
+    background: var(--sw-panel);
+    border: 1px solid var(--sw-panel-line);
+  }
+  .sw-side {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 8px 8px;
+    overflow: hidden;
+  }
+  .sw-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px 10px;
+    font-size: 13px;
+    color: var(--sw-faint);
+  }
+  .sw-search :global(svg) {
+    color: var(--sw-text);
+  }
+  .sw-nav {
+    display: grid;
+    gap: 0;
+    align-content: start;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .sw-group {
+    display: grid;
+    gap: 0;
+  }
+  /* always-open groups under a plain, uppercase label (nav.rs render_group_label) */
+  .sw-h {
+    display: block;
+    margin: 9px 0 1px;
+    padding-left: 6px;
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--sw-dim);
+  }
+  .sw-group:first-child .sw-h {
+    margin-top: 2px;
+  }
+  .sw-i {
+    display: block;
+    padding: 4px 8px 4px 13px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: #b4b6bc;
+    border-radius: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* the selected page: a quiet raised fill with the main text colour, semibold */
+  .sw-i.is-on {
+    background: #24262c;
+    color: #d5d7dd;
+    font-weight: 600;
+  }
+  .sw-foot {
+    flex: none;
+    display: grid;
+    gap: 5px;
+    margin-top: auto;
+    padding-top: 10px;
+  }
+  .sw-fb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 26px;
+    border: 1px solid #222429;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #919398;
+    white-space: nowrap;
+  }
+
+  .sw-main {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #2a2d34 transparent;
+  }
+  .sw-main:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: -2px;
+  }
+  .sw-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px clamp(16px, 5%, 44px) 24px;
+  }
+  /* shared by every page: one title style, sections as rounded cards */
+  .sw-page :global(.sw-title) {
+    margin: 0 0 12px;
+    font: 600 19px/1.2 var(--sans);
+    letter-spacing: -0.01em;
+    color: #e2e4ea;
+  }
+  .sw-page :global(.sw-card) {
+    margin-bottom: 9px;
+    padding: 12px 11px;
+    border-radius: 7px;
+    background: var(--sw-card);
+  }
+
+  @media (max-width: 1100px) {
+    .sw-tab-x {
+      display: none;
+    }
+    /* a slimmer sidebar, so the page keeps room for two theme cards side by side */
+    .sw-body {
+      grid-template-columns: 200px minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 760px) {
+    .sw-body {
+      grid-template-columns: minmax(0, 1fr);
+      height: var(--sw-h-m, 560px);
+    }
+    .sw-side {
+      display: none;
+    }
+    .sw-body {
+      padding: 4px;
+    }
+    .sw-right :global(.sw-ic:not(.sw-gear)),
+    .sw-toggle,
+    .sw-chev {
+      display: none;
+    }
+    .sw-page {
+      padding: 14px 14px 22px;
+    }
+  }
+</style>

@@ -3,11 +3,12 @@ import Logo from './Logo.astro';
 import { SITE } from '../data/site';
 
 const links = [
-  { href: '#privacy', label: 'no cloud' },
+  { href: '#splits', label: 'splits' },
   { href: '#models', label: 'any model' },
-  { href: '#open-source', label: 'built to fork' },
-  { href: '#download', label: 'install' },
-  { href: '#faq', label: 'questions' },
+  { href: '#themes', label: 'themes' },
+  { href: '#engine', label: 'no cloud' },
+  { href: '#fork', label: 'fork it' },
+  { href: '#install', label: 'install' },
 ];
 ---
 
@@ -98,7 +99,8 @@ const links = [
 
   .nav-links {
     display: flex;
-    gap: 30px;
+    gap: clamp(18px, 2vw, 30px);
+    white-space: nowrap;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -191,13 +193,14 @@ const links = [
     border-bottom: 0;
   }
 
-  .mobile-menu.open {
-    display: flex;
-  }
-
-  @media (max-width: 900px) {
+  @media (max-width: 1080px) {
     .nav-links {
       display: none;
+    }
+
+    /* only below the breakpoint: widening the window never leaves the menu stuck open */
+    .mobile-menu.open {
+      display: flex;
     }
 
     .menu-btn {
@@ -220,19 +223,30 @@ const links = [
 
   const btn = document.getElementById('menu-btn')!;
   const menu = document.getElementById('mobile-menu')!;
+  const closeMenu = (refocus = false) => {
+    if (!menu.classList.contains('open')) return;
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    if (refocus) btn.focus();
+  };
   btn.addEventListener('click', () => {
     const open = menu.classList.toggle('open');
     btn.setAttribute('aria-expanded', String(open));
   });
-  menu.querySelectorAll('a').forEach((a) =>
-    a.addEventListener('click', () => {
-      menu.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-    })
-  );
+  menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => closeMenu()));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu(menu.contains(document.activeElement));
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (!nav.contains(e.target as Node)) closeMenu();
+  });
+  matchMedia('(max-width: 1080px)').addEventListener('change', (m) => {
+    if (!m.matches) closeMenu();
+  });
 
-  // scrollspy: light the nav link for the stage on screen
-  const spyIds = ['privacy', 'models', 'open-source', 'download', 'faq'];
+  // scrollspy: light the nav link for the stage on screen; sections without a link clear it
+  const spyIds = ['splits', 'models', 'themes', 'engine', 'fork', 'install'];
+  const quietIds = ['modes', 'everything', 'faq', 'get'];
   const navLinks = new Map(
     spyIds.map((id) => [id, document.querySelector(`.nav-links a[href="#${id}"]`)])
   );
@@ -244,7 +258,7 @@ const links = [
             l?.classList.remove('active');
             l?.removeAttribute('aria-current');
           });
-          const link = navLinks.get(e.target.id);
+          const link = navLinks.get(e.target.id); // undefined for a quiet section: none lit
           link?.classList.add('active');
           link?.setAttribute('aria-current', 'true');
         }
@@ -252,7 +266,7 @@ const links = [
     },
     { rootMargin: '-35% 0px -60% 0px' }
   );
-  spyIds.forEach((id) => {
+  [...spyIds, ...quietIds].forEach((id) => {
     const el = document.getElementById(id);
     if (el) spy.observe(el);
   });

@@ -1,0 +1,854 @@
+---
+/**
+ * 08 · install — the spec sheet.
+ *
+ * One tab per OS, auto-selected from the user agent before first paint (inline
+ * script, so no flash). Without JS every panel is shown, stacked, with its own
+ * heading. Each panel reads top to bottom as a spec plate: one-liner →
+ * package manager → direct downloads → (macOS) Gatekeeper. Minimum OS
+ * versions ride on each tab's subtitle (and the no-JS panel heading); signing
+ * and install scope are already in the Gatekeeper row and the one-liner note.
+ *
+ * Every download href goes through dl('<slug>') (first-party counter route).
+ * Sizes are the v0.3.5 assets (`gh release view v0.3.5`) and need a bump when
+ * a release changes them noticeably. The .zip builds have no dl() slug, so
+ * they are linked via the release page instead of as buttons.
+ */
+import { SITE } from '../data/site';
+import { dl } from '../lib/downloads';
+
+const SH = 'curl -fsSL https://getuncaged.dev/install.sh | bash';
+const PS = 'irm https://getuncaged.dev/install.ps1 | iex';
+const BREW = 'brew install --cask getuncaged/tap/uncaged';
+const WINGET = 'winget install Uncaged.Uncaged';
+const GK = 'xattr -dr com.apple.quarantine /Applications/Uncaged.app';
+
+const mb = (bytes: number) => `${Math.round(bytes / 1e6)} MB`;
+
+type Row = { arch: string; fmt: string; desc: string; slug: string; file: string; bytes: number };
+type Os = {
+  id: 'macos' | 'linux' | 'windows';
+  key: string;
+  name: string;
+  archs: string;
+  prompt: string;
+  one: { cmd: string; note: string; script: string };
+  pm?: { name: string; cmd: string; note: string };
+  pmNone?: string;
+  groups: { label?: string; rows: Row[] }[];
+  gatekeeper?: boolean;
+  min?: string;
+};
+
+const LINUX_FMT = [
+  { fmt: '.deb', desc: 'Debian · Ubuntu', ext: 'deb', key: 'deb' },
+  { fmt: '.rpm', desc: 'Fedora · RHEL · SUSE', ext: 'rpm', key: 'rpm' },
+  { fmt: 'AppImage', desc: 'any distro', ext: 'AppImage', key: 'appimage' },
+  { fmt: '.tar.gz', desc: 'binary tarball', ext: 'tar.gz', key: 'tar' },
+];
+const LINUX_BYTES: Record<string, number> = {
+  'linux-x64-deb': 77115462,
+  'linux-x64-rpm': 91900383,
+  'linux-x64-appimage': 86862328,
+  'linux-x64-tar': 91704966,
+  'linux-arm64-deb': 75495942,
+  'linux-arm64-rpm': 89630922,
+  'linux-arm64-appimage': 84699656,
+  'linux-arm64-tar': 89242349,
+};
+const linuxRows = (arch: 'x64' | 'arm64'): Row[] =>
+  LINUX_FMT.map((f) => {
+    const slug = `linux-${arch}-${f.key}`;
+    const a = arch === 'x64' ? 'x86_64' : 'aarch64';
+    return {
+      arch: arch === 'x64' ? 'x86_64' : 'arm64',
+      fmt: f.fmt,
+      desc: f.desc,
+      slug,
+      file: `Uncaged-linux-${a}.${f.ext}`,
+      bytes: LINUX_BYTES[slug],
+    };
+  });
+
+const oses: Os[] = [
+  {
+    id: 'macos',
+    key: 'A',
+    name: 'macOS',
+    archs: 'Apple Silicon · Intel',
+    prompt: '$',
+    one: {
+      cmd: SH,
+      script: '/install.sh',
+      note: 'Fetches the .zip with curl, installs Uncaged.app into /Applications (or ~/Applications), clears the quarantine flag and opens it. No Gatekeeper prompt.',
+    },
+    pm: {
+      name: 'Homebrew',
+      cmd: BREW,
+      note: 'The tap is bumped with each release. Update with `brew upgrade --cask uncaged`; the in-app update prompt detects a Homebrew install and runs that instead of replacing the app.',
+    },
+    groups: [
+      {
+        rows: [
+          { arch: 'Apple Silicon', fmt: '.dmg', desc: 'arm64', slug: 'macos-arm64', file: 'Uncaged-macos-aarch64.dmg', bytes: 92087033 },
+          { arch: 'Intel', fmt: '.dmg', desc: 'x86_64', slug: 'macos-x64', file: 'Uncaged-macos-x86_64.dmg', bytes: 96161909 },
+        ],
+      },
+    ],
+    gatekeeper: true,
+    min: 'macOS 10.14+',
+  },
+  {
+    id: 'linux',
+    key: 'B',
+    name: 'Linux',
+    archs: 'x86_64 · arm64',
+    prompt: '$',
+    one: {
+      cmd: SH,
+      script: '/install.sh',
+      note: 'Installs Uncaged to ~/.local/share/uncaged, links the uncaged command into ~/.local/bin and adds a desktop entry so it shows up in your app menu. x86_64 and arm64.',
+    },
+    pmNone: 'No distro repository. Use the one-liner, or pick a package below.',
+    groups: [
+      { label: 'x86_64', rows: linuxRows('x64') },
+      { label: 'arm64 · aarch64', rows: linuxRows('arm64') },
+    ],
+  },
+  {
+    id: 'windows',
+    key: 'C',
+    name: 'Windows',
+    archs: 'x64 · ARM64',
+    prompt: 'PS>',
+    one: {
+      cmd: PS,
+      script: '/install.ps1',
+      note: 'Downloads the x64 or ARM64 installer from GitHub Releases and runs it silently, per user, with no admin prompt.',
+    },
+    pm: {
+      name: 'winget',
+      cmd: WINGET,
+      note: 'Listed in microsoft/winget-pkgs. Each version waits on Microsoft’s review before it lands, so winget can trail the newest release.',
+    },
+    groups: [
+      {
+        rows: [
+          { arch: 'x64', fmt: 'setup.exe', desc: 'installer', slug: 'windows-x64', file: 'Uncaged-windows-x86_64-setup.exe', bytes: 81312957 },
+          { arch: 'ARM64', fmt: 'setup.exe', desc: 'installer', slug: 'windows-arm64', file: 'Uncaged-windows-aarch64-setup.exe', bytes: 78851421 },
+        ],
+      },
+    ],
+    min: 'Windows 10 1903+',
+  },
+];
+
+const code = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/`([^`]+)`/g, '<code>$1</code>');
+---
+
+<section class="section band install" id="install" aria-labelledby="install-h">
+  <div class="container">
+    <span class="sec-tag"><b>08</b> install</span>
+
+    <div class="sec-head">
+      <div>
+        <p class="eyebrow">free · AGPL-3.0 · v{SITE.version}</p>
+        <h2 class="h2" id="install-h">One line<span class="ember">.</span> <span class="dim">Nothing to sign into.</span></h2>
+      </div>
+      <p class="lede">
+        No account, no license key, nothing to activate. The page has already picked your OS; every download below
+        points at the current GitHub release.
+      </p>
+    </div>
+
+    <div class="inst" data-inst data-os="macos">
+      <div class="in-top">
+        <div class="in-tabs" role="tablist" aria-label="Operating system">
+          {
+            oses.map((o, i) => (
+              <button
+                class="in-tab"
+                type="button"
+                role="tab"
+                id={`in-tab-${o.id}`}
+                aria-controls={`in-panel-${o.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                tabindex={i === 0 ? 0 : -1}
+                data-os={o.id}
+              >
+                <span class="in-key" aria-hidden="true">{o.key}</span>
+                <span class="in-name">{o.name}</span>
+                <span class="in-archs">{o.min ? `${o.archs} · ${o.min}` : o.archs}</span>
+                <span class="in-auto" aria-hidden="true">detected</span>
+              </button>
+            ))
+          }
+        </div>
+        <p class="in-meta" aria-hidden="true">
+          <span>v{SITE.version}</span><span>15 assets</span><span>github releases</span>
+        </p>
+      </div>
+
+      {
+        oses.map((o) => (
+          <div class="in-panel" role="tabpanel" id={`in-panel-${o.id}`} aria-labelledby={`in-tab-${o.id}`} tabindex="0" data-panel={o.id}>
+            <h3 class="in-os-h">
+              {o.name} <span class="in-os-sub">{o.min ? `${o.archs} · ${o.min}` : o.archs}</span>
+            </h3>
+
+            <div class="row">
+              <div class="row-l">
+                <span class="row-n">01</span>
+                <span class="row-t">one line</span>
+                <span class="chip is-ember row-chip">recommended</span>
+              </div>
+              <div class="row-c">
+                <div class="in-cmd is-big">
+                  <code tabindex="0" role="group" aria-label={`${o.name} install command`}>
+                    <span class="in-p">{o.prompt}</span>
+                    <span class="in-t" style={`--n:${o.one.cmd.length}`}>{o.one.cmd}</span>
+                  </code>
+                  <button class="copy-btn" type="button" data-copy={o.one.cmd} aria-label={`Copy the ${o.name} install command`}>copy</button>
+                </div>
+                <p class="row-note">
+                  {o.one.note}{' '}
+                  <a href={o.one.script}>Read the script</a> first if you like; it's short.
+                </p>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="row-l">
+                <span class="row-n">02</span>
+                <span class="row-t">{o.pm ? o.pm.name : 'package manager'}</span>
+              </div>
+              <div class="row-c">
+                {o.pm ? (
+                  <>
+                    <div class="in-cmd">
+                      <code tabindex="0" role="group" aria-label={`${o.pm.name} command`}>
+                        <span class="in-p">{o.prompt}</span>
+                        <span>{o.pm.cmd}</span>
+                      </code>
+                      <button class="copy-btn" type="button" data-copy={o.pm.cmd} aria-label={`Copy the ${o.pm.name} command`}>copy</button>
+                    </div>
+                    <p class="row-note" set:html={code(o.pm.note)} />
+                  </>
+                ) : (
+                  <p class="row-note row-none">{o.pmNone}</p>
+                )}
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="row-l">
+                <span class="row-n">03</span>
+                <span class="row-t">direct download</span>
+              </div>
+              <div class="row-c">
+                {o.groups.map((g) => (
+                  <div class="dl-group">
+                    {g.label && <p class="dl-glabel">{g.label}</p>}
+                    <ul class="dl-list">
+                      {g.rows.map((r) => (
+                        <li>
+                          <a
+                            class="dl"
+                            href={dl(r.slug)}
+                            aria-label={`Download Uncaged for ${o.name}, ${r.arch}, ${r.fmt} (${mb(r.bytes)})`}
+                          >
+                            <span class="dl-arch">{r.arch}</span>
+                            <span class="dl-fmt">{r.fmt}</span>
+                            <span class="dl-desc">{r.desc}</span>
+                            <span class="dl-file">{r.file}</span>
+                            <span class="dl-size">{mb(r.bytes)}</span>
+                            <span class="dl-go" aria-hidden="true">
+                              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7"></path><path d="M4.75 6.5 8 9.75 11.25 6.5"></path><path d="M3 13h10"></path></svg>
+                            </span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {o.gatekeeper && (
+              <div class="row row-gk">
+                <div class="row-l">
+                  <span class="row-n">04</span>
+                  <span class="row-t">gatekeeper</span>
+                </div>
+                <div class="row-c">
+                  <p class="row-note row-lead">
+                    Uncaged is ad-hoc signed: an independent fork has no Apple Developer ID. A .dmg downloaded in a
+                    browser gets quarantined and macOS blocks the first launch. Clear the flag once:
+                  </p>
+                  <div class="in-cmd">
+                    <code tabindex="0" role="group" aria-label="Command that clears the quarantine flag">
+                      <span class="in-p">$</span>
+                      <span>{GK}</span>
+                    </code>
+                    <button class="copy-btn" type="button" data-copy={GK} aria-label="Copy the command that clears the quarantine flag">copy</button>
+                  </div>
+                  <p class="row-note">
+                    The one-liner does this for you. Homebrew prints the same command if macOS still blocks the app.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))
+      }
+    </div>
+    <script is:inline>
+      // Pick the visitor's OS before first paint so the right tab is already lit.
+      (function () {
+        var root = document.currentScript && document.currentScript.previousElementSibling;
+        if (!root || !root.hasAttribute('data-inst')) return;
+        var ua = navigator.userAgent || '';
+        var plat = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '') + ' ' + ua;
+        var os = /Windows|Win32|Win64/i.test(plat)
+          ? 'windows'
+          : /Mac|iPhone|iPad|iPod/i.test(plat)
+            ? 'macos'
+            : /Linux|X11|CrOS/i.test(plat) && !/Android/i.test(ua)
+              ? 'linux'
+              : 'macos';
+        root.setAttribute('data-os', os);
+        root.setAttribute('data-detected', os);
+        root.classList.add('is-js');
+        root.querySelectorAll('[role="tab"]').forEach(function (t) {
+          var on = t.getAttribute('data-os') === os;
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.setAttribute('tabindex', on ? '0' : '-1');
+        });
+        root.querySelectorAll('[role="tabpanel"]').forEach(function (p) {
+          p.hidden = p.getAttribute('data-panel') !== os;
+        });
+      })();
+    </script>
+
+    <p class="in-foot">
+      Also on the release: .zip builds for macOS (both chips) and Windows x64. GitHub publishes a SHA-256 for every
+      asset. <a href={SITE.releasesLatest} rel="noopener">v{SITE.version} release notes</a> ·
+      <a href={SITE.releases} rel="noopener">every release</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  /* ---------------- the plate ---------------- */
+  .inst {
+    position: relative;
+    border: 1px solid var(--rule-strong);
+    background: rgba(9, 11, 16, 0.72);
+  }
+  .in-top {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .in-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 860px;
+  }
+  .in-tab {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'key name'
+      'key archs';
+    column-gap: 14px;
+    row-gap: 4px;
+    align-items: center;
+    padding: 18px 20px;
+    text-align: left;
+    border-right: 1px solid var(--rule);
+    color: var(--ash);
+    transition: background var(--fast), color var(--fast);
+    min-width: 0;
+  }
+  .in-tab:hover {
+    background: rgba(232, 235, 242, 0.03);
+    color: var(--ink);
+  }
+  .in-tab:focus-visible {
+    outline-offset: -3px;
+  }
+  .in-tab[aria-selected='true'] {
+    color: var(--ink);
+    background: linear-gradient(180deg, rgba(255, 122, 24, 0.07), transparent 70%);
+  }
+  .in-tab[aria-selected='true']::after {
+    /* the lit rail — sits on the plate's divider */
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--ember);
+    box-shadow: 0 0 18px var(--ember-glow);
+  }
+  .in-key {
+    grid-area: key;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-s);
+    font: 800 14px/1 var(--mono);
+    color: var(--ash);
+  }
+  .in-tab[aria-selected='true'] .in-key {
+    color: #16100a;
+    background: var(--ember);
+    border-color: var(--ember);
+  }
+  .in-name {
+    grid-area: name;
+    font: 800 clamp(16px, 1.45vw, 19px) / 1 var(--mono);
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* wraps rather than cutting off "Apple Silicon · Intel · ma…" */
+  .in-archs {
+    grid-area: archs;
+    font: 500 12px/1.35 var(--mono);
+    color: var(--ash);
+  }
+  .in-auto {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .inst[data-detected='macos'] #in-tab-macos .in-auto,
+  .inst[data-detected='linux'] #in-tab-linux .in-auto,
+  .inst[data-detected='windows'] #in-tab-windows .in-auto {
+    display: block;
+  }
+  .in-meta {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 20px;
+    font: 600 11.5px/1 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ash);
+    white-space: nowrap;
+  }
+  .in-meta span + span::before {
+    content: '·';
+    margin-right: 18px;
+    color: var(--muted);
+  }
+
+  /* no JS: no tabs, every panel stacked with its own heading */
+  .inst:not(.is-js) .in-tabs {
+    display: none;
+  }
+  .inst:not(.is-js) .in-top {
+    justify-content: flex-end;
+    min-height: 44px;
+  }
+  .in-os-h {
+    padding: 28px clamp(16px, 2.4vw, 32px) 0;
+    font: 800 clamp(18px, 1.9vw, 26px) / 1 var(--mono);
+    letter-spacing: -0.03em;
+  }
+  .inst.is-js .in-os-h {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .inst:not(.is-js) .in-panel + .in-panel {
+    border-top: 1px solid var(--rule-strong);
+  }
+  .in-panel[hidden] {
+    display: none;
+  }
+  .in-panel:focus-visible {
+    outline-offset: -3px;
+  }
+
+  /* ---------------- spec rows ---------------- */
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 0.26fr) minmax(0, 1fr);
+    gap: clamp(16px, 3vw, 48px);
+    padding: clamp(20px, 2.4vw, 30px) clamp(16px, 2.4vw, 32px);
+  }
+  .row + .row {
+    border-top: 1px solid var(--rule);
+  }
+  .row-l {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    align-content: start;
+    gap: 6px 12px;
+    font: 600 12px/1.3 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .row-n {
+    color: var(--ember);
+    font-weight: 700;
+  }
+  .row-t {
+    color: var(--ink);
+  }
+  .row-chip {
+    height: 22px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+  .row-c {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+  }
+  .row-note {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ash);
+    max-width: 72ch;
+  }
+  .row-note a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule-strong);
+  }
+  .row-note a:hover {
+    text-decoration-color: var(--ember);
+  }
+  .row-note :global(code) {
+    font-size: 0.88em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .row-none {
+    font-family: var(--mono);
+    font-size: 13.5px;
+  }
+  .row-lead {
+    color: var(--ink);
+  }
+
+  /* command boxes: never wrap, scroll in place */
+  .in-cmd {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    height: 46px;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius);
+    background: var(--glass-deep);
+    overflow: hidden;
+    transition: border-color var(--fast);
+  }
+  .in-cmd:hover {
+    border-color: rgba(255, 122, 24, 0.45);
+  }
+  .in-cmd.is-big {
+    height: 58px;
+    border-color: rgba(255, 122, 24, 0.35);
+    box-shadow: 0 0 0 1px rgba(255, 122, 24, 0.06), 0 18px 50px -24px rgba(255, 122, 24, 0.35);
+  }
+  .in-cmd > code {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    font-size: 13.5px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    font-variant-ligatures: none;
+  }
+  .in-cmd.is-big > code {
+    font-size: clamp(13.5px, 1.25vw, 16px);
+    font-weight: 600;
+  }
+  .in-cmd > code:focus-visible {
+    outline-offset: -2px;
+  }
+  .in-cmd > code::-webkit-scrollbar {
+    display: none;
+  }
+  .in-cmd > code.is-overflowing {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+  .in-p {
+    flex: none;
+    color: var(--ember);
+    font-weight: 700;
+  }
+  .in-cmd .copy-btn {
+    font-size: 12px;
+    padding: 0 16px;
+  }
+  .in-cmd .copy-btn:hover {
+    background: rgba(255, 122, 24, 0.08);
+  }
+  /* re-typed on tab switch; the resting state is the full line */
+  .in-t.is-typing {
+    animation: in-type 0.62s steps(var(--n), end) both;
+  }
+  @keyframes in-type {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* ---------------- downloads ---------------- */
+  .dl-group + .dl-group {
+    margin-top: 14px;
+  }
+  .dl-glabel {
+    margin-bottom: 8px;
+    font: 700 12px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .dl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .dl-list li + li {
+    border-top: 1px solid var(--rule);
+  }
+  .dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 2.4fr) minmax(0, 0.7fr) 36px;
+    align-items: center;
+    gap: 14px;
+    min-height: 50px;
+    padding: 0 0 0 16px;
+    font: 500 13.5px/1.2 var(--mono);
+    color: var(--ash);
+    background: rgba(16, 19, 26, 0.5);
+    transition: background var(--fast), color var(--fast);
+  }
+  .dl > span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dl-arch {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .dl-fmt {
+    color: var(--ink);
+  }
+  .dl-file {
+    font-size: 12px;
+    color: var(--ash);
+  }
+  .dl-size {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .dl-go {
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+    border-left: 1px solid var(--rule);
+    color: var(--ash);
+    transition: color var(--fast), background var(--fast);
+  }
+  .dl:hover {
+    background: rgba(255, 122, 24, 0.06);
+    color: var(--ink);
+  }
+  .dl:hover .dl-go {
+    color: #16100a;
+    background: var(--ember);
+  }
+  .dl:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .in-os-sub {
+    margin-left: 10px;
+    font: 500 13.5px/1.2 var(--mono);
+    letter-spacing: 0;
+    color: var(--ash);
+  }
+
+  .in-foot {
+    margin-top: 20px;
+    font: 500 13.5px/1.6 var(--mono);
+    color: var(--ash);
+  }
+  .in-foot a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--rule-strong);
+  }
+  .in-foot a:hover {
+    text-decoration-color: var(--ember);
+  }
+
+  @media (max-width: 1100px) {
+    .in-meta {
+      display: none;
+    }
+    .in-tabs {
+      max-width: none;
+    }
+    .dl {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 0.6fr) 36px;
+    }
+    .dl-file {
+      display: none;
+    }
+  }
+  @media (max-width: 760px) {
+    .row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 14px;
+    }
+    .in-tab {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'key'
+        'name'
+        'archs';
+      padding: 14px 12px;
+      row-gap: 8px;
+    }
+    .in-key {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+    }
+    .in-name {
+      font-size: 16px;
+    }
+    .in-archs {
+      font-size: 11px;
+      white-space: normal;
+    }
+    .in-tab {
+      align-content: start;
+    }
+    .in-auto {
+      top: 12px;
+      right: 10px;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+    .dl {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto 36px;
+      gap: 10px;
+      padding-left: 12px;
+    }
+    .dl-desc {
+      display: none;
+    }
+  }
+  @media (max-width: 400px) {
+    .in-auto {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-inst]');
+  if (root) {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const flagOverflow = (scope: ParentNode) => {
+      scope.querySelectorAll<HTMLElement>('.in-cmd > code').forEach((el) => {
+        el.classList.toggle('is-overflowing', el.scrollWidth > el.clientWidth + 1);
+      });
+    };
+
+    const select = (tab: HTMLButtonElement, focus: boolean) => {
+      const os = tab.dataset.os ?? 'macos';
+      root.dataset.os = os;
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+      });
+      let shown: HTMLElement | undefined;
+      panels.forEach((p) => {
+        p.hidden = p.dataset.panel !== os;
+        if (!p.hidden) shown = p;
+      });
+      if (focus) tab.focus();
+      if (shown) {
+        flagOverflow(shown);
+        if (!reduce.matches) {
+          const line = shown.querySelector<HTMLElement>('.in-t');
+          if (line) {
+            line.classList.remove('is-typing');
+            void line.offsetWidth;
+            line.classList.add('is-typing');
+          }
+        }
+      }
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab, false));
+      tab.addEventListener('keydown', (e) => {
+        let next = -1;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % tabs.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = tabs.length - 1;
+        if (next < 0) return;
+        e.preventDefault();
+        select(tabs[next], true);
+      });
+    });
+
+    const refresh = () => panels.forEach((p) => !p.hidden && flagOverflow(p));
+    refresh();
+    window.addEventListener('resize', refresh, { passive: true });
+    document.fonts?.ready.then(refresh);
+  }
+</script>

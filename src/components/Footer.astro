@@ -3,6 +3,38 @@ import Logo from './Logo.astro';
 import { SITE } from '../data/site';
 
 const year = new Date().getFullYear();
+const doc = (p: string) => `${SITE.github}/blob/main/${p}`;
+const cols = [
+  {
+    h: 'product',
+    links: [
+      { href: '#splits', label: 'splits' },
+      { href: '#modes', label: 'two modes' },
+      { href: '#models', label: 'any model' },
+      { href: '#themes', label: 'themes' },
+      { href: '#engine', label: 'no cloud' },
+      { href: '#install', label: 'install' },
+    ],
+  },
+  {
+    h: 'source',
+    links: [
+      { href: SITE.github, label: 'github', ext: true },
+      { href: SITE.releases, label: 'releases', ext: true },
+      { href: SITE.issues, label: 'issues', ext: true },
+      { href: 'https://github.com/sponsors/antonarnaudov', label: 'sponsor', ext: true },
+    ],
+  },
+  {
+    h: 'docs',
+    links: [
+      { href: doc('UNCAGED.md'), label: 'connect a model', ext: true },
+      { href: doc('docs/migrate-from-warp.md'), label: 'migrate from warp', ext: true },
+      { href: doc('FORKING.md'), label: 'fork & rebrand', ext: true },
+      { href: doc('CONTRIBUTING.md'), label: 'contributing', ext: true },
+    ],
+  },
+];
 ---
 
 <footer class="footer">
@@ -13,44 +45,30 @@ const year = new Date().getFullYear();
           <Logo idp="foot" size={26} />
           <span>uncaged</span>
         </a>
-        <p class="foot-tag">
-          The open-source Warp terminal with the cloud removed — free, private, and built to be
-          forked.
-        </p>
-        <p class="foot-handle">{SITE.handle}</p>
+        <p class="foot-tag">The open-source agentic terminal with the cloud cut out. Free, local, built to be forked.</p>
       </div>
-
-      <nav class="foot-col" aria-label="Product">
-        <h4>product</h4>
-        <a href="#privacy">privacy</a>
-        <a href="#models">models</a>
-        <a href="#open-source">fork it</a>
-        <a href="#download">download</a>
-        <a href="#faq">faq</a>
-      </nav>
-
-      <nav class="foot-col" aria-label="Source">
-        <h4>source</h4>
-        <a href={SITE.github} target="_blank" rel="noopener">github</a>
-        <a href={SITE.releases} target="_blank" rel="noopener">releases</a>
-        <a href={SITE.issues} target="_blank" rel="noopener">issues</a>
-        <a href={`${SITE.github}/blob/master/LICENSE-AGPL`} target="_blank" rel="noopener">license · AGPL-3.0</a>
-      </nav>
-
-      <nav class="foot-col" aria-label="Docs">
-        <h4>docs</h4>
-        <a href={SITE.uncagedDoc} target="_blank" rel="noopener">connect a model</a>
-        <a href={SITE.migrateDoc} target="_blank" rel="noopener">migrate from warp</a>
-        <a href={`${SITE.github}/blob/master/FORKING.md`} target="_blank" rel="noopener">fork &amp; rebrand</a>
-        <a href={`${SITE.github}/blob/master/CONTRIBUTING.md`} target="_blank" rel="noopener">contributing</a>
-      </nav>
+      {
+        cols.map((c) => (
+          <nav class="foot-col" aria-label={c.h}>
+            <h3>{c.h}</h3>
+            {c.links.map((l) => (
+              <a href={l.href} {...(l.ext ? { rel: 'noopener' } : {})}>
+                {l.label}
+                {l.ext && <span aria-hidden="true"> ↗</span>}
+              </a>
+            ))}
+          </nav>
+        ))
+      }
     </div>
 
+    <div class="foot-word" aria-hidden="true">uncaged</div>
+
     <div class="foot-bottom">
-      <p>© {year} Uncaged contributors · AGPL-3.0</p>
+      <p>© {year} Uncaged contributors · AGPL-3.0 (UI crates MIT) · {SITE.handle}</p>
       <p class="foot-legal">
-        Uncaged is an independent community fork of the open-source Warp client (© Denver
-        Technologies, Inc.). Not affiliated with or endorsed by Warp.
+        An independent fork of the open-source Warp client (© Denver Technologies, Inc.). Warp is a trademark of
+        Denver Technologies, Inc. Uncaged is not affiliated with or endorsed by Warp.
       </p>
     </div>
   </div>
@@ -58,102 +76,92 @@ const year = new Date().getFullYear();
 
 <style>
   .footer {
-    border-top: 1px solid var(--bar);
-    padding: 72px 0 40px;
-    background: linear-gradient(180deg, var(--void), #08090d);
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--rule-strong);
+    padding-top: 72px;
+    overflow: hidden;
   }
-
   .foot-grid {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
-    gap: 48px;
+    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+    gap: 40px;
   }
-
   .foot-logo {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    font-family: var(--mono);
-    font-weight: 700;
-    font-size: 16px;
-    color: var(--ink);
+    font: 800 18px/1 var(--mono);
+    letter-spacing: -0.02em;
   }
-
   .foot-tag {
     margin-top: 16px;
-    color: var(--ash);
-    font-size: 14.5px;
     max-width: 34ch;
+    color: var(--ash);
+    font-size: 15px;
   }
-
-  .foot-handle {
-    margin-top: 14px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted, #5d6577);
-  }
-
   .foot-col {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    align-content: start;
+    gap: 10px;
   }
-
-  .foot-col h4 {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted, #5d6577);
-    letter-spacing: 0.04em;
+  .foot-col h3 {
     margin-bottom: 6px;
+    font: 700 11.5px/1 var(--mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
-
   .foot-col a {
-    font-family: var(--mono);
-    font-size: 13px;
+    width: fit-content;
+    font: 500 14px/1.4 var(--mono);
     color: var(--ash);
     transition: color var(--fast);
-    width: fit-content;
   }
-
   .foot-col a:hover {
-    color: var(--ink);
+    color: var(--ember);
   }
-
+  /* the wordmark, stamped across the full width */
+  .foot-word {
+    margin-top: 72px;
+    font: 800 clamp(56px, 24.5vw, 370px) / 0.78 var(--mono);
+    letter-spacing: -0.07em;
+    text-transform: uppercase;
+    text-align: center;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(232, 235, 242, 0.2);
+    background: linear-gradient(180deg, rgba(232, 235, 242, 0.06), transparent 85%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    user-select: none;
+    white-space: nowrap;
+    margin-inline: -0.06em;
+  }
   .foot-bottom {
-    margin-top: 64px;
-    padding-top: 26px;
-    border-top: 1px solid rgba(60, 67, 82, 0.5);
     display: flex;
     justify-content: space-between;
     gap: 24px;
-    font-family: var(--mono);
-    font-size: 11.5px;
+    padding: 22px 0 28px;
+    border-top: 1px solid var(--rule);
+    font: 500 12.5px/1.6 var(--mono);
     color: var(--ash);
   }
-
   .foot-legal {
     max-width: 62ch;
     text-align: right;
   }
-
-  @media (max-width: 900px) {
+  @media (max-width: 860px) {
     .foot-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-
+    .foot-brand {
+      grid-column: 1 / -1;
+    }
     .foot-bottom {
       flex-direction: column;
     }
-
     .foot-legal {
       text-align: left;
-    }
-  }
-
-  @media (max-width: 560px) {
-    /* tighter gutter so labels like "license · AGPL-3.0" hold one line */
-    .foot-grid {
-      gap: 36px 28px;
     }
   }
 </style>

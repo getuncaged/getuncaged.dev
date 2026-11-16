@@ -1,130 +1,256 @@
 ---
+/**
+ * 10 · questions. Content is `FAQ` from site.ts (also the JSON-LD FAQPage
+ * source in index.astro, so edit answers there, not here). An exclusive
+ * `<details name="faq">` accordion: native, keyboard-operable, works without JS.
+ * Backtick spans in answers render as <code> (they scroll, never wrap).
+ */
 import { FAQ, SITE } from '../data/site';
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const rich = (s: string) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>');
 ---
 
-<section id="faq">
-  <div class="container faq-wrap">
-    <div class="sec-head">
-      <p class="eyebrow">05 · questions</p>
-      <h2 class="section-h">Questions people actually ask.</h2>
-      <p class="section-sub">
-        The longer version lives in the <a class="inline-link" href={SITE.faqDoc} target="_blank" rel="noopener">repo FAQ</a> —
-        and if it's not there, <a class="inline-link" href={SITE.issues} target="_blank" rel="noopener">open an issue</a>.
-      </p>
-    </div>
+<section class="section faq" id="faq" aria-labelledby="faq-h">
+  <div class="container">
+    <span class="sec-tag"><b>09</b> questions</span>
 
-    <div class="faq-list">
-      {
-        FAQ.map((item, i) => (
-          <details class="faq-item" name="faq">
-            <summary>
-              <span class="faq-i">{String(i + 1).padStart(2, '0')}</span>
-              {item.q}
-              <span class="faq-plus" aria-hidden="true">+</span>
-            </summary>
-            <p class="faq-a" set:html={item.a.replace(/`([^`]+)`/g, '<code>$1</code>')} />
-          </details>
-        ))
-      }
+    <div class="fq-grid">
+      <div class="fq-side">
+        <p class="eyebrow">faq</p>
+        <h2 class="h2 fq-h" id="faq-h">Questions<span class="ember">.</span></h2>
+        <p class="fq-sub">
+          The long version is the <a href={SITE.faqDoc} rel="noopener">repo FAQ</a>. Not there? <a
+            href={SITE.issues}
+            rel="noopener">Open an issue</a
+          >.
+        </p>
+        <p class="fq-count" aria-hidden="true">
+          <span>{String(FAQ.length).padStart(2, '0')}</span> entries
+        </p>
+      </div>
+
+      <div class="fq-list">
+        {
+          FAQ.map((item, i) => (
+            <details class="fq" name="faq" open={i === 0}>
+              <summary>
+                <span class="fq-i" aria-hidden="true">Q{String(i + 1).padStart(2, '0')}</span>
+                <span class="fq-q">{item.q}</span>
+                <span class="fq-x" aria-hidden="true"></span>
+              </summary>
+              <div class="fq-a">
+                <p set:html={rich(item.a)} />
+              </div>
+            </details>
+          ))
+        }
+      </div>
     </div>
   </div>
 </section>
 
 <style>
-  .sec-head {
-    margin-bottom: 64px;
+  .fq-grid {
+    display: grid;
+    /* 5fr: wide enough for "QUESTIONS." at the global .h2 size */
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(32px, 5vw, 96px);
+    align-items: start;
   }
-
-  .inline-link {
+  .fq-side {
+    position: sticky;
+    top: 112px;
+    display: grid;
+    gap: 22px;
+  }
+  .fq-sub {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ash);
+    max-width: 34ch;
+  }
+  .fq-sub a {
     color: var(--ink);
     text-decoration: underline;
     text-underline-offset: 3px;
-    text-decoration-color: var(--bar);
+    text-decoration-color: var(--rule-strong);
   }
-
-  .inline-link:hover {
+  .fq-sub a:hover {
     text-decoration-color: var(--ember);
   }
-
-  .faq-list {
-    border-top: 1px solid var(--bar);
-  }
-
-  .faq-item {
-    border-bottom: 1px solid var(--bar);
-  }
-
-  .faq-item summary {
+  .fq-count {
     display: flex;
     align-items: baseline;
-    gap: 18px;
-    padding: 24px 4px;
-    font-family: var(--mono);
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--ink);
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule-strong);
+    font: 600 12px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .fq-count span {
+    font: 800 32px/1 var(--mono);
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--rule-strong);
+  }
+
+  /* ---------------- the accordion, on hard rules ---------------- */
+  .fq-list {
+    border-top: 1px solid var(--rule-strong);
+  }
+  .fq {
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .fq summary {
+    position: relative;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 28px;
+    gap: 16px;
+    align-items: baseline;
+    padding: 26px 0;
     cursor: pointer;
     list-style: none;
     transition: color var(--fast);
   }
-
-  .faq-item summary::-webkit-details-marker {
+  .fq summary::-webkit-details-marker {
     display: none;
   }
-
-  .faq-item summary:hover {
-    color: var(--ember-deep);
+  .fq summary:focus-visible {
+    outline-offset: 4px;
   }
-
-  .faq-i {
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--muted, #5d6577);
-  }
-
-  .faq-plus {
-    margin-left: auto;
+  .fq-i {
+    font: 700 13px/1 var(--mono);
+    letter-spacing: 0.08em;
     color: var(--ash);
-    font-weight: 500;
-    transition: transform var(--fast);
+    transform: translateY(-0.2em);
+    transition: color var(--fast);
   }
-
-  .faq-item[open] .faq-plus {
-    transform: rotate(45deg);
+  .fq-q {
+    font: 700 clamp(16px, 1.5vw, 21px) / 1.25 var(--mono);
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .fq summary:hover .fq-i,
+  .fq[open] .fq-i {
     color: var(--ember);
   }
-
-  .faq-a {
-    padding: 0 4px 24px 44px;
-    color: var(--ash);
-    max-width: 64ch;
+  /* plus → minus: two hard bars, one folds flat */
+  .fq-x {
+    position: relative;
+    align-self: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--bar);
+    border-radius: var(--radius-s);
+    transition: border-color var(--fast), background var(--fast);
+  }
+  .fq-x::before,
+  .fq-x::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    margin: -1px 0 0 -6px;
+    background: var(--ash);
+    transition: transform 0.3s var(--ease), background var(--fast);
+  }
+  .fq-x::after {
+    transform: rotate(90deg);
+  }
+  .fq summary:hover .fq-x {
+    border-color: var(--rule-strong);
+  }
+  .fq[open] .fq-x {
+    border-color: var(--ember);
+    background: rgba(255, 122, 24, 0.08);
+  }
+  .fq[open] .fq-x::before,
+  .fq[open] .fq-x::after {
+    background: var(--ember);
+  }
+  .fq[open] .fq-x::after {
+    transform: rotate(0deg);
   }
 
-  /* the answer settles in on open — a response to input, not decoration
-     (the global reduced-motion kill switch flattens it) */
-  .faq-item[open] .faq-a {
-    animation: faq-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  .fq-a {
+    padding: 0 44px 30px 72px;
   }
-
-  @keyframes faq-in {
+  .fq[open] .fq-a {
+    animation: fq-in 0.4s var(--ease);
+  }
+  @keyframes fq-in {
     from {
       opacity: 0;
-      transform: translateY(-5px);
+      transform: translateY(-6px);
     }
   }
-
-  .faq-a :global(code) {
-    font-size: 13px;
-    color: var(--ink);
-    background: var(--panel);
+  .fq-a p {
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--ash);
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+  /* commands in answers keep their line: they scroll inside their own box */
+  .fq-a :global(code) {
+    display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+    vertical-align: bottom;
+    white-space: nowrap;
+    padding: 1px 7px;
     border: 1px solid var(--bar);
     border-radius: 5px;
-    padding: 1.5px 6px;
+    background: var(--glass-deep);
+    font-size: 0.82em;
+    line-height: 1.6;
+    color: var(--ink);
+    scrollbar-width: none;
   }
 
-  @media (max-width: 560px) {
-    .faq-a {
-      padding-left: 4px;
+  @media (max-width: 960px) {
+    .fq-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .fq-side {
+      position: static;
+    }
+    .fq-count {
+      display: none;
+    }
+  }
+  @media (max-width: 600px) {
+    .fq summary {
+      grid-template-columns: minmax(0, 1fr) 28px;
+      grid-template-areas:
+        'i x'
+        'q q';
+      gap: 12px;
+      padding: 22px 0;
+    }
+    .fq-i {
+      grid-area: i;
+      transform: none;
+      align-self: center;
+    }
+    .fq-q {
+      grid-area: q;
+    }
+    .fq-x {
+      grid-area: x;
+    }
+    .fq-a {
+      padding: 0 0 24px;
+    }
+    .fq-a p {
+      font-size: 16px;
     }
   }
 </style>

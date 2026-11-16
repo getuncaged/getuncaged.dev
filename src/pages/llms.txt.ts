@@ -32,7 +32,7 @@ Current version: ${SITE.version}. Every build: ${SITE.releases}
 ## Source
 
 - [GitHub repository](${SITE.github}): AGPL-3.0, the whole product
-- [Releases](${SITE.releases}): signed builds, checksums, changelogs
+- [Releases](${SITE.releases}): every build, with SHA-256 checksums and changelogs
 
 ## Optional
 

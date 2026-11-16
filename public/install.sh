@@ -5,7 +5,8 @@
 #
 # macOS: downloads the app over curl (which — unlike a browser — never sets the
 # com.apple.quarantine flag), so it opens with no Gatekeeper prompt, no
-# notarization, no xattr. Linux: installs the `uncaged` binary to ~/.local/bin.
+# notarization, no xattr. Linux: installs Uncaged to ~/.local/share/uncaged and links
+# the `uncaged` command into ~/.local/bin.
 # An optional arg forces the arch:  ... | bash -s -- arm64   (or intel).
 #
 # It's just a shell script — read it first if you like, that's the point.
@@ -62,7 +63,7 @@ case "$os" in
   Linux)
     case "$arch" in
       x86_64|x64|amd64|intel) asset="Uncaged-linux-x86_64.tar.gz"; label="x86_64" ;;
-      arm64|aarch64) err "arm64 Linux builds aren't published yet — see https://getuncaged.dev/#download" ;;
+      arm64|aarch64)          asset="Uncaged-linux-aarch64.tar.gz"; label="arm64" ;;
       *) err "unsupported architecture '$arch'" ;;
     esac
     printf 'Downloading Uncaged for Linux (%s)…\n' "$label"
@@ -72,10 +73,20 @@ case "$os" in
     binsrc="$(find "${tmp}" -type f -name uncaged 2>/dev/null | head -1)"
     [ -n "$binsrc" ] || err "binary 'uncaged' not found in archive"
 
+    # Since 0.3.5 the theme/onboarding images ship as files in resources/ next to the
+    # binary (the app finds them beside its real, symlink-resolved path). Keep the
+    # whole folder together and link the command to it.
+    appdir_src="$(dirname "$binsrc")"
+    libdir="${HOME}/.local/share/uncaged"
+    rm -rf "$libdir"
+    mkdir -p "$libdir"
+    cp -R "${appdir_src}/." "$libdir/" || err "copy failed"
+    chmod 0755 "${libdir}/uncaged"
+
     bindir="${HOME}/.local/bin"
     mkdir -p "$bindir"
-    cp "$binsrc" "${bindir}/uncaged"
-    chmod 0755 "${bindir}/uncaged"
+    rm -f "${bindir}/uncaged"
+    ln -s "${libdir}/uncaged" "${bindir}/uncaged" || err "could not link ${bindir}/uncaged"
 
     # Best-effort desktop entry so it shows up in the app menu.
     appdir="${HOME}/.local/share/applications"
@@ -97,6 +108,6 @@ case "$os" in
     ;;
 
   *)
-    err "unsupported OS '$os'. On Windows run: irm https://getuncaged.dev/install.ps1 | iex  — otherwise see https://getuncaged.dev/#download"
+    err "unsupported OS '$os'. On Windows run: irm https://getuncaged.dev/install.ps1 | iex  — otherwise see https://getuncaged.dev/#install"
     ;;
 esac

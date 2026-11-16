@@ -18,7 +18,7 @@ const {
   noindex = false,
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImageAlt = `${SITE.name} — ${SITE.tagline} The open-source Warp terminal without the cloud.`;
+const ogImageAlt = `${SITE.name} — ${SITE.tagline} An open-source fork of the Warp terminal, without the cloud.`;
 ---
 
 <!doctype html>
@@ -28,7 +28,7 @@ const ogImageAlt = `${SITE.name} — ${SITE.tagline} The open-source Warp termin
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {!noindex && <link rel="canonical" href={canonical} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     {/* 48px-multiple raster icon — what Google Search prefers for SERP favicons */}
@@ -59,9 +59,20 @@ const ogImageAlt = `${SITE.name} — ${SITE.tagline} The open-source Warp termin
     <meta name="twitter:image" content={new URL('/og.png?v=2', Astro.site)} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
 
+    <script is:inline>
+      // `js` gates load choreography that must never strand content without JS;
+      // `fonts-ready` releases it once the display face has landed (1.2s cap).
+      (function (d) {
+        d.classList.add('js');
+        var go = function () { d.classList.add('fonts-ready'); };
+        setTimeout(go, 1200);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(go);
+      })(document.documentElement);
+    </script>
     <slot name="head" />
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <div class="atmosphere" aria-hidden="true"><i class="orb-ember"></i><i class="orb-gold"></i><i class="orb-teal"></i></div>
     <slot />
     <div class="sr-only" id="copy-live" aria-live="polite"></div>
@@ -132,6 +143,26 @@ const ogImageAlt = `${SITE.name} — ${SITE.tagline} The open-source Warp termin
       flagOverflow();
       window.addEventListener('resize', flagOverflow, { passive: true });
       document.fonts?.ready.then(flagOverflow);
+
+      // Terminal block headers in the app recreations, as Uncaged 0.3.5 draws them
+      // (terminal/model/block.rs inline_prompt_label): a one-line command that fits beside the
+      // prompt shares its row ("<prompt> ❯ <command>", duration at the far end); one that doesn't
+      // keeps the prompt above it, in the older "<prompt> (<duration>)" form. Measured per header.
+      const heads = [...document.querySelectorAll<HTMLElement>('[data-blkh]')];
+      const fitHead = (h: HTMLElement) => {
+        if (!h.offsetParent) return; // hidden: re-fitted when it shows (the observer fires)
+        const p = h.querySelector<HTMLElement>('[data-p]');
+        const c = h.querySelector<HTMLElement>('[data-c]');
+        if (!p || !c) return;
+        h.classList.remove('is-stacked');
+        const wrapped = c.offsetTop > p.offsetTop + 2 || c.scrollWidth > c.clientWidth + 1;
+        h.classList.toggle('is-stacked', wrapped);
+      };
+      if (heads.length) {
+        const ro = new ResizeObserver((entries) => entries.forEach((e) => fitHead(e.target as HTMLElement)));
+        heads.forEach((h) => ro.observe(h));
+        document.fonts?.ready.then(() => heads.forEach(fitHead));
+      }
     </script>
   </body>
 </html>

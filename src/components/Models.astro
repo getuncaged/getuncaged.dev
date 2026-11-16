@@ -1,386 +1,1498 @@
 ---
+import AppIcon from './AppIcon.astro';
+import SettingsWindow from './SettingsWindow.astro';
+
 /**
- * The BYO-model story shown as the REAL surface: Uncaged's Settings → AI
- * "Connect a model" gallery — same groups, blurbs and button vocabulary as
- * the app (Connect for presets, Use/Edit for saved connections). The
- * in-use connection cycles: local agent → local model → API key.
+ * 03 · any model. Three ways to power Agent Mode, then a working recreation of
+ * Settings → Agents → Models → "Connect a model" as in the current app.
+ *
+ * Every app string here is verbatim from tag v0.3.3:
+ *   groups, subtitles, preset labels, blurbs, models  crates/uncaged_engine/src/catalog.rs
+ *   "Connect a model", "Connected", Active/Local/In use  app/src/settings_view/ai_page.rs (uncaged-0.3)
+ *   "AI features" card                                  ai_page.rs:5010-5014
+ *   Connect / Use / Edit, toasts                        ai_page.rs:2308-2375
+ *   Ready / Needs key / Incomplete                      crates/uncaged_engine/src/connections.rs:114-122
+ *   chip, model menu, effort menu, toasts               app/src/terminal/profile_model_selector.rs:255-520, 2540-2575
+ *   effort levels per wire                              crates/uncaged_engine/src/config.rs:56-71
+ * The window's layout, colours and the seeded roster are those of the capture
+ * shots-in/v2/models.png (lmstudio, Claude Code active on opus[1m], Ollama).
+ * The first paint is that complete state; the script only lets the visitor
+ * change it.
  */
-const gallery = [
+
+type GroupKey = 'agent' | 'local' | 'api';
+type Preset = {
+  id: string;
+  label: string;
+  blurb: string;
+  group: GroupKey;
+  wire: 'cli' | 'anthropic' | 'openai_compatible';
+  endpoint: string;
+  model: string;
+  models: string[];
+  needsKey: boolean;
+  usableOnConnect: boolean;
+  local: boolean;
+  /** the app's provider logo (AppIcon name) */
+  icon: string;
+};
+
+const EFFORT = [
+  { v: 'low', l: 'Low' },
+  { v: 'medium', l: 'Medium' },
+  { v: 'high', l: 'High' },
+  { v: 'xhigh', l: 'Extra high' },
+  { v: 'max', l: 'Max' },
+];
+const levelsFor = (p: Preset) =>
+  p.wire === 'anthropic'
+    ? ['low', 'medium', 'high', 'xhigh', 'max']
+    : p.wire === 'cli'
+      ? p.id === 'claude-code'
+        ? ['low', 'medium', 'high', 'max']
+        : []
+      : ['low', 'medium', 'high'];
+
+const P = (p: Omit<Preset, 'usableOnConnect' | 'local'> & { local?: boolean; usableOnConnect?: boolean }): Preset => ({
+  local: p.group !== 'api',
+  usableOnConnect: !p.needsKey && p.id !== 'custom',
+  ...p,
+});
+
+// catalog.rs order. Ollama / LM Studio ship no model list (catalog.rs `models: &[]`);
+// the app fills it from GET {base}/models at run time, so none is shown here.
+const PRESETS: Preset[] = [
+  P({ id: 'claude-code', label: 'Claude Code', icon: 'claude', group: 'agent', wire: 'cli', endpoint: 'claude-code-acp', model: 'sonnet', models: ['default', 'sonnet', 'haiku', 'opus[1m]'], needsKey: false, blurb: 'Drive your installed `claude` CLI with its own login — no API key.' }),
+  P({ id: 'gemini-cli', label: 'Gemini CLI', icon: 'gemini_cli', group: 'agent', wire: 'cli', endpoint: 'gemini --experimental-acp', model: 'gemini-2.5-pro', models: ['gemini-2.5-pro', 'gemini-2.5-flash'], needsKey: false, blurb: 'Drive your installed `gemini` CLI with its Google login — no API key.' }),
+  P({ id: 'codex', label: 'Codex CLI', icon: 'openai', group: 'agent', wire: 'cli', endpoint: 'codex acp', model: '', models: [], needsKey: false, blurb: 'Drive your installed `codex` CLI with its ChatGPT/OpenAI login — no API key.' }),
+  P({ id: 'ollama', label: 'Ollama (local)', icon: 'ollama', group: 'local', wire: 'openai_compatible', endpoint: 'localhost:11434', model: 'qwen2.5-coder', models: [], needsKey: false, blurb: 'Run open models on your own machine — fully private, no key.' }),
+  P({ id: 'lmstudio', label: 'LM Studio (local)', icon: 'lm-studio', group: 'local', wire: 'openai_compatible', endpoint: 'localhost:1234', model: 'local-model', models: [], needsKey: false, blurb: "Local models via LM Studio's server — private, no key." }),
+  P({ id: 'anthropic', label: 'Anthropic (Claude)', icon: 'claude', group: 'api', wire: 'anthropic', endpoint: 'api.anthropic.com', model: 'claude-sonnet-4-5', models: ['claude-opus-4-8', 'claude-sonnet-4-5', 'claude-haiku-4-5'], needsKey: true, blurb: 'Claude Opus, Sonnet & Haiku — strongest for code & agentic work.' }),
+  P({ id: 'openai', label: 'OpenAI', icon: 'openai', group: 'api', wire: 'openai_compatible', endpoint: 'api.openai.com', model: 'gpt-4o', models: ['gpt-4o', 'gpt-4o-mini', 'o3-mini'], needsKey: true, blurb: 'GPT-4o / o-series via the OpenAI API.' }),
+  P({ id: 'openrouter', label: 'OpenRouter', icon: 'openrouter', group: 'api', wire: 'openai_compatible', endpoint: 'openrouter.ai', model: 'anthropic/claude-sonnet-4-5', models: ['anthropic/claude-sonnet-4-5', 'anthropic/claude-opus-4-1', 'openai/gpt-4o', 'google/gemini-2.5-pro'], needsKey: true, blurb: 'One key, hundreds of models (Claude, GPT, Llama, Gemini, …).' }),
+  P({ id: 'google', label: 'Google Gemini', icon: 'gemini_cli', group: 'api', wire: 'openai_compatible', endpoint: 'generativelanguage.googleapis.com', model: 'gemini-2.5-pro', models: ['gemini-2.5-pro', 'gemini-2.5-flash'], needsKey: true, blurb: 'Gemini 2.5 Pro & Flash via the OpenAI-compatible endpoint.' }),
+  P({ id: 'groq', label: 'Groq', icon: 'groq', group: 'api', wire: 'openai_compatible', endpoint: 'api.groq.com', model: 'llama-3.3-70b-versatile', models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'], needsKey: true, blurb: 'Open models at very low latency.' }),
+  P({ id: 'deepseek', label: 'DeepSeek', icon: 'deepseek', group: 'api', wire: 'openai_compatible', endpoint: 'api.deepseek.com', model: 'deepseek-chat', models: ['deepseek-chat', 'deepseek-reasoner'], needsKey: true, blurb: 'DeepSeek-V3 chat & R1 reasoning.' }),
+  P({ id: 'mistral', label: 'Mistral', icon: 'mistral', group: 'api', wire: 'openai_compatible', endpoint: 'api.mistral.ai', model: 'mistral-large-latest', models: ['mistral-large-latest', 'codestral-latest'], needsKey: true, blurb: 'Mistral & Codestral models.' }),
+  P({ id: 'xai', label: 'xAI (Grok)', icon: 'x-logo', group: 'api', wire: 'openai_compatible', endpoint: 'api.x.ai', model: 'grok-3', models: ['grok-3', 'grok-3-mini'], needsKey: true, blurb: 'Grok models from xAI.' }),
+  P({ id: 'together', label: 'Together AI', icon: 'together', group: 'api', wire: 'openai_compatible', endpoint: 'api.together.xyz', model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo', models: ['meta-llama/Llama-3.3-70B-Instruct-Turbo', 'Qwen/Qwen2.5-Coder-32B-Instruct'], needsKey: true, blurb: 'A broad catalog of open models.' }),
+  P({ id: 'custom', label: 'Custom (OpenAI-compatible)', icon: 'sliders-04', group: 'api', wire: 'openai_compatible', endpoint: 'no endpoint', model: '', models: [], needsKey: false, local: false, blurb: 'Any server that speaks /chat/completions.' }),
+];
+
+const GROUPS: { key: GroupKey; title: string; subtitle: string }[] = [
+  { key: 'agent', title: 'Use a local agent', subtitle: "Drive a CLI you've already signed in to — no API key, your own subscription." },
+  { key: 'local', title: 'Run a model locally', subtitle: 'Open models on your own machine — fully private, no key.' },
+  { key: 'api', title: 'Connect with an API key', subtitle: 'Bring your own key from a cloud provider.' },
+];
+
+// The seeded roster is the capture's: an LM Studio connection the user named
+// "lmstudio" (pointed at 127.0.0.1), Claude Code active on opus[1m] at Medium
+// effort (the chip reads "opus[1m] | Medium effort"), and Ollama on its default.
+type Conn = { model: string; effort: string | null; usable: boolean; order: number; name?: string; endpoint?: string };
+const SEED = {
+  active: 'claude-code',
+  conns: {
+    lmstudio: { name: 'lmstudio', endpoint: '127.0.0.1:1234', model: 'qwen3-coder-30b-a3b-instruct-mlx', effort: null, usable: true, order: 0 },
+    'claude-code': { model: 'opus[1m]', effort: 'medium', usable: true, order: 1 },
+    ollama: { model: 'qwen2.5-coder', effort: null, usable: true, order: 2 },
+  } as Record<string, Conn>,
+};
+
+const byId = Object.fromEntries(PRESETS.map((p) => [p.id, p]));
+const seedActive = byId[SEED.active];
+const seedConn = SEED.conns[SEED.active];
+const effortLabel = (v: string | null) => EFFORT.find((e) => e.v === v)?.l ?? 'Default';
+const nameOf = (p: Preset, c?: Conn) => c?.name ?? p.label;
+const endOf = (p: Preset, c?: Conn) => c?.endpoint ?? p.endpoint;
+const showModels = (p: Preset, model: string) => p.models.length > 1 || (p.models.length === 1 && p.models[0] !== model);
+
+const client = {
+  presets: PRESETS.map(({ id, label, group, wire, endpoint, model, needsKey, usableOnConnect }) => ({
+    id, label, group, wire, endpoint, model, needsKey, usableOnConnect, levels: levelsFor(byId[id]),
+  })),
+  effort: EFFORT,
+  seed: SEED,
+};
+
+// Lane copy stays short: the rig below shows effort levels, the presets and
+// the ACP session behaviour, so the lanes carry only what the rig can't.
+const lanes = [
   {
-    heading: 'Use a local agent',
-    badge: 'Your login',
-    blurb: "Drive a CLI you've already signed in to — no API key, your own subscription.",
-    rows: [
-      { name: 'Claude Code', blurb: 'your installed claude CLI, its own login — no API key', saved: true },
-      { name: 'Gemini CLI', blurb: 'your gemini CLI with its Google login' },
-      { name: 'Codex CLI', blurb: 'your codex CLI with its ChatGPT login' },
-    ],
+    n: '1',
+    key: 'local',
+    title: 'Run a model locally',
+    pill: 'On-device',
+    names: ['Ollama', 'LM Studio', 'llama.cpp', 'vLLM'],
+    logos: ['ollama', 'lm-studio'],
+    body: 'No key, no bill. Ollama and LM Studio connect in one click, any other OpenAI-compatible server goes in as Custom, and the model menu lists what your server returns from <code>GET /models</code>.',
+    proof: ['recommended', 'Qwen3-Coder-30B-A3B (MLX 4-bit)'],
   },
   {
-    heading: 'Run a model locally',
-    badge: 'On-device',
-    blurb: 'Open models on your own machine — fully private, no key.',
-    rows: [
-      { name: 'Ollama', blurb: 'open models on your own machine', saved: true },
-      { name: 'LM Studio', blurb: "local models via LM Studio's server" },
-    ],
+    n: '2',
+    key: 'agent',
+    title: 'Use a local agent',
+    pill: 'Your login',
+    names: ['Claude Code', 'Codex CLI', 'Gemini CLI'],
+    logos: ['claude', 'openai', 'gemini_cli'],
+    body: 'Drives the CLI you already pay for over ACP, signed in with its own login. Text-only for now: the CLI runs its own tool loop, so Uncaged’s approval cards are bypassed. It starts in your terminal’s folder and gets Uncaged’s local code search as a tool.',
+    proof: ['spawns', 'claude-code-acp · codex acp · gemini --experimental-acp'],
   },
   {
-    heading: 'Connect with an API key',
-    badge: 'API key',
-    blurb: 'Bring your own key from a cloud provider.',
-    rows: [
-      { name: 'Anthropic', blurb: 'Claude Opus, Sonnet & Haiku', saved: true },
-      { name: 'OpenAI', blurb: 'GPT-4o / o-series via the OpenAI API' },
-      { name: 'OpenRouter', blurb: 'one key, hundreds of models' },
-    ],
-    more: 'also Google · Groq · DeepSeek · Mistral · xAI · Together · any OpenAI-compatible endpoint',
+    n: '3',
+    key: 'api',
+    title: 'Connect with an API key',
+    pill: 'API key',
+    names: ['Anthropic', 'OpenAI', 'Google', 'Mistral', 'DeepSeek', 'Groq', 'Together', 'xAI', 'OpenRouter', 'any OpenAI-compatible endpoint'],
+    logos: ['claude', 'openai', 'gemini_cli', 'mistral', 'deepseek', 'groq', 'together', 'x-logo', 'openrouter'],
+    body: 'Paste a key and press Use; the key is stored in plain text on this machine. Anthropic goes over its Messages API, everything else over <code>/chat/completions</code>, so any server that speaks it works as Custom.',
+    proof: ['default', 'claude-sonnet-4-5 · api.anthropic.com'],
   },
 ];
+
 ---
 
-<section id="models">
+<section class="section models" id="models" aria-labelledby="models-h">
   <div class="container">
-    <div class="sec-head">
-      <p class="eyebrow">02 · any model</p>
-      <h2 class="section-h">Every model. No middleman.</h2>
-      <p class="section-sub">
-        The AI inside Uncaged runs on a model you choose: a local runtime like Ollama, your own
-        provider API key, or a CLI agent like Claude Code. Pick it once in
-        <span class="kbd-path">Settings → AI Models</span> — that's the entire setup — and switch
-        whenever you like.
+    <span class="sec-tag"><b>03</b> any model</span>
+
+    <header class="m-head">
+      <p class="eyebrow">Settings → Agents → Models</p>
+      <h2 class="h2" id="models-h">Your GPU, your login<span class="dim">,</span><br /><span class="dim">or your key</span><span class="ember">.</span></h2>
+      <p class="lede">
+        Agent Mode runs on whatever you connect: <strong>a model on your machine, the CLI agent you already pay
+        for, or an API key.</strong> Keep several connected and switch with <b class="kw">Use</b>. Nothing goes to
+        Uncaged.
+      </p>
+    </header>
+
+    <!-- ============ the three lanes ============ -->
+    <ol class="lanes" aria-label="The three ways to power Agent Mode">
+      {
+        lanes.map((l) => (
+          <li class={`lane${l.key === seedActive.group ? ' is-live' : ''}`} data-lane={l.key}>
+            <div class="lane-top">
+              <span class="lane-n" aria-hidden="true">{l.n}</span>
+              <span class="lane-live" aria-hidden="true">powering Agent Mode</span>
+            </div>
+            <h3 class="lane-t">
+              {l.title} <span class="lane-pill">{l.pill}</span>
+            </h3>
+            <p class="lane-names">
+              <span class="lane-logos" aria-hidden="true">
+                {l.logos.map((n) => (
+                  <AppIcon name={n} size={15} />
+                ))}
+              </span>
+              {l.names.join(' · ')}
+            </p>
+            <p class="lane-body" set:html={l.body} />
+            <p class="lane-proof">
+              <span>{l.proof[0]}</span>
+              <code tabindex="0" role="group" aria-label={`${l.proof[0]}: ${l.proof[1]}`}>{l.proof[1]}</code>
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <!-- ============ the working recreation ============ -->
+    <div class="rig" id="models-rig">
+      <p class="rig-cap">
+        <span class="rig-cap-k">try it</span>
+        Press <b class="kw">Use</b> or <b class="kw">Connect</b>, pick a model, step the effort. Every label in the
+        window and the menus is the app’s own.
+      </p>
+
+      <div class="rig-grid">
+        <!-- Settings → Models, as in shots-in/v2/models.png -->
+        <SettingsWindow page="Models" label="Models settings page, scrollable" class="st">
+          <p class="sw-title">Models</p>
+          <div class="sw-card st-ai">
+            <span class="st-ai-t">
+              <span class="st-ct">AI features</span>
+              <span class="st-cd">Turn off to disable every AI feature, from agents to suggestions.</span>
+            </span>
+            <span class="sw-ai" aria-hidden="true" title="AI on"><i></i></span>
+          </div>
+          <div class="sw-card">
+          <p class="st-sub">Connect a model</p>
+          <p class="st-blurb">
+            Power Agent Mode with your own model — a local agent CLI you're already signed in to, a private on-device
+            model (Ollama / LM Studio), or any API key. Nothing goes to Uncaged; your keys stay on this machine.
+          </p>
+
+          <span class="st-label">Connected</span>
+          <ul class="st-conns" aria-label="Connected">
+            {
+              PRESETS.map((p) => {
+                const c = SEED.conns[p.id];
+                const isActive = SEED.active === p.id;
+                const model = c?.model ?? p.model;
+                const ep = endOf(p, c);
+                return (
+                  <li
+                    class={`card conn${isActive ? ' is-active' : ''}`}
+                    data-conn={p.id}
+                    hidden={!c}
+                    style={c ? `order:${c.order}` : undefined}
+                  >
+                    <span class="ico" aria-hidden="true"><AppIcon name={p.icon} size={18} /></span>
+                    <span class="c-text">
+                      <span class="c-name">
+                        <b data-name>{nameOf(p, c)}</b>
+                        <span class="pill pill-accent" data-pill-active hidden={!isActive}>Active</span>
+                        {p.local && <span class="pill pill-quiet">Local</span>}
+                      </span>
+                      <span class="c-sub" data-sub>{model ? `${model} · ${ep}` : ep}</span>
+                    </span>
+                    <span class="c-right">
+                      <span class={`pill ${c ? 'pill-ok' : 'pill-warn'}`} data-status>
+                        {c ? 'Ready' : p.needsKey ? 'Needs key' : 'Incomplete'}
+                      </span>
+                      <button class="abtn" type="button" data-use={p.id} hidden={!c || isActive}>
+                        Use<span class="sr-only"> {nameOf(p, c)}</span>
+                      </button>
+                      <button class="abtn" type="button" data-edit={p.id}>
+                        <AppIcon name="pencil-02" size={13} />
+                        Edit<span class="sr-only"> {nameOf(p, c)}</span>
+                      </button>
+                    </span>
+                  </li>
+                );
+              })
+            }
+          </ul>
+
+
+          {
+            GROUPS.map((g) => (
+              <div class="st-group">
+                <span class="st-label">{g.title}</span>
+                <span class="st-gsub">{g.subtitle}</span>
+                <ul class="st-cards" aria-label={g.title}>
+                  {PRESETS.filter((p) => p.group === g.key).map((p) => {
+                    const isActive = SEED.active === p.id;
+                    const isConn = !!SEED.conns[p.id];
+                    return (
+                      <li class={`card gcard${isActive ? ' is-active' : ''}`} data-card={p.id}>
+                        <span class="ico" aria-hidden="true"><AppIcon name={p.icon} size={18} /></span>
+                        <span class="c-text">
+                          <span class="c-name">
+                            <b>{p.label}</b>
+                          </span>
+                          <span class="c-sub">{p.blurb}</span>
+                        </span>
+                        <span class="c-right">
+                          <span class="pill pill-accent" data-inuse hidden={!isActive}>In use</span>
+                          <span class="pill pill-ok" data-connected hidden={!isConn || isActive}>Connected</span>
+                          <button class="abtn" type="button" data-connect={p.id} hidden={isConn}>
+                            <AppIcon name="plus" size={13} />
+                            Connect<span class="sr-only"> {p.label}</span>
+                          </button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))
+          }
+          </div>
+          <div class="toast" data-toast role="status" aria-live="polite" slot="after"></div>
+        </SettingsWindow>
+
+        <!-- Agent input, exploded: model menu + effort menu above the chip -->
+        <div class="dock">
+          <div class="menu" role="group" aria-label="Model menu">
+            <span class="menu-k" aria-hidden="true">model menu</span>
+            <ul class="menu-list">
+              {
+                PRESETS.map((p) => {
+                  const c = SEED.conns[p.id];
+                  const isActive = SEED.active === p.id;
+                  const model = c?.model ?? p.model;
+                  return (
+                    <li data-mrow={p.id} hidden={!c} style={c ? `order:${c.order}` : undefined}>
+                      <button
+                        type="button"
+                        class="mi"
+                        data-pick-conn={p.id}
+                        aria-pressed={isActive ? 'true' : 'false'}
+                        disabled={c ? !c.usable : !p.usableOnConnect}
+                      >
+                        <span data-mlabel>
+                          {nameOf(p, c)} · {model || 'no model'}
+                        </span>
+                        <i class="chk" aria-hidden="true"><AppIcon name="check" size={13} /></i>
+                      </button>
+                      <ul class="msub" data-msub={p.id} hidden={!isActive || !showModels(p, model)}>
+                        <li class="mh" aria-hidden="true">Model</li>
+                        {p.models.map((m) => (
+                          <li>
+                            <button
+                              type="button"
+                              class="mi mi-sub"
+                              data-pick-model={m}
+                              data-for={p.id}
+                              aria-pressed={m === model ? 'true' : 'false'}
+                            >
+                              <span>{m}</span>
+                              <i class="chk" aria-hidden="true"><AppIcon name="check" size={13} /></i>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  );
+                })
+              }
+            </ul>
+          </div>
+
+          <div class="menu" role="group" aria-label="Effort menu">
+            <span class="menu-k" aria-hidden="true">effort menu</span>
+            <ul class="menu-list" data-effort-list hidden={levelsFor(seedActive).length === 0}>
+              {
+                [{ v: '', l: 'Default' }, ...EFFORT].map((e) => {
+                  const lv = levelsFor(seedActive);
+                  const on = (seedConn.effort ?? '') === e.v;
+                  return (
+                    <li data-eff-row={e.v} hidden={e.v !== '' && !lv.includes(e.v)}>
+                      <button type="button" class="mi" data-pick-effort={e.v} aria-pressed={on ? 'true' : 'false'}>
+                        <span>{e.l}</span>
+                        <i class="chk" aria-hidden="true"><AppIcon name="check" size={13} /></i>
+                      </button>
+                    </li>
+                  );
+                })
+              }
+            </ul>
+            <p class="menu-none" data-effort-none hidden={levelsFor(seedActive).length > 0}>
+              This agent takes no effort setting, so the chip shows the model only.
+            </p>
+          </div>
+
+          <!-- the agent input card, as in shots-in/split-3-z.png (focused agent pane) -->
+          <div class="inp">
+            <div class="inp-chips" aria-hidden="true">
+              <span class="ic"><AppIcon name="folder" size={13} />/tmp/uncaged</span>
+              <span class="ic"><AppIcon name="git-branch-02" size={13} />main</span>
+            </div>
+            <div class="inp-line" aria-hidden="true">Ask a follow up</div>
+            <div class="inp-foot">
+              <span class="mode" aria-hidden="true">
+                <i class="m-t" title="Terminal (⌘I)"><AppIcon name="terminal" size={13} /></i>
+                <i class="m-a is-on" title="Agent Mode (⌘I)"><AppIcon name="sparkle" size={14} /></i>
+              </span>
+              <button
+                type="button"
+                class="ib nld"
+                data-nld
+                aria-pressed="false"
+                aria-label="Enable terminal command autodetection"
+                title="Enable terminal command autodetection"
+              >
+                <AppIcon name="nld" size={15} />
+              </button>
+              <span class="foot-r">
+                <span class="ib" aria-hidden="true" title="Context window usage"><AppIcon name="conversation-context-0" size={15} /></span>
+                <span class="chip-m" title="Choose an agent model" data-chip>
+                  <span class="chip-model" data-chip-model>{seedConn.model || seedActive.label}</span>
+                  <span class="chip-rule" data-chip-rule hidden={levelsFor(seedActive).length === 0} aria-hidden="true"></span>
+                  <span class="chip-eff" data-chip-eff hidden={levelsFor(seedActive).length === 0}>
+                    <span data-chip-eff-t>{effortLabel(seedConn.effort)} effort</span>
+                    <AppIcon name="chevron-down" size={12} />
+                  </span>
+                </span>
+                <span class="ib" aria-hidden="true" title="Attach file"><AppIcon name="plus" size={15} /></span>
+              </span>
+            </div>
+          </div>
+
+          <div class="log" role="group" aria-label="What the app wrote">
+            <div class="log-h">
+              <span>~/.uncaged</span>
+              <button type="button" class="log-reset" data-reset>reset</button>
+            </div>
+            <ol class="log-lines" data-log>
+              <li><span class="lk">read</span><span class="lv">connections.json · 3 connections</span></li>
+              <li><span class="lk">active</span><span class="lv">Claude Code → engine.json · acp · opus[1m]</span></li>
+            </ol>
+            <template data-log-tpl><li><span class="lk"></span><span class="lv"></span></li></template>
+          </div>
+        </div>
+      </div>
+
+      <p class="rig-foot">
+        Saved in <code>~/.uncaged/connections.json</code>, keys included, as plain JSON on your machine. The active
+        connection is copied into <code>~/.uncaged/engine.json</code>, which the engine reads.
       </p>
     </div>
-
-    <div class="sw-window" id="switchboard" role="img" aria-label="Uncaged's Connect a model settings gallery: use a local agent, run a model locally, or connect with an API key — saved connections show Use and Edit, the rest show Connect">
-      <div class="sw-bar">
-        <span class="sw-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span class="sw-title">settings — AI · connect a model</span>
-        <span class="sw-hint">one connection is all it takes</span>
-      </div>
-
-      <div class="sw-gallery">
-        {
-          gallery.map((g) => (
-            <div class="sw-group">
-              <div class="sw-group-head">
-                <h3>{g.heading}</h3>
-                <span class="sw-badge">{g.badge}</span>
-              </div>
-              {g.blurb && <p class="sw-group-blurb">{g.blurb}</p>}
-              <div class="sw-rows">
-                {g.rows.map((r) => (
-                  <div class={`sw-row${r.saved ? ' sw-saved' : ''}`} data-provider={r.name}>
-                    <div class="sw-row-text">
-                      <span class="sw-name">{r.name}</span>
-                      <span class="sw-blurb">{r.blurb}</span>
-                    </div>
-                    <div class="sw-actions" aria-hidden="true">
-                      {r.saved ? (
-                        <>
-                          <span class="sw-btn sw-btn-use">Use</span>
-                          <span class="sw-btn">Edit</span>
-                        </>
-                      ) : (
-                        <span class="sw-btn sw-btn-connect">Connect</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {g.more && <p class="sw-more">{g.more}</p>}
-            </div>
-          ))
-        }
-      </div>
-
-      <div class="sw-foot">
-        <span>active model</span>
-        <b id="sw-active">Ollama · qwen3-coder</b>
-        <span class="sw-foot-cfg">config <code>~/.uncaged/engine.json</code> · keys on your disk</span>
-      </div>
-    </div>
-
   </div>
 </section>
 
+<script type="application/json" id="models-data" set:html={JSON.stringify(client)} />
+
 <style>
-  .sec-head {
-    margin-bottom: 72px;
+  .m-head {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 22px clamp(16px, 2vw, 32px);
+    margin-bottom: clamp(48px, 6vw, 88px);
+    padding-top: 30px;
   }
-
-  .kbd-path {
-    font-family: var(--mono);
-    font-size: 14.5px;
+  .m-head .eyebrow {
+    grid-column: 1 / -1;
+  }
+  .m-head .h2 {
+    grid-column: 1 / span 7;
+  }
+  .m-head .lede {
+    grid-column: 8 / -1;
+    align-self: end;
+  }
+  .kw {
+    font: 700 0.86em/1 var(--mono);
     color: var(--ink);
-    background: var(--panel);
+    padding: 2px 6px;
     border: 1px solid var(--bar);
-    border-radius: 6px;
-    padding: 2px 8px;
+    border-radius: 5px;
     white-space: nowrap;
   }
 
-  .sw-window {
-    background: #10141c;
-    border: 1px solid var(--bar);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow:
-      0 1px 0 rgba(232, 235, 242, 0.05) inset,
-      0 24px 70px -18px rgba(0, 0, 0, 0.85);
-  }
-
-  .sw-bar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--bar);
-    background: rgba(22, 26, 35, 0.6);
-  }
-
-  .sw-dots {
-    display: inline-flex;
-    gap: 6px;
-  }
-
-  .sw-dots i {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: var(--bar);
-  }
-
-  .sw-dots i:first-child {
-    background: #384051;
-  }
-
-  .sw-title {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--ash);
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .sw-hint {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--muted, #5d6577);
-    white-space: nowrap;
-  }
-
-  .sw-gallery {
+  /* ------------------------------------------------ lanes */
+  .lanes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 28px;
-    padding: 24px 26px;
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
   }
-
-  .sw-group-head {
+  .lane {
+    position: relative;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: 0 clamp(16px, 2vw, 32px) clamp(24px, 3vw, 36px);
+    border-left: 1px solid var(--rule-strong);
+  }
+  .lane:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .lane::before {
+    /* the hard top bar that lights when this lane powers Agent Mode */
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--ember);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease);
+  }
+  .lane.is-live::before {
+    transform: none;
+  }
+  .lane-top {
+    display: flex;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 6px;
+    gap: 12px;
   }
-
-  .sw-group-head h3 {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--ink);
+  .lane-n {
+    font: 800 clamp(77px, 8vw, 125px) / 0.8 var(--mono);
+    letter-spacing: -0.08em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--rule-strong);
+    margin: clamp(18px, 2vw, 28px) 0 4px -0.04em;
+    transition: -webkit-text-stroke-color 0.5s var(--ease);
   }
-
-  .sw-badge {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    font-weight: 500;
-    color: var(--ash);
-    border: 1px solid var(--bar);
-    border-radius: 999px;
-    padding: 2px 9px;
+  .lane.is-live .lane-n {
+    -webkit-text-stroke-color: var(--ember);
+  }
+  .lane-live {
+    margin-top: 18px;
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ember);
+    opacity: 0;
+    transition: opacity 0.4s var(--ease);
     white-space: nowrap;
   }
-
-  .sw-group-blurb {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--muted, #5d6577);
-    margin-bottom: 12px;
-    min-height: 15px;
+  .lane.is-live .lane-live {
+    opacity: 1;
   }
-
-  .sw-group > .sw-rows:first-of-type {
-    margin-top: 12px;
+  .lane-t {
+    font: 800 clamp(17px, 1.45vw, 21px) / 1.15 var(--mono);
+    letter-spacing: -0.03em;
+    color: var(--ink);
   }
-
-  .sw-rows {
+  .lane-pill {
+    display: inline-block;
+    vertical-align: 0.25em;
+    margin-left: 4px;
+    padding: 4px 8px;
+    border: 1px solid var(--bar);
+    border-radius: 4px;
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .lane-names {
+    font: 600 13.5px/1.55 var(--mono);
+    color: var(--ink);
+  }
+  .lane-logos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: var(--ash);
+  }
+  .lane-logos > :global(svg) {
+    flex: none;
+  }
+  .lane-body {
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--ash);
+    text-wrap: pretty;
+  }
+  .lane-body :global(code),
+  .rig-foot code {
+    font: 600 0.88em var(--mono);
+    color: var(--ink);
+  }
+  .lane-proof {
+    margin-top: auto;
     display: grid;
-    gap: 8px;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 1px dashed var(--rule-strong);
+    border-radius: 4px;
+    font: 600 12.5px/1.4 var(--mono);
+  }
+  .lane-proof span {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  /* wraps between items instead of clipping ("gemini --experimen…") */
+  .lane-proof code {
+    color: var(--gold);
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
-  .sw-row {
+  /* ------------------------------------------------ the rig */
+  .rig {
+    margin-top: clamp(44px, 5vw, 72px);
+  }
+  .rig-cap {
+    margin-bottom: 18px;
+    line-height: 1.9;
+    font-size: 15px;
+    color: var(--ash);
+  }
+  .rig-cap-k {
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #16100a;
+    background: var(--ember);
+    padding: 5px 8px;
+    border-radius: 3px;
+    margin-right: 10px;
+    vertical-align: 1px;
+  }
+  .rig-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .rig-foot {
+    margin-top: 18px;
+    font-size: 14px;
+    color: var(--ash);
+    max-width: 80ch;
+  }
+
+  /* -------- Settings → Models (SettingsWindow draws the chrome) -------- */
+  /* Sizes from ai_page.rs ConnectModelWidget (title 13 semibold, subtitle 11,
+     pill 10 semibold on fg_overlay_2, card padding 12 / radius 8); colours
+     measured from shots-in/ai-models-z.png. */
+  :global(.sw-win.st) {
+    position: relative;
+  }
+  /* the "AI features" card: label and description left, the switch right */
+  .st-ai {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    border: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
-    border-radius: 10px;
-    padding: 10px 12px;
-    transition: border-color var(--fast), background-color var(--fast);
   }
-
-  .sw-row:hover {
-    border-color: var(--bar);
-    background: rgba(232, 235, 242, 0.02);
-  }
-
-  .sw-row.on {
-    border-color: rgba(255, 178, 58, 0.35);
-    background: rgba(255, 178, 58, 0.06);
-  }
-
-  .sw-row-text {
+  .st-ai-t {
     display: grid;
-    gap: 2px;
+    gap: 3px;
     min-width: 0;
   }
-
-  .sw-name {
-    font-family: var(--mono);
-    font-size: 12.5px;
-    font-weight: 700;
-    color: var(--ink);
+  .st-ct {
+    font-size: 13px;
+    color: var(--sw-text);
+  }
+  .st-cd {
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--sw-dim);
+  }
+  /* the global AI on/off switch (GlobalAIWidget): on */
+  .sw-ai {
+    flex: none;
+    position: relative;
+    width: 30px;
+    height: 17px;
+    border-radius: 999px;
+    background: var(--ember);
+  }
+  .sw-ai i {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .st-sub {
+    margin: 0 0 3px;
+    font: 600 15.5px/1.3 var(--sans);
+    color: var(--sw-text);
+  }
+  .st-blurb {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--sw-dim);
+  }
+  .st-label {
+    display: block;
+    margin-bottom: 7px;
+    font: 600 12px/1.3 var(--sans);
+    color: var(--sw-text);
+  }
+  .st-group {
+    margin-top: 16px;
+  }
+  .st-group .st-label {
+    margin-bottom: 1px;
+  }
+  .st-gsub {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--sw-dim);
+  }
+  .st-conns,
+  .st-cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--sw-row);
+    border: 1px solid var(--sw-line);
+    transition: border-color 0.3s var(--ease);
+  }
+  .card[hidden] {
+    display: none;
+  }
+  .card.is-active {
+    border-color: var(--ember);
+  }
+  .card.is-new {
+    animation: row-in 0.5s var(--ease);
+  }
+  @keyframes row-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  /* the provider's own logo, in the normal text colour */
+  .ico {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    color: var(--sw-text);
+  }
+  .c-text {
+    flex: 0 1 auto;
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+  }
+  .c-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .c-name b {
+    font: 600 13px/1.25 var(--sans);
+    color: #d4d6dc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .c-sub {
+    font-size: 11px;
+    line-height: 1.35;
+    color: #97999f;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .c-right {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill {
+    flex: none;
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--sw-line);
+    font: 600 10px/1.2 var(--sans);
+    white-space: nowrap;
+  }
+  .pill[hidden],
+  .abtn[hidden] {
+    display: none;
+  }
+  .pill-accent {
+    color: var(--ember);
+  }
+  .pill-quiet {
+    color: #9fa1a7;
+  }
+  .pill-ok {
+    color: #aaddc4;
+  }
+  .pill-warn {
+    color: var(--gold);
+  }
+  .abtn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 8px;
+    border: 1px solid var(--sw-btn-line);
+    border-radius: 6px;
+    background: transparent;
+    font: 600 12px/1 var(--sans);
+    color: #e8ebf1;
+    cursor: pointer;
+    transition:
+      background var(--fast),
+      border-color var(--fast);
+  }
+  .abtn:hover {
+    background: rgba(232, 235, 242, 0.06);
+    border-color: #55575d;
+  }
+  .abtn:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 2px;
+  }
+  .abtn > :global(svg) {
+    flex: none;
+  }
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    z-index: 2;
+    max-width: calc(100% - 32px);
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #22242a;
+    border: 1px solid var(--sw-btn-line);
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.8);
+    font: 500 12.5px/1.3 var(--sans);
+    color: #e8ebf1;
+    opacity: 0;
+    transform: translate(-50%, 6px);
+    pointer-events: none;
+    transition:
+      opacity 0.25s var(--ease),
+      transform 0.25s var(--ease);
+  }
+  .toast:empty {
+    display: none;
+  }
+  .toast.is-on {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 
-  .sw-blurb {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted, #5d6577);
+  /* -------- the dock: chip + menus, exploded -------- */
+  .dock {
+    display: grid;
+    gap: 12px;
+    font-family: var(--sans);
+    min-width: 0;
+  }
+  .menu {
+    position: relative;
+    padding: 6px;
+    border-radius: 10px;
+    border: 1px solid var(--bar);
+    background: #10131a;
+    box-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.9);
+  }
+  .menu-k {
+    position: absolute;
+    top: 0;
+    right: 12px;
+    transform: translateY(-50%);
+    padding: 0 6px;
+    background: var(--void);
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .menu-list,
+  .msub {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .menu-list[hidden],
+  .menu-list > li[hidden],
+  .msub[hidden] {
+    display: none;
+  }
+  .mi {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 30px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #c5ccda;
+    text-align: left;
+    transition: background var(--fast);
+  }
+  .mi > span {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
-  .sw-actions {
-    display: inline-flex;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-
-  .sw-btn {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    font-weight: 700;
-    color: var(--ash);
-    border: 1px solid var(--bar);
-    border-radius: 7px;
-    padding: 4px 10px;
-    white-space: nowrap;
-  }
-
-  .sw-btn-connect {
+  .mi:hover:not(:disabled) {
+    background: rgba(232, 235, 242, 0.06);
     color: var(--ink);
   }
-
-  .sw-row.on .sw-btn-use {
-    color: #16100a;
-    background: var(--gold);
-    border-color: var(--gold);
+  .mi:disabled {
+    color: var(--muted);
+    cursor: not-allowed;
   }
-
-  .sw-more {
-    margin-top: 10px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted, #5d6577);
-    line-height: 1.7;
-  }
-
-  .sw-foot {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    flex-wrap: wrap;
-    padding: 12px 26px;
-    border-top: 1px solid var(--line-soft, rgba(60, 67, 82, 0.6));
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--muted, #5d6577);
-  }
-
-  .sw-foot b {
-    color: var(--gold);
-    font-weight: 700;
-    font-size: 12px;
-  }
-
-  .sw-foot-cfg {
-    margin-left: auto;
-  }
-
-  .sw-foot-cfg code {
+  /* "  Model" header and "    {model}" rows: the app indents them with spaces
+     and draws them in the sub-text colour (profile_model_selector.rs:479-500) */
+  .mi-sub {
+    padding-left: 34px;
     color: var(--ash);
   }
+  .mh {
+    padding: 6px 10px 2px 22px;
+    font-size: 12px;
+    color: var(--ash);
+  }
+  .chk {
+    flex: none;
+    display: grid;
+    font-style: normal;
+    color: var(--ink);
+    visibility: hidden;
+  }
+  .mi[aria-pressed='true'] {
+    color: var(--ink);
+  }
+  .mi[aria-pressed='true'] .chk {
+    visibility: visible;
+  }
+  .menu-none {
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ash);
+  }
+  .menu-none[hidden] {
+    display: none;
+  }
 
-  @media (max-width: 900px) {
-    .sw-gallery {
+  /* the agent input card (shots-in/split-3-z.png, focused agent pane) */
+  .inp {
+    padding: 12px 12px 10px;
+    border-radius: 10px;
+    border: 1px solid #2f3136;
+    background: #16181d;
+    min-width: 0;
+  }
+  .inp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ic {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 7px;
+    border: 1px solid #2f3136;
+    border-radius: 5px;
+    background: #191b21;
+    font: 700 12px/1.2 var(--mono);
+    color: #acdedb;
+    white-space: nowrap;
+  }
+  .inp-line {
+    margin: 14px 0 12px;
+    font: 400 13px/1.3 var(--mono);
+    color: #6a6c71;
+  }
+  .inp-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  /* the mode switch: one outlined group, two segments; in a focused agent pane
+     the agent segment is filled yellow with a dark icon, the terminal icon grey */
+  .mode {
+    flex: none;
+    display: inline-flex;
+    padding: 2px;
+    border: 1px solid #33353a;
+    border-radius: 7px;
+    background: #1f2126;
+  }
+  .mode i {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    font-style: normal;
+    color: #9a9ca2;
+  }
+  .mode i.is-on {
+    color: #31291e;
+    background: #f4b554;
+  }
+  .ib {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #2f3136;
+    border-radius: 7px;
+    background: #191b21;
+    color: #6c6e74;
+  }
+  .nld {
+    cursor: pointer;
+    transition:
+      color var(--fast),
+      background var(--fast);
+  }
+  .nld:hover {
+    color: var(--ink);
+  }
+  .nld[aria-pressed='true'] {
+    color: var(--t-blue);
+  }
+  .nld:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 2px;
+  }
+  .mode :global(svg),
+  .ib > :global(svg),
+  .chip-eff > :global(svg) {
+    display: block;
+    flex: none;
+  }
+  .foot-r {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin-left: auto;
+  }
+  .chip-m {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    height: 28px;
+    padding: 0 9px;
+    border-radius: 7px;
+    border: 1px solid #2f3136;
+    background: #191b21;
+    font: 400 13px/1 var(--sans);
+    color: #96989e;
+    white-space: nowrap;
+  }
+  .chip-model {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chip-rule {
+    flex: none;
+    width: 1px;
+    height: 14px;
+    background: #2f3136;
+  }
+  .chip-rule[hidden],
+  .chip-eff[hidden] {
+    display: none;
+  }
+  .chip-eff {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chip-m.is-flash {
+    animation: chip-flash 0.7s var(--ease);
+  }
+  @keyframes chip-flash {
+    from {
+      border-color: var(--ember);
+      box-shadow: 0 0 0 3px rgba(255, 122, 24, 0.18);
+    }
+  }
+  .log {
+    border-radius: 10px;
+    border: 1px solid var(--bar);
+    background: var(--glass-deep);
+    overflow: hidden;
+  }
+  .log-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+    padding: 0 6px 0 12px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .log-reset {
+    padding: 5px 8px;
+    border-radius: 5px;
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+  .log-reset:hover {
+    color: var(--ink);
+  }
+  .log-lines {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+    display: grid;
+    min-height: 136px;
+    align-content: start;
+  }
+  .log-lines > :global(li) {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 10px;
+    padding: 2px 12px;
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .log-lines > :global(li.is-new) {
+    animation: log-in 0.4s var(--ease) both;
+  }
+  @keyframes log-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  .log-lines :global(.lk) {
+    color: var(--ember);
+    font-weight: 700;
+  }
+  .log-lines :global(.lv) {
+    color: #c5ccda;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ------------------------------------------------ responsive */
+  @media (max-width: 1100px) {
+    .rig-grid {
       grid-template-columns: minmax(0, 1fr);
-      gap: 24px;
     }
-
-    .sw-hint {
-      display: none;
+    .dock {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-    .sw-foot-cfg {
-      margin-left: 0;
+    .inp,
+    .log {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 960px) {
+    .lanes {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .lane,
+    .lane:first-child {
+      padding: 0 0 28px;
+      border-left: 0;
+      border-top: 1px solid var(--rule-strong);
+    }
+    .lane:first-child {
+      border-top: 0;
+    }
+    /* numeral beside the title, the live label pinned top-right */
+    .lane {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      column-gap: 16px;
+      row-gap: 12px;
+      align-items: end;
+    }
+    .lane > :not(.lane-top):not(.lane-t) {
+      grid-column: 1 / -1;
+    }
+    .lane-top {
+      align-self: stretch;
+    }
+    .lane-n {
+      font-size: clamp(51px, 14.4vw, 77px);
+      margin: 22px 0 0 -0.04em;
+    }
+    .lane-live {
+      position: absolute;
+      top: 2px;
+      right: 0;
+      margin-top: 0;
+    }
+    /* keep a wrapped title clear of the badge above it (320px) */
+    .lane-t {
+      margin-top: 18px;
+    }
+    .m-head .h2,
+    .m-head .lede {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 760px) {
+    .dock {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .inp-foot,
+    .foot-r {
+      gap: 4px;
+    }
+    /* below ~360px the right group drops to its own line rather than eat the model name */
+    .inp-foot {
+      flex-wrap: wrap;
+      row-gap: 6px;
+    }
+    .chip-model {
+      flex: none;
+    }
+    .mode i {
+      width: 20px;
+    }
+    .ib {
+      width: 26px;
+      height: 26px;
+    }
+    .chip-m {
+      height: 26px;
+      gap: 5px;
+      padding: 0 6px;
+      font-size: 12px;
+    }
+    .chip-eff {
+      gap: 4px;
+    }
+    .card {
+      flex-wrap: wrap;
+    }
+    .c-text {
+      flex-basis: calc(100% - 40px);
+    }
+    .c-sub {
+      white-space: normal;
+    }
+    .c-right {
       width: 100%;
+      padding-left: 29px;
     }
   }
 </style>
 
 <script>
-  const sw = document.getElementById('switchboard');
-  if (sw) {
-    const activeEl = document.getElementById('sw-active')!;
-    const saved = ['Ollama', 'Anthropic', 'Claude Code'];
-    const details: Record<string, string> = {
-      Ollama: 'Ollama · qwen3-coder',
-      Anthropic: 'Anthropic · claude sonnet',
-      'Claude Code': 'Claude Code · your plan, over ACP',
+  type Conn = { model: string; effort: string | null; usable: boolean; order: number; name?: string; endpoint?: string };
+  type Pre = {
+    id: string;
+    label: string;
+    group: string;
+    wire: string;
+    endpoint: string;
+    model: string;
+    needsKey: boolean;
+    usableOnConnect: boolean;
+    levels: string[];
+  };
+
+  const root = document.getElementById('models-rig');
+  const dataEl = document.getElementById('models-data');
+  if (root && dataEl) {
+    const data = JSON.parse(dataEl.textContent || '{}') as {
+      presets: Pre[];
+      effort: { v: string; l: string }[];
+      seed: { active: string; conns: Record<string, Conn> };
+    };
+    const P: Record<string, Pre> = Object.fromEntries(data.presets.map((p) => [p.id, p]));
+    const effLabel = (v: string | null) => data.effort.find((e) => e.v === v)?.l ?? 'Default';
+    const kind = (w: string) => (w === 'cli' ? 'acp' : w);
+    const clone = <T,>(o: T): T => JSON.parse(JSON.stringify(o));
+    // A connection keeps its own name and base URL; a fresh one takes the preset's.
+    const nameOf = (id: string) => conns[id]?.name ?? P[id].label;
+    const endOf = (id: string) => conns[id]?.endpoint ?? P[id].endpoint;
+
+    let active = data.seed.active;
+    let conns: Record<string, Conn> = clone(data.seed.conns);
+    let nextOrder = 3;
+
+    const $ = (sel: string, el: ParentNode = root) => el.querySelector<HTMLElement>(sel);
+    const $$ = (sel: string, el: ParentNode = root) => [...el.querySelectorAll<HTMLElement>(sel)];
+    const lanes = $$('#models [data-lane]', document);
+    const toastEl = $('[data-toast]');
+    const logEl = $('[data-log]');
+    const tpl = root.querySelector<HTMLTemplateElement>('template[data-log-tpl]');
+    let toastT = 0;
+
+    const toast = (msg: string) => {
+      if (!toastEl) return;
+      toastEl.textContent = msg;
+      toastEl.classList.add('is-on');
+      clearTimeout(toastT);
+      toastT = window.setTimeout(() => toastEl.classList.remove('is-on'), 2600);
+    };
+    const log = (k: string, v: string) => {
+      if (!logEl || !tpl) return;
+      const li = tpl.content.firstElementChild!.cloneNode(true) as HTMLElement;
+      li.querySelector('.lk')!.textContent = k;
+      li.querySelector('.lv')!.textContent = v;
+      li.classList.add('is-new');
+      logEl.append(li);
+      while (logEl.children.length > 7) logEl.firstElementChild!.remove();
+    };
+    const writes = () => {
+      const p = P[active];
+      log('write', 'connections.json');
+      log('write', `engine.json · ${kind(p.wire)} · ${conns[active].model || nameOf(active)}`);
+    };
+    const flashChip = () => {
+      const chip = $('[data-chip]');
+      if (!chip) return;
+      chip.classList.remove('is-flash');
+      void chip.offsetWidth;
+      chip.classList.add('is-flash');
     };
 
-    function activate(name: string) {
-      sw!.querySelectorAll<HTMLElement>('.sw-row.sw-saved').forEach((row) => {
-        const on = row.dataset.provider === name;
-        row.classList.toggle('on', on);
-        const use = row.querySelector('.sw-btn-use');
-        if (use) use.textContent = on ? 'In use' : 'Use';
-      });
-      activeEl.textContent = details[name] ?? name;
-    }
-
-    activate('Ollama');
-
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      let i = 0;
-      const io = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((e) => e.isIntersecting)) {
-            io.disconnect();
-            setInterval(() => {
-              i = (i + 1) % saved.length;
-              activate(saved[i]!);
-            }, 3000);
+    const render = () => {
+      const ap = P[active];
+      const ac = conns[active];
+      for (const p of data.presets) {
+        const c = conns[p.id];
+        const on = p.id === active;
+        // Connected roster row
+        const row = $(`[data-conn="${p.id}"]`);
+        if (row) {
+          row.hidden = !c;
+          if (c) row.style.order = String(c.order);
+          row.classList.toggle('is-active', on);
+          $('[data-pill-active]', row)!.hidden = !on;
+          const st = $('[data-status]', row)!;
+          st.textContent = c?.usable ? 'Ready' : p.needsKey ? 'Needs key' : 'Incomplete';
+          st.className = `pill ${c?.usable ? 'pill-ok' : 'pill-warn'}`;
+          $('[data-use]', row)!.hidden = !c || on || !c.usable;
+          const model = c?.model ?? p.model;
+          const ep = endOf(p.id);
+          $('[data-name]', row)!.textContent = nameOf(p.id);
+          $('[data-sub]', row)!.textContent = model ? `${model} · ${ep}` : ep;
+        }
+        // Gallery card
+        const card = $(`[data-card="${p.id}"]`);
+        if (card) {
+          card.classList.toggle('is-active', on);
+          $('[data-inuse]', card)!.hidden = !on;
+          $('[data-connected]', card)!.hidden = !c || on;
+          $('[data-connect]', card)!.hidden = !!c;
+        }
+        // Model menu row + its model list
+        const mrow = $(`[data-mrow="${p.id}"]`);
+        if (mrow) {
+          mrow.hidden = !c;
+          if (c) mrow.style.order = String(c.order);
+          const btn = $('[data-pick-conn]', mrow)!;
+          btn.setAttribute('aria-pressed', String(on));
+          (btn as HTMLButtonElement).disabled = !c?.usable;
+          const model = c?.model ?? p.model;
+          $('[data-mlabel]', mrow)!.textContent = `${nameOf(p.id)} · ${model || 'no model'}`;
+          const sub = $('[data-msub]', mrow);
+          if (sub) {
+            const items = $$('[data-pick-model]', sub);
+            const show = items.length > 1 || (items.length === 1 && items[0].dataset.pickModel !== model);
+            sub.hidden = !on || !show;
+            items.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pickModel === model)));
           }
-        },
-        { threshold: 0.4 }
+        }
+      }
+      // Effort menu
+      const lv = ap.levels;
+      $('[data-effort-list]')!.hidden = lv.length === 0;
+      $('[data-effort-none]')!.hidden = lv.length > 0;
+      $$('[data-eff-row]').forEach((li) => {
+        const v = li.dataset.effRow!;
+        li.hidden = v !== '' && !lv.includes(v);
+        li.querySelector('button')!.setAttribute('aria-pressed', String((ac.effort ?? '') === v));
+      });
+      // Chip: model id (or the label when none), a drawn rule, "{Level} effort"
+      $('[data-chip-model]')!.textContent = ac.model || nameOf(active);
+      $('[data-chip-rule]')!.hidden = lv.length === 0;
+      $('[data-chip-eff]')!.hidden = lv.length === 0;
+      $('[data-chip-eff-t]')!.textContent = `${effLabel(ac.effort)} effort`;
+      // Lanes
+      lanes.forEach((l) => l.classList.toggle('is-live', l.dataset.lane === ap.group));
+      document.dispatchEvent(
+        new CustomEvent('uncaged:active', {
+          detail: { group: ap.group, wire: ap.wire, label: nameOf(active), endpoint: endOf(active) },
+        })
       );
-      io.observe(sw);
-    }
+    };
+
+    // Settings "Use" toasts "Now using {label}." (ai_page.rs:2375); the model
+    // menu toasts "Switched to {model or label}" (profile_model_selector.rs:2512).
+    const use = (id: string, from: 'settings' | 'menu') => {
+      if (!conns[id]?.usable || id === active) return;
+      active = id;
+      render();
+      flashChip();
+      toast(from === 'menu' ? `Switched to ${conns[id].model || nameOf(id)}` : `Now using ${nameOf(id)}.`);
+      writes();
+      if (P[id].wire === 'cli') log('note', 'ACP: text-only, the CLI runs its own tools');
+    };
+
+    root.addEventListener('click', (ev) => {
+      const t = (ev.target as HTMLElement).closest<HTMLElement>('button');
+      if (!t) return;
+      const d = t.dataset;
+      if ('nld' in d) {
+        // The autodetect toggle: grey off, terminal-blue on (off by default).
+        const on = t.getAttribute('aria-pressed') !== 'true';
+        const label = `${on ? 'Disable' : 'Enable'} terminal command autodetection`;
+        t.setAttribute('aria-pressed', String(on));
+        t.setAttribute('aria-label', label);
+        t.title = label;
+      } else if (d.use) use(d.use, 'settings');
+      else if (d.pickConn) use(d.pickConn, 'menu');
+      else if (d.edit) log('opens', `Connect ${nameOf(d.edit)}`);
+      else if (d.connect) {
+        const p = P[d.connect];
+        if (conns[p.id]) return;
+        conns[p.id] = { model: p.model, effort: null, usable: p.usableOnConnect, order: nextOrder++ };
+        const row = $(`[data-conn="${p.id}"]`);
+        row?.classList.add('is-new');
+        if (p.usableOnConnect) {
+          active = p.id;
+          render();
+          flashChip();
+          toast(`Connected ${p.label} — ready to use.`);
+          writes();
+          if (p.wire === 'cli') log('note', 'ACP: text-only, the CLI runs its own tools');
+        } else {
+          render();
+          log('opens', `Connect ${p.label} · ${p.needsKey ? 'API key' : 'base URL'}`);
+        }
+        // Keep the new roster row in view inside the settings page.
+        row?.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      } else if (d.pickModel !== undefined) {
+        const c = conns[active];
+        if (!c || d.for !== active || c.model === d.pickModel) return;
+        c.model = d.pickModel;
+        render();
+        flashChip();
+        toast(`Model set to ${c.model}`);
+        writes();
+        if (active === 'claude-code') log('ACP', 'session/set_model · live session');
+      } else if (d.pickEffort !== undefined) {
+        const c = conns[active];
+        const v = d.pickEffort || null;
+        if (!c || c.effort === v) return;
+        c.effort = v;
+        render();
+        flashChip();
+        toast(`Effort set to ${effLabel(v)}`);
+        writes();
+        if (active === 'claude-code') log('ACP', 'session reopened with resume · context kept');
+      } else if ('reset' in d) {
+        active = data.seed.active;
+        conns = clone(data.seed.conns);
+        nextOrder = 3;
+        render();
+        log('reset', '3 connections · Claude Code active');
+      }
+    });
   }
 </script>
